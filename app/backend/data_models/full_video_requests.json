@@ -1,0 +1,31 @@
+{
+    "title": "full_video_requests",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "autoincrement": true,
+            "primary_key": true
+        },
+        "email": {
+            "type": "string"
+        },
+        "arxiv_id": {
+            "type": "string"
+        },
+        "note": {
+            "type": "string",
+            "format": "text"
+        },
+        "ui_lang": {
+            "type": "string"
+        },
+        "source_arxiv": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "email",
+        "arxiv_id"
+    ]
+}
