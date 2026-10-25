@@ -1,0 +1,25 @@
+{
+    "title": "made_previews",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "autoincrement": true,
+            "primary_key": true
+        },
+        "arxiv_id": {
+            "type": "string"
+        },
+        "title": {
+            "type": "string"
+        },
+        "scene_count": {
+            "type": "integer"
+        }
+    },
+    "required": [
+        "arxiv_id",
+        "title",
+        "scene_count"
+    ]
+}

@@ -8,6 +8,7 @@ import AuthCallback from './pages/AuthCallback';
 import AuthError from './pages/AuthError';
 // MODULE_IMPORTS_START
 import Watch from './pages/Watch';
+import Make from './pages/Make';
 import { PrefsProvider } from './lib/prefs';
 // MODULE_IMPORTS_END
 
@@ -21,6 +22,7 @@ const AppRoutes = () => (
     <Route path="/auth/error" element={<AuthError />} />
     {/* MODULE_ROUTES_START */}
     <Route path="/watch/:arxiv" element={<Watch />} />
+    <Route path="/make" element={<Make />} />
     <Route path="*" element={<Index />} />
     {/* MODULE_ROUTES_END */}
   </Routes>

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Play } from 'lucide-react';
 import SiteLayout from '@/components/SiteLayout';
+import OwnPaperSection from '@/components/OwnPaperSection';
 import { usePrefs } from '@/lib/prefs';
 import { useDemos } from '@/lib/demos';
 
@@ -31,7 +32,8 @@ export default function Index() {
   const first = demos?.[0];
 
   useEffect(() => {
-    if (location.hash === '#demos') document.getElementById('demos')?.scrollIntoView({ behavior: 'smooth' });
+    const target = location.hash.slice(1);
+    if (target === 'demos' || target === 'own') document.getElementById(target)?.scrollIntoView({ behavior: 'smooth' });
   }, [location.hash, demos]);
 
   return (
@@ -71,6 +73,8 @@ export default function Index() {
           </Link>
         </div>
       </section>
+
+      <OwnPaperSection />
 
       <section id="demos" className="scroll-mt-20 border-t border-border bg-card/60">
         <div className="mx-auto max-w-[1120px] px-5 py-14 md:px-8">
