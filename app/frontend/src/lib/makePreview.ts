@@ -107,7 +107,7 @@ export function paperText(paper: Paper): string {
 let promptCache: Promise<string> | null = null;
 function loadScenePrompt(): Promise<string> {
   if (!promptCache) {
-    promptCache = fetch('/explainer/scene_prompt.md')
+    promptCache = fetch('/explainer/scene_prompt.md.html')
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.text();

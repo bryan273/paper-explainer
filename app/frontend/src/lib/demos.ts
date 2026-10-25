@@ -18,7 +18,7 @@ let cache: Promise<Demo[]> | null = null;
 
 function loadDemos(): Promise<Demo[]> {
   if (!cache) {
-    cache = fetch('/explainer/index.json')
+    cache = fetch('/explainer/index.json.html')
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json() as Promise<Demo[]>;
@@ -49,7 +49,7 @@ export function useDemos() {
 }
 
 export function playerSrc(arxiv: string, lang: 'en' | 'zh'): string {
-  return `/explainer/player.html?script=/explainer/${arxiv}/script_${lang}.json&auto&limit=20`;
+  return `/explainer/player.html?script=/explainer/${arxiv}/script_${lang}.json.html&auto&limit=20`;
 }
 
 export function formatRequestNo(id: number): string {

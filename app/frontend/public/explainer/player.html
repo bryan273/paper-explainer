@@ -132,8 +132,9 @@ function tick(){
 function start(){idx=-1;playing=true;t0=performance.now();window.__done=false;$("#play").textContent="Pause";requestAnimationFrame(tick);}
 let rafBg=0;(function loop(ts){bgFrame(ts);rafBg=requestAnimationFrame(loop)})(0);
 
+async function getJSON(u){try{return JSON.parse(await (await fetch(u)).text());}catch(e){return JSON.parse(await (await fetch(u+".html")).text());}}
 async function boot(){
-  if(!P.get("script")&&P.has("wait"))return;const src=P.get("script")||"script.json";S=await (await fetch(src)).json();const base=src.includes("/")?src.slice(0,src.lastIndexOf("/")+1):"";S.scenes.forEach(x=>{if(x.audio)x.audio=base+x.audio;});
+  if(!P.get("script")&&P.has("wait"))return;const src=P.get("script")||"script.json";S=await getJSON(src);const base=src.includes("/")?src.slice(0,src.lastIndexOf("/")+1):"";S.scenes.forEach(x=>{if(x.audio)x.audio=base+x.audio;});
   if(P.get("limit")){let lim=+P.get("limit")*1000,acc=0,out=[];for(const sc of S.scenes){if(acc>=lim)break;out.push(sc);acc+=sc.dur;}S.scenes=out;}
   S.scenes.forEach(x=>{if(!x.dur)x.dur=Math.max(4200,Math.round(((x.en||'').split(/\s+/).length)*430)+900);});S.total=S.scenes.reduce((a,s)=>a+s.dur,0);window.__total=S.total;
   $("#play").onclick=()=>{if(!playing||$("#play").textContent==="Replay")start();else{playing=false;$("#play").textContent="Play";curAudio&&curAudio.pause();}};
