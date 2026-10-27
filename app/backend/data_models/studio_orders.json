@@ -1,0 +1,33 @@
+{
+    "title": "studio_orders",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "autoincrement": true,
+            "primary_key": true
+        },
+        "email": {
+            "type": "string"
+        },
+        "arxiv": {
+            "type": "string"
+        },
+        "language": {
+            "type": "string"
+        },
+        "notes": {
+            "type": "string",
+            "format": "text"
+        },
+        "status": {
+            "type": "string",
+            "default": "new"
+        }
+    },
+    "required": [
+        "email",
+        "arxiv",
+        "language"
+    ]
+}

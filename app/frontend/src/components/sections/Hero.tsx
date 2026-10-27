@@ -1,0 +1,86 @@
+import { videoUrl, type Job } from '@/lib/explainer';
+import { usePrefs } from '@/lib/prefs';
+import { scrollToSection } from '@/components/Shell';
+
+export function StatsStrip({ items }: { items: Job[] }) {
+  const { t } = usePrefs();
+  const checked = items.reduce((n, j) => n + (j.checks?.checked ?? 0), 0);
+  const removed = items.reduce((n, j) => n + (j.checks?.removed?.length ?? 0), 0);
+
+  return (
+    <div className="facts" role="group" aria-label={t('statVideos')}>
+      <span>
+        <b>{items.length}</b>
+        {t('statVideos')}
+      </span>
+      <span>
+        <b>2</b>
+        {t('statLangs')}
+      </span>
+      <span>
+        <b>{checked}</b>
+        {t('statChecked')}
+      </span>
+      <span>
+        <b>{removed}</b>
+        {t('statRemoved')}
+      </span>
+      <span>
+        <b className="mono" style={{ fontSize: 20 }}>
+          {t('statTimeValue')}
+        </b>
+        {t('statTime')}
+      </span>
+    </div>
+  );
+}
+
+export default function Hero({ items, error }: { items: Job[] | null; error: boolean }) {
+  const { t } = usePrefs();
+  const latest = items?.[0] ?? null;
+  const src = latest ? `${videoUrl(latest, 'en') ?? ''}#t=1` : '';
+
+  return (
+    <section className="hero" aria-labelledby="hero-title">
+      <div className="hero-grid">
+        <div>
+          <span className="eyebrow">Paper Explainer</span>
+          <h1 className="hero-title" id="hero-title" style={{ marginTop: 10 }}>
+            {t('heroTitle')}
+          </h1>
+          <p className="lede">{t('heroSub')}</p>
+          <div className="actions">
+            <button type="button" className="btn primary" onClick={() => scrollToSection('make')}>
+              {t('heroMake')}
+            </button>
+            <button type="button" className="btn ghost" onClick={() => scrollToSection('examples')}>
+              {t('heroWatch')}
+            </button>
+          </div>
+        </div>
+
+        <div>
+          {latest && src ? (
+            <>
+              <div className="screen">
+                <video src={src} controls playsInline preload="metadata" title={latest.title ?? ''} />
+              </div>
+              <div className="media-cap">
+                <span className="t">{latest.title}</span>
+                <span className="mono small">arXiv:{latest.arxiv}</span>
+              </div>
+            </>
+          ) : (
+            <div className="screen" aria-busy={!error}>
+              <div style={{ display: 'grid', placeItems: 'center', height: '100%', color: 'var(--muted)', fontSize: 13 }}>
+                {error ? t('loadVideosError') : `${t('loadingVideos')}…`}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {items && items.length > 0 && <StatsStrip items={items} />}
+    </section>
+  );
+}

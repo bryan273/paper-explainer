@@ -1,33 +1,36 @@
 ---
-last_updated: 2026-10-25T18:30:00Z
+last_updated: 2026-10-27T12:40:00Z
 ---
 
 # Architecture Design
 
 ## System Overview
-Paper Explainer is a Vite React SPA with an Atoms Cloud backend. The supplied static player and demos are served from `public/explainer/`. The player is embedded unmodified in a 16:9 iframe. Full-video requests are saved to the `full_video_requests` entity.
+Paper Explainer is the flagship app of Repro Suite: a single-page React site (left sidebar shell + main column) that turns an arXiv paper into a narrated video. It calls the external `explainer-render` function for real videos and stats, and the Atoms Cloud backend for orders and feedback. The old in-browser draft player, the local `/explainer` bundle and the demo list were removed.
 
 ## Tech Stack
-React, TypeScript, Tailwind, shadcn/ui, react-router-dom, @metagptx/web-sdk, FastAPI (auto-generated entity routes).
+Vite + React + TypeScript, Tailwind (base utilities only; the Repro Suite CSS system in `src/index.css` does the styling), @metagptx/web-sdk entities, FastAPI auto-generated entity routes.
 
 ## Module Design
 | Module | Responsibility | Key Files |
 |--------|---------------|-----------|
-| Prefs | UI language (en/zh) strings and light/dark theme, persisted in localStorage | src/lib/prefs.tsx |
-| Demos | Loads /explainer/index.json, builds the player URL, formats request numbers | src/lib/demos.ts |
-| Layout | Header (nav, language toggle, theme toggle) and footer | src/components/SiteLayout.tsx |
-| Home | Hero plus demo cards | src/pages/Index.tsx |
-| Watch | Iframe player, EN/中文 video toggle, locked request form, "How it is made" note | src/pages/Watch.tsx |
-| Requests API | Anonymous create for full_video_requests (email, arxiv_id, note, ui_lang, source_arxiv) | app/backend/routers/full_video_requests.py |
+| Design system | Repro Suite tokens (light/dark, Inter/JetBrains Mono, cards, pills), shell, sections | src/index.css, src/components/Shell.tsx |
+| Prefs | EN/中文 strings + theme, theme key `repro.theme2` | src/lib/prefs.tsx |
+| Render API | `?recent=1`, POST queue, `?id=` poll, share/download helpers, `?v=` links | src/lib/explainer.ts |
+| Sections | Hero + stats, Make (5 steps, EN/中文, share), Examples (lightbox), How, Pricing + order, Feedback | src/components/sections/*, src/pages/Index.tsx |
+| Video feedback | Thumbs + comment as one row (kind "video") | src/components/VideoFeedback.tsx |
+| Orders | Studio orders (email, arxiv, language, notes, status "new") | app/backend/routers/studio_orders.py |
+| Feedback | rating, use_case, comment, email, arxiv, kind | app/backend/routers/feedback.py |
 
 ## Tech Decisions
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Preview end detection | PlayerOnEnd callback plus polling of window.__done | The player is same-origin and must not be modified |
-| Request number | PE- followed by the zero-padded DB id | Stable and unique |
+| Video data | External explainer-render function (no key) | Real finished videos and real check counts |
+| Polling | GET `?id=` every 5 s until done/failed | Matches the documented contract |
+| Cached jobs | Show result immediately with a note | Server returns existing videos at once |
+| Share link | `?v=<arxiv>` opens that video in the examples lightbox | Stable, no extra routes |
 
 ## File Tree Plan
-public/explainer/** (bundle), src/pages/{Index,Watch}.tsx, src/lib/{prefs.tsx,demos.ts}, src/components/SiteLayout.tsx
+src/pages/Index.tsx, src/components/{Shell.tsx,media.tsx,VideoFeedback.tsx}, src/components/sections/*, src/lib/{prefs.tsx,explainer.ts,feedback.ts}
 
 ## Implementation Guide
-Do not edit public/explainer/player.html. The player URL is /explainer/player.html?script=/explainer/<arxiv>/script_<lang>.json&auto&limit=20.
+Never reintroduce `.json`/`.md` requests (the published host serves index.html for them). Keep all new text in both EN and ZH; keep tables `full_video_requests`, `made_previews`, `studio_orders`, `feedback`.

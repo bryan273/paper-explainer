@@ -1,0 +1,33 @@
+{
+    "title": "feedback",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "autoincrement": true,
+            "primary_key": true
+        },
+        "rating": {
+            "type": "integer"
+        },
+        "use_case": {
+            "type": "string"
+        },
+        "comment": {
+            "type": "string",
+            "format": "text"
+        },
+        "email": {
+            "type": "string"
+        },
+        "arxiv": {
+            "type": "string"
+        },
+        "kind": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "kind"
+    ]
+}
