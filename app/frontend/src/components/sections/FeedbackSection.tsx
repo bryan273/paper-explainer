@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { client } from '@/lib/api';
+import { saveFeedback } from '@/lib/data';
 import { useFeedbackCount } from '@/lib/feedback';
 import { usePrefs, type StringKey } from '@/lib/prefs';
 
@@ -36,15 +36,13 @@ export default function FeedbackSection() {
     setSending(true);
     setError(null);
     try {
-      await client.entities.feedback.create({
-        data: {
-          rating,
-          use_case: useCase ?? '',
-          comment: comment.trim(),
-          email: email.trim(),
-          arxiv: '',
-          kind: 'general',
-        },
+      await saveFeedback({
+        rating,
+        use_case: useCase ?? '',
+        comment: comment.trim(),
+        email: email.trim(),
+        arxiv: '',
+        kind: 'general',
       });
       setSent(true);
       reload();

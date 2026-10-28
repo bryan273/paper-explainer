@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { client } from '@/lib/api';
+import { saveFeedback } from '@/lib/data';
 import { usePrefs } from '@/lib/prefs';
 
 /** "Was this useful?" thumbs plus an optional comment, saved as one feedback row (kind "video"). */
@@ -17,13 +17,8 @@ export default function VideoFeedback({ arxiv }: { arxiv: string }) {
     setError(null);
     try {
       const data = { rating: nextRating, use_case: '', comment: nextComment, email: '', arxiv, kind: 'video' };
-      if (rowId) {
-        await client.entities.feedback.update({ id: rowId, data });
-      } else {
-        const res = await client.entities.feedback.create({ data });
-        const id = (res.data as { id?: number | string } | undefined)?.id;
-        if (id !== undefined) setRowId(String(id));
-      }
+      const res = await saveFeedback(data, rowId);
+      if (res.id) setRowId(res.id);
       setSaved(true);
       return true;
     } catch {

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { client } from '@/lib/api';
+import { saveOrder } from '@/lib/data';
 import { parseArxivId } from '@/lib/explainer';
 
 const PRICE = '¥35';
@@ -29,15 +29,7 @@ function OrderForm({ onClose }: { onClose: () => void }) {
     setSending(true);
     setFailed(false);
     try {
-      await client.entities.studio_orders.create({
-        data: {
-          email: email.trim(),
-          arxiv: arxiv.trim(),
-          language,
-          notes: notes.trim(),
-          status: 'new',
-        },
-      });
+      await saveOrder({ email: email.trim(), arxiv: arxiv.trim(), language, notes: notes.trim() });
       setDone(true);
     } catch {
       setFailed(true);
