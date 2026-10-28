@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { LangSeg, ShareRow } from '@/components/media';
 import VideoFeedback from '@/components/VideoFeedback';
-import { ApiError, availableLangs, createJob, getJob, videoUrl, type Job } from '@/lib/explainer';
+import { ApiError, availableLangs, createJob, getJob, videoUrl, type Job, type MakeOpts } from '@/lib/explainer';
 import { usePrefs, type Lang, type StringKey } from '@/lib/prefs';
 
 const STEP_KEYS: StringKey[] = ['stepRead', 'stepScript', 'stepCheck', 'stepEn', 'stepZh'];
@@ -44,6 +44,8 @@ export default function MakeSection({ prefill }: { prefill?: string | null }) {
   const [cached, setCached] = useState(false);
   const [lang, setLang] = useState<Lang>('en');
   const [slow, setSlow] = useState(false);
+  const [model, setModel] = useState<MakeOpts['model']>('deepseek');
+  const [voice, setVoice] = useState<MakeOpts['voice']>('female');
   const [now, setNow] = useState(() => Date.now());
   const startedAt = useRef<number>(Date.now());
   const stageAt = useRef<{ step: number; at: number }>({ step: -1, at: Date.now() });
@@ -93,7 +95,7 @@ export default function MakeSection({ prefill }: { prefill?: string | null }) {
     setCached(false);
     clearTimer();
     try {
-      const created = await createJob(input.trim());
+      const created = await createJob(input.trim(), { model, voice });
       startedAt.current = created.created_at ? Date.parse(created.created_at) || Date.now() : Date.now();
       stageAt.current = { step: -2, at: Date.now() };
       setJob(created);
@@ -150,6 +152,22 @@ export default function MakeSection({ prefill }: { prefill?: string | null }) {
               {submitting ? <span className="spin" aria-hidden /> : null}
               {submitting ? t('makeSending') : t('makeBtn')}
             </button>
+          </div>
+          <div className="row" style={{ gap: 14, marginTop: 12, flexWrap: 'wrap' }}>
+            <label className="field" style={{ minWidth: 170 }}>
+              {t('optModel')}
+              <select value={model} onChange={(e) => setModel(e.target.value as MakeOpts['model'])} disabled={submitting || running}>
+                <option value="deepseek">DeepSeek</option>
+                <option value="stepfun">StepFun</option>
+              </select>
+            </label>
+            <label className="field" style={{ minWidth: 170 }}>
+              {t('optVoice')}
+              <select value={voice} onChange={(e) => setVoice(e.target.value as MakeOpts['voice'])} disabled={submitting || running}>
+                <option value="female">{t('voiceFemale')}</option>
+                <option value="male">{t('voiceMale')}</option>
+              </select>
+            </label>
           </div>
         </form>
 

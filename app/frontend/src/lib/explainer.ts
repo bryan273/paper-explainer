@@ -71,11 +71,13 @@ export async function fetchRecent(): Promise<Job[]> {
   return (list as Job[]).filter(isPlayable);
 }
 
-export async function createJob(arxiv: string): Promise<Job> {
+export type MakeOpts = { model: 'deepseek' | 'stepfun'; voice: 'female' | 'male' };
+
+export async function createJob(arxiv: string, opts?: MakeOpts): Promise<Job> {
   return (await request({
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ arxiv, visitor: visitorId() }),
+    body: JSON.stringify({ arxiv, visitor: visitorId(), ...opts, style: 'classic' }),
   })) as Job;
 }
 
