@@ -1084,7 +1084,15 @@ a.cardlink .go {
   color: var(--muted);
 }
 
+.foot > span:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 18px;
+}
+
 .foot a {
+  display: inline-block;
   color: var(--ink);
   text-decoration: none;
   font-weight: 600;
