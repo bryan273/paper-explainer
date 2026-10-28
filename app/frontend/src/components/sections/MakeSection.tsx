@@ -3,6 +3,7 @@ import { LangSeg, ShareRow } from '@/components/media';
 import VideoFeedback from '@/components/VideoFeedback';
 import { ApiError, availableLangs, createJob, getJob, videoUrl, type Job, type MakeOpts } from '@/lib/explainer';
 import { usePrefs, type Lang, type StringKey } from '@/lib/prefs';
+import { scrollToSection } from '@/components/Shell';
 
 const STEP_KEYS: StringKey[] = ['stepRead', 'stepScript', 'stepCheck', 'stepEn', 'stepZh'];
 const POLL_MS = 5000;
@@ -222,6 +223,9 @@ export default function MakeSection({ prefill }: { prefill?: string | null }) {
                 <strong style={{ color: 'var(--bad)' }}>{t('failedTitle')}</strong>
                 <p className="small muted" style={{ margin: 0 }}>
                   {job.error || t('failedFallback')}
+                </p>
+                <p className="small" style={{ margin: 0 }}>
+                  <a href="#support" onClick={(e) => { e.preventDefault(); scrollToSection('support'); }}>{t('supportCta')} →</a>
                 </p>
               </div>
             )}
