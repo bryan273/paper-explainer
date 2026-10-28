@@ -24,6 +24,7 @@ export interface Videos {
 export interface Job {
   id: string;
   arxiv: string;
+  source_url?: string | null;
   status: JobStatus;
   stage?: string | null;
   title?: string | null;
@@ -31,6 +32,7 @@ export interface Job {
   checks?: { checked?: number | null; removed?: string[] | null } | null;
   error?: string | null;
   cached?: boolean;
+  created_at?: string | null;
   updated_at?: string | null;
 }
 

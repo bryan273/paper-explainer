@@ -1,3 +1,4 @@
+import { srcLabel } from '@/components/sections/MakeSection';
 import { useEffect, useState } from 'react';
 import { copyText, downloadFile, shareUrl, videoUrl, type Job } from '@/lib/explainer';
 import { usePrefs, type Lang } from '@/lib/prefs';
@@ -155,7 +156,7 @@ export function Lightbox({
         <video src={src} controls autoPlay playsInline />
         <div className="media-cap">
           <span className="t">{job.title}</span>
-          <span className="mono small">arXiv:{job.arxiv}</span>
+          <span className="mono small">{srcLabel(job)}</span>
         </div>
       </div>
     </div>

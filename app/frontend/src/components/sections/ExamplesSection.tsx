@@ -1,3 +1,4 @@
+import { srcLabel } from '@/components/sections/MakeSection';
 import { useEffect, useState } from 'react';
 import { Lightbox, LangSeg } from '@/components/media';
 import { copyText, shareUrl, videoUrl, availableLangs, downloadFile, type Job } from '@/lib/explainer';
@@ -28,7 +29,7 @@ function ExampleCard({ job, onPlay }: { job: Job; onPlay: (job: Job, lang: Lang)
       <div className="ex-body">
         <h3 className="ex-title">{job.title}</h3>
         <p className="mono small muted" style={{ margin: 0 }}>
-          arXiv:{job.arxiv}
+          {srcLabel(job)}
         </p>
         <div className="pills">
           {checked > 0 && <span className="pill ok">{t('checksPassed', { n: checked })}</span>}

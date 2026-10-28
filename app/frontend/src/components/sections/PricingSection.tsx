@@ -1,6 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import { client } from '@/lib/api';
 import { parseArxivId } from '@/lib/explainer';
+
+const PRICE = '¥35';
+/** An arXiv id/link, or any http(s) link or DOI to a paper. */
+const isPaperRef = (v: string) => !!parseArxivId(v) || /^https?:\/\/\S+\.\S+/i.test(v.trim()) || /^10\.\d{4,9}\/\S+$/.test(v.trim());
 import { usePrefs } from '@/lib/prefs';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -19,7 +23,7 @@ function OrderForm({ onClose }: { onClose: () => void }) {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    const next = { email: !EMAIL_RE.test(email.trim()), arxiv: !parseArxivId(arxiv) };
+    const next = { email: !EMAIL_RE.test(email.trim()), arxiv: !isPaperRef(arxiv) };
     setErrors(next);
     if (next.email || next.arxiv) return;
     setSending(true);
@@ -46,6 +50,21 @@ function OrderForm({ onClose }: { onClose: () => void }) {
     return (
       <div className="stack fade" role="status">
         <div className="done-box">{t('orderThanks')}</div>
+        <div className="pay" style={{ display: 'grid', gap: 14, marginTop: 4 }}>
+          <b style={{ font: '700 16px var(--display)' }}>{t('payTitle').replace('{p}', PRICE)}</b>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+            {[
+              { src: '/pay/wechat.png', label: t('payWechat') },
+              { src: '/pay/alipay.png', label: t('payAlipay') },
+            ].map((q) => (
+              <figure key={q.src} style={{ margin: 0, width: 200 }}>
+                <img src={q.src} alt={q.label} width={200} style={{ width: 200, height: 'auto', borderRadius: 14, border: '1px solid var(--line)', display: 'block' }} />
+                <figcaption className="small" style={{ textAlign: 'center', marginTop: 6 }}>{q.label}</figcaption>
+              </figure>
+            ))}
+          </div>
+          <p className="small muted" style={{ margin: 0 }}>{t('payNote')}</p>
+        </div>
         <div>
           <button type="button" className="btn ghost small" onClick={onClose}>
             {t('close')}
@@ -131,7 +150,7 @@ export default function PricingSection() {
             <b style={{ font: '700 17px var(--display)' }}>{t('planFree')}</b>
           </div>
           <div className="price">
-            US$0 <small>{t('perPaper')}</small>
+            ¥0 <small>{t('perPaper')}</small>
           </div>
           <ul className="tick">
             {free.map((item) => (
@@ -146,7 +165,7 @@ export default function PricingSection() {
             <span className="badge-launch">{t('launchPrice')}</span>
           </div>
           <div className="price">
-            US$5 <small>{t('perPaper')}</small>
+            {PRICE} <small>{t('perPaper')}</small>
           </div>
           <ul className="tick">
             {studio.map((item) => (

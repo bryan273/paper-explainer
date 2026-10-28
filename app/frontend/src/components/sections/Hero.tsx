@@ -1,11 +1,10 @@
+import { srcLabel } from '@/components/sections/MakeSection';
 import { videoUrl, type Job } from '@/lib/explainer';
 import { usePrefs } from '@/lib/prefs';
 import { scrollToSection } from '@/components/Shell';
 
 export function StatsStrip({ items }: { items: Job[] }) {
   const { t } = usePrefs();
-  const checked = items.reduce((n, j) => n + (j.checks?.checked ?? 0), 0);
-  const removed = items.reduce((n, j) => n + (j.checks?.removed?.length ?? 0), 0);
 
   return (
     <div className="facts" role="group" aria-label={t('statVideos')}>
@@ -16,14 +15,6 @@ export function StatsStrip({ items }: { items: Job[] }) {
       <span>
         <b>2</b>
         {t('statLangs')}
-      </span>
-      <span>
-        <b>{checked}</b>
-        {t('statChecked')}
-      </span>
-      <span>
-        <b>{removed}</b>
-        {t('statRemoved')}
       </span>
       <span>
         <b className="mono" style={{ fontSize: 20 }}>
@@ -67,7 +58,7 @@ export default function Hero({ items, error }: { items: Job[] | null; error: boo
               </div>
               <div className="media-cap">
                 <span className="t">{latest.title}</span>
-                <span className="mono small">arXiv:{latest.arxiv}</span>
+                <span className="mono small">{srcLabel(latest)}</span>
               </div>
             </>
           ) : (
