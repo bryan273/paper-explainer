@@ -54,8 +54,8 @@ function OrderForm({ onClose }: { onClose: () => void }) {
           <b style={{ font: '700 16px var(--display)' }}>{t('payTitle').replace('{p}', PRICE)}</b>
           <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
             {[
-              { src: '/pay/wechat.png', label: t('payWechat') },
-              { src: '/pay/alipay.png', label: t('payAlipay') },
+              { src: '/pay/wechat.webp', label: t('payWechat') },
+              { src: '/pay/alipay.webp', label: t('payAlipay') },
             ].map((q) => (
               <figure key={q.src} style={{ margin: 0, width: 200 }}>
                 <img src={q.src} alt={q.label} width={200} style={{ width: 200, height: 'auto', borderRadius: 14, border: '1px solid var(--line)', display: 'block' }} />

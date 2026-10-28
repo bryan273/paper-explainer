@@ -4,8 +4,8 @@ import { usePrefs } from '@/lib/prefs';
 export default function SupportSection() {
   const { t } = usePrefs();
   const qrs = [
-    { src: '/pay/wechat.png', label: t('payWechat') },
-    { src: '/pay/alipay.png', label: t('payAlipay') },
+    { src: '/pay/wechat.webp', label: t('payWechat') },
+    { src: '/pay/alipay.webp', label: t('payAlipay') },
   ];
   return (
     <section className="section" id="support" aria-labelledby="support-title">
