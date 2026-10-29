@@ -30,6 +30,7 @@ export interface Section {
   takeaway?: string;
   takeaway_zh?: string;
   status?: 'waiting' | 'done';
+  poster?: string | null;
   videos?: { en?: string | null; zh?: string | null };
 }
 

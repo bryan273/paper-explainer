@@ -374,7 +374,10 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
               <LangSeg value={activeLang} options={langs} onChange={setLang} />
             </div>
             <div className="screen">
-              <video key={src} src={src} controls playsInline preload="metadata" title={job.title ?? ''} />
+              {(() => {
+                const poster = job.sections?.find((s) => s.poster)?.poster ?? undefined;
+                return <video key={src} src={poster ? src : `${src}#t=1.5`} poster={poster} controls playsInline preload="metadata" title={job.title ?? ''} />;
+              })()}
             </div>
             <ShareRow job={job} lang={activeLang} />
             <SectionsReader job={job} lang={activeLang} />
