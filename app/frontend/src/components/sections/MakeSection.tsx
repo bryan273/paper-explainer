@@ -5,6 +5,8 @@ import SectionsReader from '@/components/SectionsReader';
 import { ApiError, availableLangs, createJob, getJob, lookupPaper, videoUrl, LENGTHS, STYLES, TONES, type Job, type MakeOpts } from '@/lib/explainer';
 import { usePrefs, type Lang, type StringKey } from '@/lib/prefs';
 import { scrollToSection } from '@/components/Shell';
+import { AccountStrip, LimitPanel } from '@/components/AccountUI';
+import { track, useAccount } from '@/lib/account';
 
 const STEP_KEYS: StringKey[] = ['stepRead', 'stepScript', 'stepCheck', 'stepEn', 'stepZh'];
 const POLL_MS = 5000;
@@ -49,6 +51,8 @@ export function srcLabel(job: Job): string {
 
 export default function MakeSection({ prefill, autoOpen }: { prefill?: string | null; autoOpen?: boolean }) {
   const { t } = usePrefs();
+  const { refresh: refreshAccount } = useAccount();
+  const [limit, setLimit] = useState<null | 'quota_guest' | 'quota_member'>(null);
   const [input, setInput] = useState(prefill ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -137,6 +141,8 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
     }
     setSubmitting(true);
     setError(null);
+    setLimit(null);
+    track('click_make');
     setJob(null);
     setCached(false);
     clearTimer();
@@ -145,12 +151,14 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
       startedAt.current = created.created_at ? Date.parse(created.created_at) || Date.now() : Date.now();
       stageAt.current = { step: -2, at: Date.now() };
       setJob(created);
+      refreshAccount();
       setCached(!!created.cached || created.status === 'done');
       if (created.status !== 'done' && created.status !== 'failed') {
         timer.current = window.setTimeout(() => poll(created.id), POLL_MS);
       }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('networkError'));
+      if (err instanceof ApiError && (err.code === 'quota_guest' || err.code === 'quota_member')) { setLimit(err.code); refreshAccount(); }
+      else setError(err instanceof ApiError ? err.message : t('networkError'));
     } finally {
       setSubmitting(false);
     }
@@ -181,7 +189,8 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
       </h2>
       <p className="sec-sub">{t('makeSub')}</p>
 
-      <div className="card" style={{ marginTop: 22 }}>
+      <div style={{ marginTop: 22 }}><AccountStrip /></div>
+      <div className="card">
         <form onSubmit={submit} noValidate>
           <div className="inline-form">
             <label className="field" htmlFor="arxiv">
@@ -286,6 +295,7 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
           </div>
         )}
 
+        {limit && <LimitPanel code={limit} />}
         {error && (
           <p className="err" role="alert">
             {error}

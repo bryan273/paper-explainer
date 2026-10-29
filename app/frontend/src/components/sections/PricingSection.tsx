@@ -6,6 +6,8 @@ const PRICE = '¥10';
 /** An arXiv id/link, or any http(s) link or DOI to a paper. */
 const isPaperRef = (v: string) => !!parseArxivId(v) || /^https?:\/\/\S+\.\S+/i.test(v.trim()) || /^10\.\d{4,9}\/\S+$/.test(v.trim());
 import { usePrefs } from '@/lib/prefs';
+import { Link } from 'react-router-dom';
+import { useAccount, useAcctText } from '@/lib/account';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 type OrderLang = 'en' | 'zh' | 'both';
@@ -171,58 +173,65 @@ function OrderForm({ onClose }: { onClose: () => void }) {
 
 export default function PricingSection() {
   const { t } = usePrefs();
+  const ac = useAcctText();
+  const { me, user, openAuth } = useAccount();
   const [ordering, setOrdering] = useState(false);
-  const free = [t('free1'), t('free2'), t('free3'), t('free4')];
   const studio = [t('studio1'), t('studio2'), t('studio3'), t('studio4'), t('studio5')];
+  const lim = me?.limits ?? { guest: 2, member: 8, welcome: 3 };
+  const list = (items: string[]) => (
+    <ul className="tick">
+      {items.map((item) => (<li key={item}>{item}</li>))}
+    </ul>
+  );
 
   return (
     <section className="section" id="pricing" aria-labelledby="pricing-title">
-      <h2 className="sec" id="pricing-title">
-        {t('pricingTitle')}
-      </h2>
-      <p className="sec-sub">{t('pricingSub')}</p>
+      <h2 className="sec" id="pricing-title">{t('pricingTitle')}</h2>
+      <p className="sec-sub">{ac('plansTitle')}</p>
 
-      <div className="pricing">
+      <div className="pricing" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
         <div className="card price-card">
-          <div className="row between">
-            <b style={{ font: '700 17px var(--display)' }}>{t('planFree')}</b>
-          </div>
-          <div className="price">
-            ¥0 <small>{t('perPaper')}</small>
-          </div>
-          <ul className="tick">
-            {free.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
+          <b style={{ font: '700 17px var(--display)' }}>{ac('guestPlan')}</b>
+          <div className="price">¥0</div>
+          {list([ac('guestL1', { g: lim.guest }), ac('guestL2'), ac('guestL3')])}
         </div>
-
         <div className="card price-card featured">
           <div className="row between">
-            <b style={{ font: '700 17px var(--display)' }}>{t('planStudio')}</b>
-            <span className="badge-launch">{t('launchPrice')}</span>
+            <b style={{ font: '700 17px var(--display)' }}>{ac('memberPlan')}</b>
+            <span className="badge-launch">{ac('signUp')}</span>
           </div>
-          <div className="price">
-            {PRICE} <small>{t('perPaper')}</small>
-          </div>
-          <ul className="tick">
-            {studio.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-          {!ordering && (
-            <button type="button" className="btn primary" onClick={() => setOrdering(true)}>
-              {t('orderBtn')}
-            </button>
+          <div className="price">¥0</div>
+          {list([ac('memberL1', { m: lim.member }), ac('memberL2', { w: lim.welcome }), ac('memberL3'), ac('memberL4')])}
+          {!user && <button type="button" className="btn primary" onClick={() => openAuth('register')}>{ac('signUp')}</button>}
+        </div>
+        <div className="card price-card">
+          <b style={{ font: '700 17px var(--display)' }}>{ac('packsPlan')}</b>
+          <div className="price">¥9 <small>/ 10</small></div>
+          {list([ac('packsL1'), ac('packsL2'), ac('packsL3'), ac('packsL4')])}
+          {user ? (
+            <Link className="btn primary" to="/account#buy">{ac('buyCredits')}</Link>
+          ) : (
+            <button type="button" className="btn ghost" onClick={() => openAuth('register')}>{ac('needLogin')}</button>
           )}
         </div>
       </div>
 
-      {ordering && (
-        <div className="card" style={{ marginTop: 20 }}>
-          <OrderForm onClose={() => setOrdering(false)} />
+      <div className="card" style={{ marginTop: 20 }}>
+        <div className="row between" style={{ flexWrap: 'wrap', gap: 10 }}>
+          <div>
+            <b style={{ font: '700 17px var(--display)' }}>{t('planStudio')}</b> <span className="badge-launch">{t('launchPrice')}</span>
+            <div className="small muted" style={{ marginTop: 4 }}>{studio.join(' · ')}</div>
+          </div>
+          {!ordering && (
+            <button type="button" className="btn ghost" onClick={() => setOrdering(true)}>{PRICE} · {t('orderBtn')}</button>
+          )}
         </div>
-      )}
+        {ordering && (
+          <div style={{ marginTop: 16 }}>
+            <OrderForm onClose={() => setOrdering(false)} />
+          </div>
+        )}
+      </div>
     </section>
   );
 }

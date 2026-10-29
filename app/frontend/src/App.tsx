@@ -7,6 +7,10 @@ import Admin from './pages/Admin';
 import Index from './pages/Index';
 import AuthCallback from './pages/AuthCallback';
 import AuthError from './pages/AuthError';
+import Account from './pages/Account';
+import Legal from './pages/Legal';
+import { AccountProvider } from './lib/account';
+import { AuthModal } from './components/AccountUI';
 // MODULE_IMPORTS_START
 import { PrefsProvider } from './lib/prefs';
 // MODULE_IMPORTS_END
@@ -25,6 +29,9 @@ const AppRoutes = () => (
     {/* <Route path="/blog/*" element={<BlogRoutes />} /> */}
     <Route path="/admin" element={<Admin />} />
     <Route path="/abs/:id" element={<AbsPage />} />
+    <Route path="/account" element={<Account />} />
+    <Route path="/terms" element={<Legal kind="terms" />} />
+    <Route path="/privacy" element={<Legal kind="privacy" />} />
     <Route path="/auth/callback" element={<AuthCallback />} />
     <Route path="/auth/error" element={<AuthError />} />
     {/* MODULE_ROUTES_START */}
@@ -37,12 +44,15 @@ const App = () => (
     {/* MODULE_PROVIDERS_START */}
     {/* MODULE_PROVIDERS_END */}
     <PrefsProvider>
+    <AccountProvider>
     <TooltipProvider>
       <Toaster />
       <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
         <AppRoutes />
+        <AuthModal />
       </BrowserRouter>
     </TooltipProvider>
+    </AccountProvider>
     </PrefsProvider>
     {/* MODULE_PROVIDERS_CLOSE */}
   </QueryClientProvider>

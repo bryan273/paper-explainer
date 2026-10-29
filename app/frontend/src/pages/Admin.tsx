@@ -8,7 +8,16 @@ const STATUSES = ['new', 'paid_claimed', 'paid', 'delivered', 'cancelled'] as co
 type Job = { id: string; created_at: string; arxiv: string | null; source_url: string | null; title: string | null; status: string; model: string | null; voice: string | null; visitor: string; error: string | null };
 type Order = { id: string; created_at: string; email: string; arxiv: string; language: string; notes: string; status: string; pay_method: string | null; paid_at: string | null };
 type Feedback = { id: string; created_at: string; rating: number | null; use_case: string; comment: string; email: string; arxiv: string; kind: string };
+type UserRow = { id: string; username: string; credits: number; banned: boolean; created_at: string; last_login: string | null; jobs: number; last_job: string | null };
+type EventRow = { id: number; created_at: string; actor: string; user_id: string | null; type: string; meta: Record<string, unknown> };
+type CreditRow = { id: number; created_at: string; user_id: string; delta: number; reason: string };
 type Dash = {
+  funnel: { step: string; n: number }[];
+  byType: Record<string, number>;
+  contacts: number;
+  users: UserRow[];
+  events: EventRow[];
+  credits: CreditRow[];
   me: string;
   counts: Record<string, number>;
   perDay: { date: string; n: number }[];
@@ -34,7 +43,7 @@ export default function Admin() {
   const [code, setCode] = useState('');
     const [err, setErr] = useState('');
   const [dash, setDash] = useState<Dash | null>(null);
-  const [tab, setTab] = useState<'overview' | 'orders' | 'jobs' | 'feedback'>('overview');
+  const [tab, setTab] = useState<'overview' | 'users' | 'orders' | 'jobs' | 'feedback' | 'events'>('overview');
 
   const signOut = () => {
     try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* ignore */ }
@@ -62,6 +71,18 @@ export default function Admin() {
       await api('/functions/v1/explainer-admin', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': token }, body: JSON.stringify({ op: 'order_status', id, status }) });
       setDash((d) => (d ? { ...d, orders: d.orders.map((o) => (o.id === id ? { ...o, status } : o)) } : d));
     } catch (x) { setErr((x as Error).message); }
+  };
+
+  const post = async (body: Record<string, unknown>) => {
+    try {
+      await api('/functions/v1/explainer-admin', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': token }, body: JSON.stringify(body) });
+      await load();
+    } catch (x) { setErr((x as Error).message); }
+  };
+  const grantCredits = (u: UserRow) => {
+    const v = window.prompt(`Add credits to @${u.username} (negative to remove)`, '5');
+    const n = Number(v);
+    if (v && Number.isFinite(n) && n !== 0) post({ op: 'grant', username: u.username, amount: n, reason: 'admin grant' });
   };
 
   const th: React.CSSProperties = { textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid var(--line)', font: '600 12px var(--mono)', color: 'var(--muted)', whiteSpace: 'nowrap' };
@@ -96,9 +117,9 @@ export default function Admin() {
             {dash && (
               <>
                 <div className="row" style={{ gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-                  {(['overview', 'orders', 'jobs', 'feedback'] as const).map((k) => (
+                  {(['overview', 'users', 'orders', 'jobs', 'feedback', 'events'] as const).map((k) => (
                     <button key={k} className={`btn small ${tab === k ? 'primary' : 'ghost'}`} onClick={() => setTab(k)}>
-                      {k === 'overview' ? 'Overview' : k === 'orders' ? `Orders (${dash.counts.orders_waiting} waiting)` : k === 'jobs' ? 'Usage log' : 'Feedback'}
+                      {k === 'overview' ? 'Overview' : k === 'users' ? `Users (${dash.counts.users_total})` : k === 'orders' ? `Orders (${dash.counts.orders_waiting} waiting)` : k === 'jobs' ? 'Videos' : k === 'feedback' ? 'Feedback & contact' : 'Event log'}
                     </button>
                   ))}
                 </div>
@@ -108,7 +129,7 @@ export default function Admin() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
                       {[
                         ['Videos made', dash.counts.jobs_total], ['Last 24 hours', dash.counts.jobs_24h], ['Last 7 days', dash.counts.jobs_7d], ['Failed', dash.counts.jobs_failed],
-                        ['Visitors (recent)', dash.counts.visitors], ['Orders', dash.counts.orders_total], ['Paid, to confirm', dash.counts.orders_waiting], ['Feedback', dash.counts.feedback_total],
+                        ['Visitors (recent)', dash.counts.visitors], ['Members', dash.counts.users_total], ['Member videos', dash.counts.member_jobs], ['Orders', dash.counts.orders_total], ['Paid, to confirm', dash.counts.orders_waiting], ['Feedback + contact', dash.counts.feedback_total],
                       ].map(([k, v]) => (
                         <div key={String(k)} className="card" style={{ padding: 16 }}>
                           <div className="small muted">{k}</div>
@@ -116,6 +137,21 @@ export default function Admin() {
                         </div>
                       ))}
                     </div>
+                    <h3 style={{ font: '700 16px var(--display)', margin: '24px 0 10px' }}>Conversion funnel (last 30 days, unique visitors)</h3>
+                    <div className="stack" style={{ gap: 8 }}>
+                      {dash.funnel.map((f, i) => {
+                        const top = Math.max(dash.funnel[0].n, 1);
+                        const prev = i > 0 ? dash.funnel[i - 1].n : 0;
+                        return (
+                          <div key={f.step} style={{ display: 'grid', gridTemplateColumns: '170px 1fr 150px', gap: 10, alignItems: 'center' }}>
+                            <span className="small">{f.step}</span>
+                            <div style={{ background: 'var(--soft, #eee)', borderRadius: 8, height: 18 }}><div style={{ width: `${Math.max(2, (f.n / top) * 100)}%`, height: '100%', background: 'var(--acc)', borderRadius: 8 }} /></div>
+                            <span className="small mono">{f.n}{i > 0 && prev > 0 ? ` (${Math.round((f.n / prev) * 100)}%)` : ''}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <p className="small muted" style={{ margin: '8px 0 0' }}>Visit to sign-up: {dash.funnel[0].n ? Math.round((dash.funnel[4].n / dash.funnel[0].n) * 100) : 0}% · sign-up to order: {dash.funnel[4].n ? Math.round((dash.funnel[5].n / dash.funnel[4].n) * 100) : 0}%</p>
                     <h3 style={{ font: '700 16px var(--display)', margin: '24px 0 10px' }}>Videos per day</h3>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 120 }}>
                       {dash.perDay.map((d) => {
@@ -127,6 +163,63 @@ export default function Admin() {
                           </div>
                         );
                       })}
+                    </div>
+                  </>
+                )}
+
+                {tab === 'users' && (
+                  <div style={wrap}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead><tr>{['Joined', 'Username', 'Credits', 'Videos', 'Last login', 'Last video', ''].map((h) => <th key={h} style={th}>{h}</th>)}</tr></thead>
+                      <tbody>
+                        {dash.users.length === 0 && <tr><td style={td} colSpan={7}>No members yet.</td></tr>}
+                        {dash.users.map((u) => (
+                          <tr key={u.id}>
+                            <td style={td}>{fmt(u.created_at)}</td>
+                            <td style={td}><b>@{u.username}</b>{u.banned ? ' (disabled)' : ''}</td>
+                            <td style={td}>{u.credits}</td>
+                            <td style={td}>{u.jobs}</td>
+                            <td style={td}>{fmt(u.last_login)}</td>
+                            <td style={td}>{fmt(u.last_job)}</td>
+                            <td style={td}>
+                              <button className="btn ghost small" onClick={() => grantCredits(u)}>Credits</button>{' '}
+                              <button className="btn ghost small" onClick={() => post({ op: 'ban', username: u.username, banned: !u.banned })}>{u.banned ? 'Enable' : 'Disable'}</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {tab === 'events' && (
+                  <>
+                    <p className="small muted">30-day totals: {Object.entries(dash.byType).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join(' · ')}</p>
+                    <div style={wrap}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead><tr>{['Time', 'Who', 'Event', 'Details'].map((h) => <th key={h} style={th}>{h}</th>)}</tr></thead>
+                        <tbody>
+                          {dash.events.map((e) => (
+                            <tr key={e.id}>
+                              <td style={td}>{fmt(e.created_at)}</td>
+                              <td style={td} className="mono">{e.user_id ? 'member' : 'guest'} {e.actor}</td>
+                              <td style={td}>{e.type}</td>
+                              <td style={{ ...td, wordBreak: 'break-all' }}>{Object.entries(e.meta ?? {}).filter(([, v]) => v !== '' && v != null).map(([k, v]) => `${k}=${String(v)}`).join(' ')}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <h3 style={{ font: '700 16px var(--display)', margin: '24px 0 10px' }}>Credit log</h3>
+                    <div style={wrap}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead><tr>{['Time', 'Member', 'Change', 'Reason'].map((h) => <th key={h} style={th}>{h}</th>)}</tr></thead>
+                        <tbody>
+                          {dash.credits.map((c) => (
+                            <tr key={c.id}><td style={td}>{fmt(c.created_at)}</td><td style={td}>@{dash.users.find((u) => u.id === c.user_id)?.username ?? c.user_id.slice(0, 8)}</td><td style={td}><b>{c.delta > 0 ? `+${c.delta}` : c.delta}</b></td><td style={td}>{c.reason}</td></tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </>
                 )}

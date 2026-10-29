@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Lang } from '@/lib/prefs';
+import { authHeaders } from '@/lib/account';
 
 export const RENDER_URL = 'https://vzvyghmtsakixlhzzuol.supabase.co/functions/v1/explainer-render';
 
@@ -59,6 +60,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public status: number,
+    public code?: string,
   ) {
     super(message);
   }
@@ -74,7 +76,7 @@ async function request(init?: RequestInit, query = ''): Promise<unknown> {
   }
   const errMsg = (body as { error?: unknown } | null)?.error;
   if (!res.ok || typeof errMsg === 'string') {
-    throw new ApiError(typeof errMsg === 'string' && errMsg ? errMsg : `HTTP ${res.status}`, res.status);
+    throw new ApiError(typeof errMsg === 'string' && errMsg ? errMsg : `HTTP ${res.status}`, res.status, (body as { code?: string } | null)?.code);
   }
   return body;
 }
@@ -111,7 +113,7 @@ export async function lookupPaper(input: string): Promise<Job[]> {
 export async function createJob(arxiv: string, opts?: MakeOpts): Promise<Job> {
   return (await request({
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify({ arxiv, visitor: visitorId(), ...opts }),
   })) as Job;
 }

@@ -8,6 +8,8 @@ const SECTIONS: { id: string; key: StringKey }[] = [
   { id: 'how', key: 'navHow' },
   { id: 'pricing', key: 'navPricing' },
   { id: 'feedback', key: 'navFeedback' },
+  { id: 'faq', key: 'navFaq' },
+  { id: 'contact', key: 'navContact' },
 ];
 
 function scrollTo(id: string) {

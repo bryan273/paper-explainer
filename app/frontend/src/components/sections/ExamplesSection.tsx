@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Lightbox, LangSeg } from '@/components/media';
 import { copyText, shareUrl, videoUrl, availableLangs, downloadFile, type Job } from '@/lib/explainer';
 import { usePrefs, type Lang } from '@/lib/prefs';
+import { track } from '@/lib/account';
 
 function ExampleCard({ job, onPlay }: { job: Job; onPlay: (job: Job, lang: Lang) => void }) {
   const { t } = usePrefs();
@@ -102,7 +103,7 @@ export default function ExamplesSection({
       {items && items.length > 0 && (
         <div className="grid3">
           {items.map((job) => (
-            <ExampleCard key={job.id} job={job} onPlay={(j, l) => setOpen({ job: j, lang: l })} />
+            <ExampleCard key={job.id} job={job} onPlay={(j, l) => { track('play_example', { arxiv: j.arxiv }); setOpen({ job: j, lang: l }); }} />
           ))}
         </div>
       )}

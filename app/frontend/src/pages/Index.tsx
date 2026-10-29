@@ -7,11 +7,15 @@ import ExamplesSection from '@/components/sections/ExamplesSection';
 import HowSection from '@/components/sections/HowSection';
 import PricingSection from '@/components/sections/PricingSection';
 import FeedbackSection from '@/components/sections/FeedbackSection';
+import ContactSection, { FaqSection } from '@/components/sections/ContactSection';
+import { Link } from 'react-router-dom';
+import { useAcctText } from '@/lib/account';
 import { SUITE_URLS, parseArxivId, useRecent } from '@/lib/explainer';
 import { usePrefs } from '@/lib/prefs';
 
 export default function Index() {
   const { t } = usePrefs();
+  const ac = useAcctText();
   const { items, error } = useRecent();
   const [params] = useSearchParams();
   const shared = parseArxivId(params.get('v') ?? '');
@@ -39,6 +43,8 @@ export default function Index() {
       <HowSection />
       <PricingSection />
       <FeedbackSection />
+      <FaqSection />
+      <ContactSection />
 
       <footer className="foot">
         <span>
@@ -50,7 +56,9 @@ export default function Index() {
             {t('appRepro')} ↗
           </a>
         </span>
-        <span className="tiny">{t('footerNote')}</span>
+        <span className="tiny">
+          <Link to="/terms">{ac('terms')}</Link> · <Link to="/privacy">{ac('privacy')}</Link> · <Link to="/account">{ac('account')}</Link> · {t('footerNote')}
+        </span>
       </footer>
     </Shell>
   );
