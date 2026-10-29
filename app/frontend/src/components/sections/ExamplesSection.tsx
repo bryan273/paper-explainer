@@ -16,7 +16,11 @@ function ExampleCard({ job, onPlay }: { job: Job; onPlay: (job: Job, lang: Lang)
   return (
     <article className="card ex">
       <div className="thumb">
-        {thumb && <video src={`${thumb}#t=2`} preload="metadata" muted playsInline aria-hidden tabIndex={-1} />}
+        {(() => {
+          const poster = job.sections?.find((x) => x.poster)?.poster;
+          if (poster) return <img src={poster} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />;
+          return thumb ? <video src={`${thumb}#t=2`} preload="metadata" muted playsInline aria-hidden tabIndex={-1} /> : null;
+        })()}
         <button
           type="button"
           className="play"
