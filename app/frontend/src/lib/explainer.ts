@@ -88,7 +88,11 @@ export function isPlayable(job: Job | null | undefined): job is Job {
 export async function fetchRecent(): Promise<Job[]> {
   const body = await request(undefined, '?recent=1');
   const list = Array.isArray(body) ? body : ((body as { items?: unknown[] } | null)?.items ?? []);
-  return (list as Job[]).filter(isPlayable);
+  // the gallery shows the current look only (jobs with a poster), one video per paper, newest first
+  const playable = (list as Job[]).filter(isPlayable);
+  const current = playable.filter((j) => j.sections?.some((s) => s.poster));
+  const seen = new Set<string>();
+  return (current.length ? current : playable).filter((j) => !seen.has(j.arxiv) && !!seen.add(j.arxiv));
 }
 
 export const STYLES = ['animated', 'cinema', 'classic', 'light', 'sunset', 'mono'] as const;
