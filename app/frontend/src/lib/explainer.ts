@@ -4,12 +4,12 @@ import type { Lang } from '@/lib/prefs';
 export const RENDER_URL = 'https://vzvyghmtsakixlhzzuol.supabase.co/functions/v1/explainer-render';
 
 export const SUITE_URLS = {
-  repro: 'https://paper-repro-aiid.vercel.app/repro/index.html',
-  bench: 'https://paper-repro-aiid.vercel.app/repro/bench.html',
-  lite: 'https://repro-lite-aiid.vercel.app',
-  reading: 'https://reading-companion-aiid.vercel.app',
-  index: 'https://indexboard-aiid.vercel.app/b/5dhum9j5h0',
-  all: 'https://repro-suite-hub-aiid.vercel.app',
+  repro: 'https://bryan273.github.io/repro-suite/repro/index.html',
+  bench: 'https://bryan273.github.io/repro-suite/repro/bench.html',
+  lite: 'https://bryan273.github.io/repro-suite/lite',
+  reading: 'https://bryan273.github.io/repro-suite/reading',
+  index: 'https://bryan273.github.io/repro-suite/indexboard/b/5dhum9j5h0',
+  all: 'https://bryan273.github.io/repro-suite/hub',
 } as const;
 
 export type JobStatus = 'queued' | 'running' | 'done' | 'failed';

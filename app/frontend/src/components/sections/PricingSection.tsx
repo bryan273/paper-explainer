@@ -57,8 +57,8 @@ function OrderForm({ onClose }: { onClose: () => void }) {
 
   if (orderId) {
     const methods = [
-      { id: 'wechat' as const, src: '/pay/wechat.webp', label: t('payWechat') },
-      { id: 'alipay' as const, src: '/pay/alipay.webp', label: t('payAlipay') },
+      { id: 'wechat' as const, src: import.meta.env.BASE_URL + 'pay/wechat.webp', label: t('payWechat') },
+      { id: 'alipay' as const, src: import.meta.env.BASE_URL + 'pay/alipay.webp', label: t('payAlipay') },
     ];
     if (paid) {
       return (
