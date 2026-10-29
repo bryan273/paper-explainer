@@ -21,14 +21,31 @@ export interface Videos {
   zh_vertical?: string | null;
 }
 
+export interface Section {
+  i: number;
+  title: string;
+  title_zh?: string;
+  text: string;
+  text_zh?: string;
+  takeaway?: string;
+  takeaway_zh?: string;
+  status?: 'waiting' | 'done';
+  videos?: { en?: string | null; zh?: string | null };
+}
+
 export interface Job {
   id: string;
   arxiv: string;
   source_url?: string | null;
   status: JobStatus;
+  style?: string | null;
+  tone?: string | null;
+  seconds?: number | null;
+  custom?: string | null;
   stage?: string | null;
   title?: string | null;
   videos?: Videos | null;
+  sections?: Section[] | null;
   checks?: { checked?: number | null; removed?: string[] | null } | null;
   error?: string | null;
   cached?: boolean;
@@ -71,13 +88,30 @@ export async function fetchRecent(): Promise<Job[]> {
   return (list as Job[]).filter(isPlayable);
 }
 
-export type MakeOpts = { model: 'deepseek' | 'stepfun'; voice: 'female' | 'male' };
+export const STYLES = ['animated', 'classic', 'light', 'sunset', 'mono'] as const;
+export const TONES = ['teacher', 'casual', 'academic', 'eli5', 'story'] as const;
+export const LENGTHS = [60, 120, 180, 300, 420, 600] as const;
+export type MakeOpts = {
+  model?: 'deepseek' | 'stepfun';
+  voice: 'female' | 'male';
+  style: (typeof STYLES)[number];
+  tone: (typeof TONES)[number];
+  seconds: number;
+  custom: string;
+  force_new?: boolean;
+};
+
+/** Videos that already exist (or are being made) for this paper, newest first. */
+export async function lookupPaper(input: string): Promise<Job[]> {
+  const body = await request(undefined, `?paper=${encodeURIComponent(input)}`);
+  return Array.isArray(body) ? (body as Job[]) : [];
+}
 
 export async function createJob(arxiv: string, opts?: MakeOpts): Promise<Job> {
   return (await request({
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ arxiv, visitor: visitorId(), ...opts, style: 'classic' }),
+    body: JSON.stringify({ arxiv, visitor: visitorId(), ...opts }),
   })) as Job;
 }
 

@@ -15,6 +15,13 @@ export default function Index() {
   const { items, error } = useRecent();
   const [params] = useSearchParams();
   const shared = parseArxivId(params.get('v') ?? '');
+  const paper = params.get('paper');
+
+  useEffect(() => {
+    if (!paper) return;
+    const timer = window.setTimeout(() => scrollToSection('make'), 300);
+    return () => window.clearTimeout(timer);
+  }, [paper]);
 
   useEffect(() => {
     if (!items || !shared) return;
@@ -27,7 +34,7 @@ export default function Index() {
   return (
     <Shell>
       <Hero items={items} error={error} />
-      <MakeSection prefill={shared} />
+      <MakeSection prefill={paper ?? shared} autoOpen={!!paper} />
       <ExamplesSection items={items} error={error} openArxiv={shared} />
       <HowSection />
       <PricingSection />

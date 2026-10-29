@@ -1,16 +1,26 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { LangSeg, ShareRow } from '@/components/media';
 import VideoFeedback from '@/components/VideoFeedback';
-import { ApiError, availableLangs, createJob, getJob, videoUrl, type Job, type MakeOpts } from '@/lib/explainer';
+import SectionsReader from '@/components/SectionsReader';
+import { ApiError, availableLangs, createJob, getJob, lookupPaper, videoUrl, LENGTHS, STYLES, TONES, type Job, type MakeOpts } from '@/lib/explainer';
 import { usePrefs, type Lang, type StringKey } from '@/lib/prefs';
 import { scrollToSection } from '@/components/Shell';
 
 const STEP_KEYS: StringKey[] = ['stepRead', 'stepScript', 'stepCheck', 'stepEn', 'stepZh'];
 const POLL_MS = 5000;
 const MAX_POLL_FAILS = 24; // about two minutes of failed polls before giving up
-/** Typical seconds per step, from real renders. Used only for the progress bar and the time left. */
-const STEP_SECS = [30, 50, 20, 100, 100];
-const TOTAL_SECS = STEP_SECS.reduce((a, b) => a + b, 0);
+/** Typical seconds per step, from real renders; recording runs in real time, so it grows with the video length. Used only for the progress bar and the time left. */
+const stepSecs = (len: number) => [30, 40 + Math.round(len / 6), 20, Math.round(len * 1.1) + 40, Math.round(len * 1.1) + 40];
+const STYLE_KEYS: Record<(typeof STYLES)[number], StringKey> = { animated: 'styleAnimated', classic: 'styleClassic', light: 'styleLight', sunset: 'styleSunset', mono: 'styleMono' };
+const TONE_KEYS: Record<(typeof TONES)[number], StringKey> = { teacher: 'toneTeacher', casual: 'toneCasual', academic: 'toneAcademic', eli5: 'toneEli5', story: 'toneStory' };
+const SWATCH: Record<(typeof STYLES)[number], string> = {
+  animated: 'conic-gradient(from 200deg,#3dff8f,#4aa3ff,#c86bff,#ff7a59,#3dff8f)',
+  classic: 'linear-gradient(135deg,#0a1422,#3dff8f)',
+  light: 'linear-gradient(135deg,#fbfaf6,#4a3cf0)',
+  sunset: 'linear-gradient(135deg,#2a1038,#ff7a59)',
+  mono: 'linear-gradient(135deg,#161616,#ffffff)',
+};
+const looksLikePaper = (v: string) => /\d{4}\.\d{4,5}|^https?:\/\/\S+\.\S+|^10\.\d{4,9}\//.test(v.trim());
 
 /** Step index 0..4 from the job's stage text; -1 while waiting in line. */
 function stepFromStage(job: Job): number {
@@ -36,7 +46,7 @@ export function srcLabel(job: Job): string {
   return `arXiv:${job.arxiv}`;
 }
 
-export default function MakeSection({ prefill }: { prefill?: string | null }) {
+export default function MakeSection({ prefill, autoOpen }: { prefill?: string | null; autoOpen?: boolean }) {
   const { t } = usePrefs();
   const [input, setInput] = useState(prefill ?? '');
   const [submitting, setSubmitting] = useState(false);
@@ -45,17 +55,51 @@ export default function MakeSection({ prefill }: { prefill?: string | null }) {
   const [cached, setCached] = useState(false);
   const [lang, setLang] = useState<Lang>('en');
   const [slow, setSlow] = useState(false);
-  const [model, setModel] = useState<MakeOpts['model']>('deepseek');
   const [voice, setVoice] = useState<MakeOpts['voice']>('female');
+  const [style, setStyle] = useState<MakeOpts['style']>('animated');
+  const [tone, setTone] = useState<MakeOpts['tone']>('teacher');
+  const [seconds, setSeconds] = useState<number>(180);
+  const [custom, setCustom] = useState('');
+  const [existing, setExisting] = useState<Job[]>([]);
   const [now, setNow] = useState(() => Date.now());
   const startedAt = useRef<number>(Date.now());
   const stageAt = useRef<{ step: number; at: number }>({ step: -1, at: Date.now() });
   const timer = useRef<number | null>(null);
+  const opened = useRef(false);
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(id);
   }, []);
+
+  // when the pasted link is a paper that already has videos, say so before anything is made
+  useEffect(() => {
+    const v = input.trim();
+    if (!looksLikePaper(v)) {
+      setExisting([]);
+      return;
+    }
+    let alive = true;
+    const id = window.setTimeout(() => {
+      lookupPaper(v)
+        .then((l) => {
+          if (!alive) return;
+          setExisting(l);
+          // arriving from /abs/<id>: open the newest finished video for this paper straight away
+          const ready = l.find((j) => j.status === 'done');
+          if (autoOpen && ready && !opened.current) {
+            opened.current = true;
+            setJob(ready);
+            setCached(true);
+          }
+        })
+        .catch(() => alive && setExisting([]));
+    }, 600);
+    return () => {
+      alive = false;
+      window.clearTimeout(id);
+    };
+  }, [input]);
 
   const clearTimer = () => {
     if (timer.current !== null) {
@@ -96,7 +140,7 @@ export default function MakeSection({ prefill }: { prefill?: string | null }) {
     setCached(false);
     clearTimer();
     try {
-      const created = await createJob(input.trim(), { model, voice });
+      const created = await createJob(input.trim(), { voice, style, tone, seconds, custom: custom.trim(), force_new: existing.length > 0 });
       startedAt.current = created.created_at ? Date.parse(created.created_at) || Date.now() : Date.now();
       stageAt.current = { step: -2, at: Date.now() };
       setJob(created);
@@ -115,6 +159,8 @@ export default function MakeSection({ prefill }: { prefill?: string | null }) {
   const step = job ? stepFromStage(job) : -1;
   if (stageAt.current.step !== step) stageAt.current = { step, at: Date.now() };
   // progress: finished steps in full, plus the part of the current step that has probably passed (never past 90% of it)
+  const STEP_SECS = stepSecs(job?.seconds ?? 36);
+  const TOTAL_SECS = STEP_SECS.reduce((a, b) => a + b, 0);
   const doneSecs = STEP_SECS.slice(0, Math.max(step, 0)).reduce((a, b) => a + b, 0);
   const inStep = step >= 0 ? Math.min((now - stageAt.current.at) / 1000, STEP_SECS[step] * 0.9) : 0;
   const pct = Math.min(97, Math.round(((doneSecs + inStep) / TOTAL_SECS) * 100));
@@ -151,18 +197,31 @@ export default function MakeSection({ prefill }: { prefill?: string | null }) {
             </label>
             <button type="submit" className="btn primary" disabled={submitting || running}>
               {submitting ? <span className="spin" aria-hidden /> : null}
-              {submitting ? t('makeSending') : t('makeBtn')}
+              {submitting ? t('makeSending') : existing.length > 0 ? t('makeNewBtn') : t('makeBtn')}
             </button>
           </div>
-          <div className="row" style={{ gap: 14, marginTop: 12, flexWrap: 'wrap' }}>
-            <label className="field" style={{ minWidth: 170 }}>
-              {t('optModel')}
-              <select value={model} onChange={(e) => setModel(e.target.value as MakeOpts['model'])} disabled={submitting || running}>
-                <option value="deepseek">DeepSeek</option>
-                <option value="stepfun">StepFun</option>
+          <div className="row" style={{ gap: 14, marginTop: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+            <label className="field" style={{ minWidth: 130 }}>
+              {t('optLength')}
+              <select value={seconds} onChange={(e) => setSeconds(Number(e.target.value))} disabled={submitting || running}>
+                {LENGTHS.map((n) => (
+                  <option key={n} value={n}>
+                    {t('min').replace('{n}', String(n / 60))}
+                  </option>
+                ))}
               </select>
             </label>
             <label className="field" style={{ minWidth: 170 }}>
+              {t('optTone')}
+              <select value={tone} onChange={(e) => setTone(e.target.value as MakeOpts['tone'])} disabled={submitting || running}>
+                {TONES.map((k) => (
+                  <option key={k} value={k}>
+                    {t(TONE_KEYS[k])}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field" style={{ minWidth: 150 }}>
               {t('optVoice')}
               <select value={voice} onChange={(e) => setVoice(e.target.value as MakeOpts['voice'])} disabled={submitting || running}>
                 <option value="female">{t('voiceFemale')}</option>
@@ -170,7 +229,72 @@ export default function MakeSection({ prefill }: { prefill?: string | null }) {
               </select>
             </label>
           </div>
+          <fieldset style={{ border: 0, padding: 0, margin: '14px 0 0' }} disabled={submitting || running}>
+            <legend className="small muted" style={{ padding: 0, marginBottom: 6 }}>
+              {t('optStyle')}
+            </legend>
+            <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
+              {STYLES.map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  className="btn ghost small"
+                  aria-pressed={style === k}
+                  onClick={() => setStyle(k)}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, boxShadow: style === k ? '0 0 0 2px var(--accent, #5B4BFF)' : undefined }}
+                >
+                  <span aria-hidden style={{ width: 18, height: 18, borderRadius: 6, background: SWATCH[k], border: '1px solid rgba(0,0,0,.2)' }} />
+                  {t(STYLE_KEYS[k])}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+          <label className="field" style={{ marginTop: 14 }}>
+            {t('optCustom')}
+            <input type="text" value={custom} maxLength={300} onChange={(e) => setCustom(e.target.value)} placeholder={t('optCustomPh')} disabled={submitting || running} />
+          </label>
+          {seconds > 180 && (
+            <p className="small muted" style={{ margin: '10px 0 0' }}>
+              {t('longNote').replace('{m}', String(Math.round(stepSecs(seconds).reduce((x, y) => x + y, 0) / 60)))}
+            </p>
+          )}
         </form>
+
+        {existing.length > 0 && !running && (
+          <div className="note" style={{ marginTop: 16 }}>
+            <strong>{t('existingTitle').replace('{n}', String(existing.length))}</strong>
+            <p className="small muted" style={{ margin: '4px 0 10px' }}>
+              {t('existingHint')}
+            </p>
+            <div className="stack" style={{ gap: 8 }}>
+              {existing.map((j) => (
+                <div key={j.id} className="row between" style={{ gap: 10, flexWrap: 'wrap' }}>
+                  <span className="small">
+                    {t('min').replace('{n}', String(Math.max(1, Math.round((j.seconds ?? 36) / 60))))} · {t(STYLE_KEYS[(j.style as (typeof STYLES)[number]) ?? 'classic'] ?? 'styleClassic')} ·{' '}
+                    {t(TONE_KEYS[(j.tone as (typeof TONES)[number]) ?? 'teacher'] ?? 'toneTeacher')}
+                    {j.custom ? ` · "${j.custom.slice(0, 40)}"` : ''}
+                  </span>
+                  {j.status === 'done' ? (
+                    <button
+                      type="button"
+                      className="btn ghost small"
+                      onClick={() => {
+                        clearTimer();
+                        setError(null);
+                        setJob(j);
+                        setCached(true);
+                      }}
+                    >
+                      {t('existingWatch')}
+                    </button>
+                  ) : (
+                    <span className="small muted">{t('existingMaking')}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {error && (
           <p className="err" role="alert">
@@ -232,6 +356,8 @@ export default function MakeSection({ prefill }: { prefill?: string | null }) {
           </div>
         )}
 
+        {job && running && (job.sections?.length ?? 0) > 0 && <SectionsReader job={job} lang={lang} />}
+
         {job && job.status === 'done' && src && (
           <div className="fade" style={{ marginTop: 20 }}>
             {cached && (
@@ -250,6 +376,7 @@ export default function MakeSection({ prefill }: { prefill?: string | null }) {
               <video key={src} src={src} controls playsInline preload="metadata" title={job.title ?? ''} />
             </div>
             <ShareRow job={job} lang={activeLang} />
+            <SectionsReader job={job} lang={activeLang} />
             <VideoFeedback arxiv={job.arxiv} />
             <div className="actions">
               <button
