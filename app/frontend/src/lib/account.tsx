@@ -76,7 +76,8 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     signIn: async (op, username, password) => {
       const out = await accountApi(op, { username, password });
       setToken(out.token);
-      await refresh();
+      setMe((m) => (m ? { ...m, user: out.user, quota: out.quota } : m));   // the answer already carries the balance, no second round trip
+      if (!me) await refresh();
     },
     signOut: async () => {
       try { await accountApi('logout'); } catch { /* the token is dropped locally either way */ }

@@ -54,7 +54,7 @@ export default function Hero({ items, error }: { items: Job[] | null; error: boo
           {latest && src ? (
             <>
               <div className="screen">
-                <video src={src} controls playsInline preload="metadata" title={latest.title ?? ''} />
+                <video src={latest.sections?.some((x) => x.poster) ? src : `${src}#t=1.5`} poster={latest.sections?.find((x) => x.poster)?.poster ?? undefined} controls playsInline preload="metadata" title={latest.title ?? ''} />
               </div>
               <div className="media-cap">
                 <span className="t">{latest.title}</span>
