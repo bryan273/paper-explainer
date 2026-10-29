@@ -14,7 +14,12 @@ export const getToken = () => {
   try { return localStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; }
 };
 const setToken = (t: string) => {
-  try { t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); } catch { /* private mode */ }
+  try {
+    if (t) localStorage.setItem(TOKEN_KEY, t);
+    else localStorage.removeItem(TOKEN_KEY);
+  } catch {
+    /* private mode */
+  }
 };
 /** Headers that tell the server who is asking: the browser id for guests, plus the session for a signed-in member. */
 export const authHeaders = (): Record<string, string> => ({ 'x-visitor-id': visitorId(), ...(getToken() ? { 'x-session': getToken() } : {}) });
