@@ -88,7 +88,7 @@ export async function fetchRecent(): Promise<Job[]> {
   return (list as Job[]).filter(isPlayable);
 }
 
-export const STYLES = ['animated', 'classic', 'light', 'sunset', 'mono'] as const;
+export const STYLES = ['animated', 'cinema', 'classic', 'light', 'sunset', 'mono'] as const;
 export const TONES = ['teacher', 'casual', 'academic', 'eli5', 'story'] as const;
 export const LENGTHS = [60, 120, 180, 300, 420, 600] as const;
 export type MakeOpts = {

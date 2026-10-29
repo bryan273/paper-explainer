@@ -11,10 +11,11 @@ const POLL_MS = 5000;
 const MAX_POLL_FAILS = 24; // about two minutes of failed polls before giving up
 /** Typical seconds per step, from real renders; recording runs in real time, so it grows with the video length. Used only for the progress bar and the time left. */
 const stepSecs = (len: number) => [30, 40 + Math.round(len / 6), 20, Math.round(len * 1.1) + 40, Math.round(len * 1.1) + 40];
-const STYLE_KEYS: Record<(typeof STYLES)[number], StringKey> = { animated: 'styleAnimated', classic: 'styleClassic', light: 'styleLight', sunset: 'styleSunset', mono: 'styleMono' };
+const STYLE_KEYS: Record<(typeof STYLES)[number], StringKey> = { animated: 'styleAnimated', cinema: 'styleCinema', classic: 'styleClassic', light: 'styleLight', sunset: 'styleSunset', mono: 'styleMono' };
 const TONE_KEYS: Record<(typeof TONES)[number], StringKey> = { teacher: 'toneTeacher', casual: 'toneCasual', academic: 'toneAcademic', eli5: 'toneEli5', story: 'toneStory' };
 const SWATCH: Record<(typeof STYLES)[number], string> = {
   animated: 'conic-gradient(from 200deg,#3dff8f,#4aa3ff,#c86bff,#ff7a59,#3dff8f)',
+  cinema: 'linear-gradient(135deg,#050510,#c9a96a)',
   classic: 'linear-gradient(135deg,#0a1422,#3dff8f)',
   light: 'linear-gradient(135deg,#fbfaf6,#4a3cf0)',
   sunset: 'linear-gradient(135deg,#2a1038,#ff7a59)',
