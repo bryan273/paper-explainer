@@ -7,7 +7,6 @@ import ExamplesSection from '@/components/sections/ExamplesSection';
 import HowSection from '@/components/sections/HowSection';
 import PricingSection from '@/components/sections/PricingSection';
 import FeedbackSection from '@/components/sections/FeedbackSection';
-import SupportSection from '@/components/sections/SupportSection';
 import { SUITE_URLS, parseArxivId, useRecent } from '@/lib/explainer';
 import { usePrefs } from '@/lib/prefs';
 
@@ -32,7 +31,6 @@ export default function Index() {
       <ExamplesSection items={items} error={error} openArxiv={shared} />
       <HowSection />
       <PricingSection />
-      <SupportSection />
       <FeedbackSection />
 
       <footer className="foot">

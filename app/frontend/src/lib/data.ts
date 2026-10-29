@@ -1,7 +1,7 @@
 /** Feedback and Studio orders live in Supabase (explainer-data function), so the site runs on any host. */
 const URL = 'https://vzvyghmtsakixlhzzuol.supabase.co/functions/v1/explainer-data';
 
-async function post(body: unknown): Promise<{ id?: string }> {
+async function post(body: unknown): Promise<{ id?: string; ok?: boolean }> {
   const res = await fetch(URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   const out = (await res.json().catch(() => ({}))) as { id?: string; error?: string };
   if (!res.ok || out.error) throw new Error(out.error || `HTTP ${res.status}`);
@@ -12,6 +12,8 @@ export type FeedbackData = { rating: number; use_case: string; comment: string; 
 
 export const saveFeedback = (data: FeedbackData, id?: string | null) => post({ type: 'feedback', id: id ?? undefined, data });
 export const saveOrder = (data: { email: string; arxiv: string; language: string; notes: string }) => post({ type: 'order', data });
+
+export const markOrderPaid = (id: string, method: 'wechat' | 'alipay') => post({ type: 'order_paid', id, method });
 
 export async function feedbackTotal(): Promise<number> {
   const res = await fetch(`${URL}?count=1`);

@@ -225,7 +225,7 @@ export default function MakeSection({ prefill }: { prefill?: string | null }) {
                   {job.error || t('failedFallback')}
                 </p>
                 <p className="small" style={{ margin: 0 }}>
-                  <a href="#support" onClick={(e) => { e.preventDefault(); scrollToSection('support'); }}>{t('supportCta')} →</a>
+                  <a href="#feedback" onClick={(e) => { e.preventDefault(); scrollToSection('feedback'); }}>{t('failedHelp')} →</a>
                 </p>
               </div>
             )}

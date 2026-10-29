@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react';
-import { saveOrder } from '@/lib/data';
+import { markOrderPaid, saveOrder } from '@/lib/data';
 import { parseArxivId } from '@/lib/explainer';
 
-const PRICE = '¥35';
+const PRICE = '¥10';
 /** An arXiv id/link, or any http(s) link or DOI to a paper. */
 const isPaperRef = (v: string) => !!parseArxivId(v) || /^https?:\/\/\S+\.\S+/i.test(v.trim()) || /^10\.\d{4,9}\/\S+$/.test(v.trim());
 import { usePrefs } from '@/lib/prefs';
@@ -18,7 +18,10 @@ function OrderForm({ onClose }: { onClose: () => void }) {
   const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState<{ email?: boolean; arxiv?: boolean }>({});
   const [sending, setSending] = useState(false);
-  const [done, setDone] = useState(false);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [method, setMethod] = useState<'wechat' | 'alipay' | null>(null);
+  const [paid, setPaid] = useState(false);
+  const [payError, setPayError] = useState(false);
   const [failed, setFailed] = useState(false);
 
   const submit = async (e: FormEvent) => {
@@ -29,8 +32,8 @@ function OrderForm({ onClose }: { onClose: () => void }) {
     setSending(true);
     setFailed(false);
     try {
-      await saveOrder({ email: email.trim(), arxiv: arxiv.trim(), language, notes: notes.trim() });
-      setDone(true);
+      const res = await saveOrder({ email: email.trim(), arxiv: arxiv.trim(), language, notes: notes.trim() });
+      setOrderId(res.id ?? null);
     } catch {
       setFailed(true);
     } finally {
@@ -38,30 +41,73 @@ function OrderForm({ onClose }: { onClose: () => void }) {
     }
   };
 
-  if (done) {
+  const confirmPaid = async () => {
+    if (!orderId || !method) return;
+    setSending(true);
+    setPayError(false);
+    try {
+      await markOrderPaid(orderId, method);
+      setPaid(true);
+    } catch {
+      setPayError(true);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (orderId) {
+    const methods = [
+      { id: 'wechat' as const, src: '/pay/wechat.webp', label: t('payWechat') },
+      { id: 'alipay' as const, src: '/pay/alipay.webp', label: t('payAlipay') },
+    ];
+    if (paid) {
+      return (
+        <div className="stack fade" role="status">
+          <div className="done-box">{t('payDone')}</div>
+          <p className="small muted" style={{ margin: 0 }}>{t('payOrderNo')}: <span className="mono">{orderId.slice(0, 8)}</span></p>
+          <div>
+            <button type="button" className="btn ghost small" onClick={onClose}>{t('close')}</button>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="stack fade" role="status">
         <div className="done-box">{t('orderThanks')}</div>
-        <div className="pay" style={{ display: 'grid', gap: 14, marginTop: 4 }}>
-          <b style={{ font: '700 16px var(--display)' }}>{t('payTitle').replace('{p}', PRICE)}</b>
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-            {[
-              { src: '/pay/wechat.webp', label: t('payWechat') },
-              { src: '/pay/alipay.webp', label: t('payAlipay') },
-            ].map((q) => (
-              <figure key={q.src} style={{ margin: 0, width: 200 }}>
-                <img src={q.src} alt={q.label} width={200} style={{ width: 200, height: 'auto', borderRadius: 14, border: '1px solid var(--line)', display: 'block' }} />
-                <figcaption className="small" style={{ textAlign: 'center', marginTop: 6 }}>{q.label}</figcaption>
-              </figure>
-            ))}
+        {!method ? (
+          <div style={{ display: 'grid', gap: 12 }}>
+            <b style={{ font: '700 16px var(--display)' }}>{t('payChoose')}</b>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              {methods.map((m) => (
+                <button key={m.id} type="button" className="btn ghost" onClick={() => setMethod(m.id)}>{m.label}</button>
+              ))}
+            </div>
           </div>
-          <p className="small muted" style={{ margin: 0 }}>{t('payNote')}</p>
-        </div>
-        <div>
-          <button type="button" className="btn ghost small" onClick={onClose}>
-            {t('close')}
-          </button>
-        </div>
+        ) : (
+          <div className="pay" style={{ display: 'grid', gap: 12 }}>
+            {(() => {
+              const m = methods.find((x) => x.id === method)!;
+              return (
+                <>
+                  <b style={{ font: '700 16px var(--display)' }}>{t('payScan').replace('{m}', m.label).replace('{p}', PRICE)}</b>
+                  <figure style={{ margin: 0, width: 220 }}>
+                    <img src={m.src} alt={m.label} width={220} style={{ width: 220, height: 'auto', borderRadius: 14, border: '1px solid var(--line)', display: 'block' }} />
+                  </figure>
+                  <p className="small muted" style={{ margin: 0 }}>{t('payNote')}</p>
+                  <p className="small muted" style={{ margin: 0 }}>{t('payOrderNo')}: <span className="mono">{orderId.slice(0, 8)}</span></p>
+                  {payError && <p className="err">{t('payFail')}</p>}
+                  <div className="row">
+                    <button type="button" className="btn primary" disabled={sending} onClick={confirmPaid}>
+                      {sending ? <span className="spin" aria-hidden /> : null}
+                      {t('payIPaid')}
+                    </button>
+                    <button type="button" className="btn ghost" onClick={() => setMethod(null)}>{t('payBack')}</button>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        )}
       </div>
     );
   }
