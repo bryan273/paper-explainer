@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Shell from '@/components/Shell';
 
 const SB = 'https://vzvyghmtsakixlhzzuol.supabase.co';
-const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6dnlnaG10c2FraXhsaHp6dW9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwNjAwOTUsImV4cCI6MjEwNzYzNjA5NX0.MLAObQILObssDhjGxVXnKG0naYUWTQD8qsetfGw7HbI'; // public client key: it only lets people ask for a sign-in code
 const TOKEN_KEY = 'pe-admin-token';
 const STATUSES = ['new', 'paid_claimed', 'paid', 'delivered', 'cancelled'] as const;
 
@@ -32,11 +31,8 @@ async function api(path: string, init?: RequestInit) {
 
 export default function Admin() {
   const [token, setToken] = useState(getToken());
-  const [email, setEmail] = useState('');
-  const [codeSent, setCodeSent] = useState(false);
   const [code, setCode] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState('');
+    const [err, setErr] = useState('');
   const [dash, setDash] = useState<Dash | null>(null);
   const [tab, setTab] = useState<'overview' | 'orders' | 'jobs' | 'feedback'>('overview');
 
@@ -44,7 +40,6 @@ export default function Admin() {
     try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* ignore */ }
     setToken('');
     setDash(null);
-    setCodeSent(false);
     setCode('');
   };
 
@@ -52,38 +47,19 @@ export default function Admin() {
     if (!token) return;
     setErr('');
     try {
-      setDash(await api('/functions/v1/explainer-admin', { headers: { Authorization: `Bearer ${token}` } }));
+      setDash(await api('/functions/v1/explainer-admin', { headers: { 'x-admin-token': token } }));
     } catch (e) {
       const x = e as Error & { status?: number };
-      if (x.status === 401) signOut();
+      if (x.status === 401 || x.status === 403) signOut();
       setErr(x.message);
     }
   }, [token]);
 
   useEffect(() => { load(); }, [load]);
 
-  const sendCode = async (e: FormEvent) => {
-    e.preventDefault();
-    setBusy(true); setErr('');
-    try {
-      await api('/auth/v1/otp', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: ANON }, body: JSON.stringify({ email: email.trim(), create_user: true }) });
-      setCodeSent(true);
-    } catch (x) { setErr((x as Error).message); } finally { setBusy(false); }
-  };
-
-  const verify = async (e: FormEvent) => {
-    e.preventDefault();
-    setBusy(true); setErr('');
-    try {
-      const out = await api('/auth/v1/verify', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: ANON }, body: JSON.stringify({ type: 'email', email: email.trim(), token: code.trim() }) });
-      try { sessionStorage.setItem(TOKEN_KEY, out.access_token); } catch { /* ignore */ }
-      setToken(out.access_token);
-    } catch (x) { setErr((x as Error).message); } finally { setBusy(false); }
-  };
-
   const setStatus = async (id: string, status: string) => {
     try {
-      await api('/functions/v1/explainer-admin', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ op: 'order_status', id, status }) });
+      await api('/functions/v1/explainer-admin', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': token }, body: JSON.stringify({ op: 'order_status', id, status }) });
       setDash((d) => (d ? { ...d, orders: d.orders.map((o) => (o.id === id ? { ...o, status } : o)) } : d));
     } catch (x) { setErr((x as Error).message); }
   };
@@ -98,22 +74,11 @@ export default function Admin() {
         <h2 className="sec">Admin</h2>
         {!token && (
           <div className="card" style={{ maxWidth: 440 }}>
-            {!codeSent ? (
-              <form className="stack" onSubmit={sendCode}>
-                <p className="small muted" style={{ margin: 0 }}>Sign in with the email code. Only the owner account can see the data.</p>
-                <label className="field">Email<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required /></label>
-                <button className="btn primary" type="submit" disabled={busy}>{busy ? <span className="spin" aria-hidden /> : null}Send code</button>
-              </form>
-            ) : (
-              <form className="stack" onSubmit={verify}>
-                <p className="small muted" style={{ margin: 0 }}>We emailed a code to {email}. Paste it here.</p>
-                <label className="field">Code<input type="text" inputMode="numeric" value={code} onChange={(e) => setCode(e.target.value)} autoComplete="one-time-code" required /></label>
-                <div className="row">
-                  <button className="btn primary" type="submit" disabled={busy}>{busy ? <span className="spin" aria-hidden /> : null}Sign in</button>
-                  <button className="btn ghost" type="button" onClick={() => setCodeSent(false)}>Back</button>
-                </div>
-              </form>
-            )}
+            <form className="stack" onSubmit={(e) => { e.preventDefault(); const v = code.trim(); if (!v) return; try { sessionStorage.setItem(TOKEN_KEY, v); } catch { /* ignore */ } setToken(v); }}>
+              <p className="small muted" style={{ margin: 0 }}>Enter the admin passcode.</p>
+              <label className="field">Passcode<input type="password" value={code} onChange={(e) => setCode(e.target.value)} autoComplete="current-password" required /></label>
+              <button className="btn primary" type="submit">Open dashboard</button>
+            </form>
             {err && <p className="err">{err}</p>}
           </div>
         )}
