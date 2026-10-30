@@ -5,6 +5,17 @@ import { copyText, shareUrl, videoUrl, availableLangs, downloadFile, type Job } 
 import { usePrefs, type Lang } from '@/lib/prefs';
 import { track } from '@/lib/account';
 
+// Start downloading a video when the pointer reaches its play button, so the lightbox finds the first seconds already in the browser cache.
+const warmed = new Set<string>();
+function warmVideo(src?: string | null) {
+  if (!src || warmed.has(src)) return;
+  warmed.add(src);
+  const v = document.createElement('video');
+  v.preload = 'auto';
+  v.muted = true;
+  v.src = src;
+}
+
 function ExampleCard({ job, onPlay }: { job: Job; onPlay: (job: Job, lang: Lang) => void }) {
   const { t } = usePrefs();
   const langs = availableLangs(job);
@@ -25,6 +36,9 @@ function ExampleCard({ job, onPlay }: { job: Job; onPlay: (job: Job, lang: Lang)
         <button
           type="button"
           className="play"
+          onPointerEnter={() => warmVideo(thumb)}
+          onFocus={() => warmVideo(thumb)}
+          onTouchStart={() => warmVideo(thumb)}
           onClick={() => onPlay(job, active)}
           aria-label={`${t('play')}: ${job.title ?? ''}`}
         >

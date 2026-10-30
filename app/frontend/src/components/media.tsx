@@ -169,7 +169,7 @@ export function Lightbox({
         <button type="button" className="btn ghost small lb-close" onClick={onClose} autoFocus>
           {t('close')} ✕
         </button>
-        <video src={src} controls autoPlay playsInline />
+        <video src={src} poster={job.sections?.find((s) => s.poster)?.poster ?? undefined} controls autoPlay playsInline preload="auto" />
         <div className="media-cap">
           <span className="t">{job.title}</span>
           <span className="mono small">{srcLabel(job)}</span>
