@@ -59,12 +59,12 @@ export default function ContactSection() {
     <section className="section" id="contact" aria-labelledby="contact-title">
       <h2 className="sec" id="contact-title">{a('contactTitle')}</h2>
       <p className="sec-sub">{a('contactSub')}</p>
-      <div className="card" style={{ maxWidth: 620 }}>
+      <div className="card" style={{ marginTop: 22 }}>
         {state === 'sent' ? (
           <div className="done-box" role="status">{a('sent')}</div>
         ) : (
           <form className="stack" onSubmit={submit}>
-            <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
+            <div className="row" style={{ gap: 12, flexWrap: 'wrap', alignItems: 'flex-start' }}>
               <label className="field" style={{ flex: '1 1 160px' }}>{a('topic')}
                 <select value={f.topic} onChange={(e) => setF({ ...f, topic: e.target.value })}>
                   <option value="question">{a('topicQ')}</option>

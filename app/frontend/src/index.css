@@ -678,8 +678,12 @@ textarea:focus {
   margin-top: 24px;
 }
 
+/* four cards would leave one orphan in a 3 column grid, so use 2 x 2 */
+.grid3:has(> :nth-child(4):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
 @media (max-width: 900px) {
-  .grid3 {
+  .grid3,
+  .grid3:has(> :nth-child(4):last-child) {
     grid-template-columns: minmax(0, 1fr);
   }
 }

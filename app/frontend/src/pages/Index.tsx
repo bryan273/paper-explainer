@@ -9,12 +9,13 @@ import PricingSection from '@/components/sections/PricingSection';
 import FeedbackSection from '@/components/sections/FeedbackSection';
 import ContactSection, { FaqSection } from '@/components/sections/ContactSection';
 import { Link } from 'react-router-dom';
+import { SuiteCta } from '@/components/SuiteFooter';
 import { useAcctText } from '@/lib/account';
 import { SUITE_URLS, parseArxivId, useRecent } from '@/lib/explainer';
 import { usePrefs } from '@/lib/prefs';
 
 export default function Index() {
-  const { t } = usePrefs();
+  const { t, lang } = usePrefs();
   const ac = useAcctText();
   const { items, error } = useRecent();
   const [params] = useSearchParams();
@@ -45,6 +46,14 @@ export default function Index() {
       <FeedbackSection />
       <FaqSection />
       <ContactSection />
+
+      <SuiteCta
+        title={lang === 'zh' ? '把一篇论文变成 40 秒视频' : 'Turn a paper into a 40 second video'}
+        body={lang === 'zh' ? '粘贴 arXiv 链接，无需注册即可试用。' : 'Paste an arXiv link. Free to try with no sign-up.'}
+        label={lang === 'zh' ? '制作视频' : 'Make a video'}
+        href="#make"
+        onClick={() => scrollToSection('make')}
+      />
 
       <footer className="foot">
         <span>
