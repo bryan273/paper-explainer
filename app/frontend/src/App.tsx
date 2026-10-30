@@ -12,6 +12,7 @@ import Legal from './pages/Legal';
 import { AccountProvider } from './lib/account';
 import { AuthModal } from './components/AccountUI';
 // MODULE_IMPORTS_START
+import NotFound from './components/NotFound';
 import { PrefsProvider } from './lib/prefs';
 // MODULE_IMPORTS_END
 
@@ -34,6 +35,7 @@ const AppRoutes = () => (
     <Route path="/privacy" element={<Legal kind="privacy" />} />
     <Route path="/auth/callback" element={<AuthCallback />} />
     <Route path="/auth/error" element={<AuthError />} />
+    <Route path="*" element={<NotFound appId="explainer" />} />
     {/* MODULE_ROUTES_START */}
     {/* MODULE_ROUTES_END */}
   </Routes>
