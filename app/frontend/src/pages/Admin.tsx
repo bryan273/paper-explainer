@@ -133,7 +133,7 @@ export default function Admin() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
                       {[
                         ['Videos made', dash.counts.jobs_total], ['Last 24 hours', dash.counts.jobs_24h], ['Last 7 days', dash.counts.jobs_7d], ['Failed', dash.counts.jobs_failed],
-                        ...(dash.costs ? [['Cost, all videos (est.)', usd(dash.costs.total_usd)], ['Cost, last 24 hours', usd(dash.costs.usd_24h)], ['Cost, last 7 days', usd(dash.costs.usd_7d)], ['Average per video', dash.costs.priced_jobs ? usd(dash.costs.avg_usd) : 'n/a yet']] : []),
+                        ...(dash.costs ? (dash.costs.priced_jobs ? [['Cost, all videos (est.)', usd(dash.costs.total_usd)], ['Cost, last 24 hours', usd(dash.costs.usd_24h)], ['Cost, last 7 days', usd(dash.costs.usd_7d)], ['Average per video', usd(dash.costs.avg_usd)]] : [['Cost, all videos (est.)', 'n/a yet'], ['Cost, last 24 hours', 'n/a yet'], ['Cost, last 7 days', 'n/a yet'], ['Average per video', 'n/a yet']]) : []),
                         ['Visitors (recent)', dash.counts.visitors], ['Members', dash.counts.users_total], ['Member videos', dash.counts.member_jobs], ['Orders', dash.counts.orders_total], ['Paid, to confirm', dash.counts.orders_waiting], ['Feedback + contact', dash.counts.feedback_total],
                       ].map(([k, v]) => (
                         <div key={String(k)} className="card" style={{ padding: 16 }}>
