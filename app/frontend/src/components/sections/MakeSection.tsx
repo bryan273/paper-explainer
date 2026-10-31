@@ -5,6 +5,8 @@ import SectionsReader from '@/components/SectionsReader';
 import { ApiError, availableLangs, createJob, getJob, lookupPaper, videoUrl, LENGTHS, STYLES, TONES, type Job, type MakeOpts } from '@/lib/explainer';
 import { usePrefs, type Lang, type StringKey } from '@/lib/prefs';
 import { scrollToSection } from '@/components/Shell';
+import { AccountStrip, LimitPanel } from '@/components/AccountUI';
+import { track, useAccount } from '@/lib/account';
 
 const STEP_KEYS: StringKey[] = ['stepRead', 'stepScript', 'stepCheck', 'stepEn', 'stepZh'];
 const POLL_MS = 5000;
@@ -49,6 +51,8 @@ export function srcLabel(job: Job): string {
 
 export default function MakeSection({ prefill, autoOpen }: { prefill?: string | null; autoOpen?: boolean }) {
   const { t } = usePrefs();
+  const { refresh: refreshAccount } = useAccount();
+  const [limit, setLimit] = useState<null | 'quota_guest' | 'quota_member'>(null);
   const [input, setInput] = useState(prefill ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +61,7 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
   const [lang, setLang] = useState<Lang>('en');
   const [slow, setSlow] = useState(false);
   const [voice, setVoice] = useState<MakeOpts['voice']>('female');
-  const [style, setStyle] = useState<MakeOpts['style']>('animated');
+  const [style] = useState<MakeOpts['style']>('animated');
   const [tone, setTone] = useState<MakeOpts['tone']>('teacher');
   const [seconds, setSeconds] = useState<number>(180);
   const [custom, setCustom] = useState('');
@@ -137,6 +141,8 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
     }
     setSubmitting(true);
     setError(null);
+    setLimit(null);
+    track('click_make');
     setJob(null);
     setCached(false);
     clearTimer();
@@ -145,12 +151,14 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
       startedAt.current = created.created_at ? Date.parse(created.created_at) || Date.now() : Date.now();
       stageAt.current = { step: -2, at: Date.now() };
       setJob(created);
+      refreshAccount();
       setCached(!!created.cached || created.status === 'done');
       if (created.status !== 'done' && created.status !== 'failed') {
         timer.current = window.setTimeout(() => poll(created.id), POLL_MS);
       }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('networkError'));
+      if (err instanceof ApiError && (err.code === 'quota_guest' || err.code === 'quota_member')) { setLimit(err.code); refreshAccount(); }
+      else setError(err instanceof ApiError ? err.message : t('networkError'));
     } finally {
       setSubmitting(false);
     }
@@ -181,7 +189,8 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
       </h2>
       <p className="sec-sub">{t('makeSub')}</p>
 
-      <div className="card" style={{ marginTop: 22 }}>
+      <div style={{ marginTop: 22 }}><AccountStrip /></div>
+      <div className="card">
         <form onSubmit={submit} noValidate>
           <div className="inline-form">
             <label className="field" htmlFor="arxiv">
@@ -230,26 +239,6 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
               </select>
             </label>
           </div>
-          <fieldset style={{ border: 0, padding: 0, margin: '14px 0 0' }} disabled={submitting || running}>
-            <legend className="small muted" style={{ padding: 0, marginBottom: 6 }}>
-              {t('optStyle')}
-            </legend>
-            <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
-              {STYLES.map((k) => (
-                <button
-                  key={k}
-                  type="button"
-                  className="btn ghost small"
-                  aria-pressed={style === k}
-                  onClick={() => setStyle(k)}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, boxShadow: style === k ? '0 0 0 2px var(--accent, #5B4BFF)' : undefined }}
-                >
-                  <span aria-hidden style={{ width: 18, height: 18, borderRadius: 6, background: SWATCH[k], border: '1px solid rgba(0,0,0,.2)' }} />
-                  {t(STYLE_KEYS[k])}
-                </button>
-              ))}
-            </div>
-          </fieldset>
           <label className="field" style={{ marginTop: 14 }}>
             {t('optCustom')}
             <input type="text" value={custom} maxLength={300} onChange={(e) => setCustom(e.target.value)} placeholder={t('optCustomPh')} disabled={submitting || running} />
@@ -269,8 +258,17 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
             </p>
             <div className="stack" style={{ gap: 8 }}>
               {existing.map((j) => (
-                <div key={j.id} className="row between" style={{ gap: 10, flexWrap: 'wrap' }}>
-                  <span className="small">
+                <div key={j.id} className="row between" style={{ gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                  {(() => {
+                    const v = j.videos?.en ?? j.videos?.zh;
+                    const poster = j.sections?.find((x) => x.poster)?.poster;
+                    return v ? (
+                      <div style={{ width: 96, height: 54, borderRadius: 8, overflow: 'hidden', background: '#0b0f1a', flex: 'none' }}>
+                        {poster ? <img src={poster} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <video src={`${v}#t=1.5`} preload="metadata" muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                      </div>
+                    ) : null;
+                  })()}
+                  <span className="small" style={{ flex: 1, minWidth: 140 }}>
                     {t('min').replace('{n}', String(Math.max(1, Math.round((j.seconds ?? 36) / 60))))} · {t(STYLE_KEYS[(j.style as (typeof STYLES)[number]) ?? 'classic'] ?? 'styleClassic')} ·{' '}
                     {t(TONE_KEYS[(j.tone as (typeof TONES)[number]) ?? 'teacher'] ?? 'toneTeacher')}
                     {j.custom ? ` · "${j.custom.slice(0, 40)}"` : ''}
@@ -297,6 +295,7 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
           </div>
         )}
 
+        {limit && <LimitPanel code={limit} />}
         {error && (
           <p className="err" role="alert">
             {error}
@@ -374,7 +373,10 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
               <LangSeg value={activeLang} options={langs} onChange={setLang} />
             </div>
             <div className="screen">
-              <video key={src} src={src} controls playsInline preload="metadata" title={job.title ?? ''} />
+              {(() => {
+                const poster = job.sections?.find((s) => s.poster)?.poster ?? undefined;
+                return <video key={src} src={poster ? src : `${src}#t=1.5`} poster={poster} controls playsInline preload="metadata" title={job.title ?? ''} />;
+              })()}
             </div>
             <ShareRow job={job} lang={activeLang} />
             <SectionsReader job={job} lang={activeLang} />

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Lang } from '@/lib/prefs';
+import { authHeaders } from '@/lib/account';
 
 export const RENDER_URL = 'https://vzvyghmtsakixlhzzuol.supabase.co/functions/v1/explainer-render';
 
@@ -30,6 +31,7 @@ export interface Section {
   takeaway?: string;
   takeaway_zh?: string;
   status?: 'waiting' | 'done';
+  poster?: string | null;
   videos?: { en?: string | null; zh?: string | null };
 }
 
@@ -58,6 +60,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public status: number,
+    public code?: string,
   ) {
     super(message);
   }
@@ -73,7 +76,7 @@ async function request(init?: RequestInit, query = ''): Promise<unknown> {
   }
   const errMsg = (body as { error?: unknown } | null)?.error;
   if (!res.ok || typeof errMsg === 'string') {
-    throw new ApiError(typeof errMsg === 'string' && errMsg ? errMsg : `HTTP ${res.status}`, res.status);
+    throw new ApiError(typeof errMsg === 'string' && errMsg ? errMsg : `HTTP ${res.status}`, res.status, (body as { code?: string } | null)?.code);
   }
   return body;
 }
@@ -85,7 +88,11 @@ export function isPlayable(job: Job | null | undefined): job is Job {
 export async function fetchRecent(): Promise<Job[]> {
   const body = await request(undefined, '?recent=1');
   const list = Array.isArray(body) ? body : ((body as { items?: unknown[] } | null)?.items ?? []);
-  return (list as Job[]).filter(isPlayable);
+  // the gallery shows the current look only (jobs with a poster), one video per paper, newest first
+  const playable = (list as Job[]).filter(isPlayable);
+  const current = playable.filter((j) => j.sections?.some((s) => s.poster));
+  const seen = new Set<string>();
+  return (current.length ? current : playable).filter((j) => !seen.has(j.arxiv) && !!seen.add(j.arxiv));
 }
 
 export const STYLES = ['animated', 'cinema', 'classic', 'light', 'sunset', 'mono'] as const;
@@ -110,7 +117,7 @@ export async function lookupPaper(input: string): Promise<Job[]> {
 export async function createJob(arxiv: string, opts?: MakeOpts): Promise<Job> {
   return (await request({
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify({ arxiv, visitor: visitorId(), ...opts }),
   })) as Job;
 }

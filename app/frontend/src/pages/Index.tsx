@@ -7,11 +7,16 @@ import ExamplesSection from '@/components/sections/ExamplesSection';
 import HowSection from '@/components/sections/HowSection';
 import PricingSection from '@/components/sections/PricingSection';
 import FeedbackSection from '@/components/sections/FeedbackSection';
+import ContactSection, { FaqSection } from '@/components/sections/ContactSection';
+import { Link } from 'react-router-dom';
+import { SuiteCta } from '@/components/SuiteFooter';
+import { useAcctText } from '@/lib/account';
 import { SUITE_URLS, parseArxivId, useRecent } from '@/lib/explainer';
 import { usePrefs } from '@/lib/prefs';
 
 export default function Index() {
-  const { t } = usePrefs();
+  const { t, lang } = usePrefs();
+  const ac = useAcctText();
   const { items, error } = useRecent();
   const [params] = useSearchParams();
   const shared = parseArxivId(params.get('v') ?? '');
@@ -39,6 +44,16 @@ export default function Index() {
       <HowSection />
       <PricingSection />
       <FeedbackSection />
+      <FaqSection />
+      <ContactSection />
+
+      <SuiteCta
+        title={lang === 'zh' ? '把一篇论文变成 40 秒视频' : 'Turn a paper into a 40 second video'}
+        body={lang === 'zh' ? '粘贴 arXiv 链接，无需注册即可试用。' : 'Paste an arXiv link. Free to try with no sign-up.'}
+        label={lang === 'zh' ? '制作视频' : 'Make a video'}
+        href="#make"
+        onClick={() => scrollToSection('make')}
+      />
 
       <footer className="foot">
         <span>
@@ -50,7 +65,9 @@ export default function Index() {
             {t('appRepro')} ↗
           </a>
         </span>
-        <span className="tiny">{t('footerNote')}</span>
+        <span className="tiny">
+          <Link to="/terms">{ac('terms')}</Link> · <Link to="/privacy">{ac('privacy')}</Link> · <Link to="/account">{ac('account')}</Link> · {t('footerNote')}
+        </span>
       </footer>
     </Shell>
   );

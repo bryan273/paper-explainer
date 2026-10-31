@@ -7,7 +7,7 @@ const SECTIONS: { id: string; key: StringKey }[] = [
   { id: 'examples', key: 'navExamples' },
   { id: 'how', key: 'navHow' },
   { id: 'pricing', key: 'navPricing' },
-  { id: 'feedback', key: 'navFeedback' },
+  { id: 'contact', key: 'navContact' },
 ];
 
 function scrollTo(id: string) {

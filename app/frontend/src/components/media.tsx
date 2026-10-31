@@ -89,32 +89,48 @@ export function useVideoTools(job: Job | null, lang: Lang) {
   };
 }
 
+const ICON: Record<string, string> = {
+  mp4: 'M12 3v12m0 0l-4-4m4 4l4-4M5 19h14',
+  vertical: 'M8 2h8a2 2 0 012 2v16a2 2 0 01-2 2H8a2 2 0 01-2-2V4a2 2 0 012-2zm4 16h.01',
+  link: 'M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1',
+  check: 'M5 13l4 4L19 7',
+  x: 'M4 4l16 16M20 4L4 20',
+  in: 'M6 9v10M6 5v.01M11 19v-6a3 3 0 016 0v6M11 9v10',
+  weibo: 'M12 20c-4 0-7-2-7-4.5S8 11 12 11s7 2 7 4.5S16 20 12 20zM16 6a5 5 0 013 3M15 8.5a2.5 2.5 0 011.5 1.5',
+};
+function Icon({ n }: { n: keyof typeof ICON }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d={ICON[n]} />
+    </svg>
+  );
+}
+
 export function ShareRow({ job, lang }: { job: Job; lang: Lang }) {
   const tool = useVideoTools(job, lang);
   const { t } = tool;
+  const box = { width: 42, height: 42, padding: 0, display: 'inline-grid', placeItems: 'center' } as const;
   return (
-    <div className="actions">
-      <button type="button" className="btn primary" onClick={() => tool.download(false)} disabled={tool.busy === 'mp4'}>
-        {tool.busy === 'mp4' ? <span className="spin" aria-hidden /> : '↓'}
-        {t('dlMp4')}
+    <div className="actions" style={{ gap: 10 }}>
+      <button type="button" className="btn primary" style={box} title={t('dlMp4')} aria-label={t('dlMp4')} onClick={() => tool.download(false)} disabled={tool.busy === 'mp4'}>
+        {tool.busy === 'mp4' ? <span className="spin" aria-hidden /> : <Icon n="mp4" />}
       </button>
       {job.videos?.[lang === 'zh' ? 'zh_vertical' : 'en_vertical'] && (
-        <button type="button" className="btn ghost" onClick={() => tool.download(true)} disabled={tool.busy === 'vertical'}>
-          {tool.busy === 'vertical' ? <span className="spin" aria-hidden /> : '▯'}
-          {t('dlVertical')}
+        <button type="button" className="btn ghost" style={box} title={t('dlVertical')} aria-label={t('dlVertical')} onClick={() => tool.download(true)} disabled={tool.busy === 'vertical'}>
+          {tool.busy === 'vertical' ? <span className="spin" aria-hidden /> : <Icon n="vertical" />}
         </button>
       )}
-      <button type="button" className="btn ghost" onClick={tool.copy}>
-        {tool.copied ? t('copied') : t('copyLink')}
+      <button type="button" className="btn ghost" style={box} title={tool.copied ? t('copied') : t('copyLink')} aria-label={t('copyLink')} onClick={tool.copy}>
+        <Icon n={tool.copied ? 'check' : 'link'} />
       </button>
-      <a className="btn ghost" href={tool.shareX} target="_blank" rel="noopener noreferrer">
-        {t('shareX')}
+      <a className="btn ghost" style={box} href={tool.shareX} title={t('shareX')} aria-label={t('shareX')} target="_blank" rel="noopener noreferrer">
+        <Icon n="x" />
       </a>
-      <a className="btn ghost" href={tool.shareIn} target="_blank" rel="noopener noreferrer">
-        {t('shareLinkedIn')}
+      <a className="btn ghost" style={box} href={tool.shareIn} title={t('shareLinkedIn')} aria-label={t('shareLinkedIn')} target="_blank" rel="noopener noreferrer">
+        <Icon n="in" />
       </a>
-      <a className="btn ghost" href={tool.shareWeibo} target="_blank" rel="noopener noreferrer">
-        {t('shareWeibo')}
+      <a className="btn ghost" style={box} href={tool.shareWeibo} title={t('shareWeibo')} aria-label={t('shareWeibo')} target="_blank" rel="noopener noreferrer">
+        <Icon n="weibo" />
       </a>
     </div>
   );
@@ -153,7 +169,7 @@ export function Lightbox({
         <button type="button" className="btn ghost small lb-close" onClick={onClose} autoFocus>
           {t('close')} ✕
         </button>
-        <video src={src} controls autoPlay playsInline />
+        <video src={src} poster={job.sections?.find((s) => s.poster)?.poster ?? undefined} controls autoPlay playsInline preload="auto" />
         <div className="media-cap">
           <span className="t">{job.title}</span>
           <span className="mono small">{srcLabel(job)}</span>

@@ -33,7 +33,7 @@ export default function SectionsReader({ job, lang }: { job: Job; lang: Lang }) 
               )}
               {src ? (
                 <div className="screen">
-                  <video key={src} src={src} controls playsInline preload="metadata" />
+                  <video key={src} src={s.poster ? src : `${src}#t=1.5`} poster={s.poster ?? undefined} controls playsInline preload="metadata" />
                 </div>
               ) : (
                 <div className="screen" style={{ display: 'grid', placeItems: 'center', minHeight: 160, color: 'var(--muted)' }}>

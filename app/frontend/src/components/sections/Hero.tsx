@@ -29,7 +29,9 @@ export function StatsStrip({ items }: { items: Job[] }) {
 export default function Hero({ items, error }: { items: Job[] | null; error: boolean }) {
   const { t } = usePrefs();
   const latest = items?.[0] ?? null;
-  const src = latest ? `${videoUrl(latest, 'en') ?? ''}#t=1` : '';
+  const base = latest ? (videoUrl(latest, 'en') ?? '') : '';
+  const poster = latest?.sections?.find((x) => x.poster)?.poster ?? undefined;
+  const src = poster ? base : `${base}#t=1.5`;
 
   return (
     <section className="hero" aria-labelledby="hero-title">
@@ -54,7 +56,7 @@ export default function Hero({ items, error }: { items: Job[] | null; error: boo
           {latest && src ? (
             <>
               <div className="screen">
-                <video src={src} controls playsInline preload="metadata" title={latest.title ?? ''} />
+                <video src={src} poster={poster} controls playsInline preload="metadata" title={latest.title ?? ''} />
               </div>
               <div className="media-cap">
                 <span className="t">{latest.title}</span>
@@ -70,8 +72,6 @@ export default function Hero({ items, error }: { items: Job[] | null; error: boo
           )}
         </div>
       </div>
-
-      {items && items.length > 0 && <StatsStrip items={items} />}
     </section>
   );
 }

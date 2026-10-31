@@ -18,7 +18,7 @@
   --soft: #f1efea;
   --acc: #5b4bff;
   --acct: #f2edff;
-  --ok: #15803d;
+  --ok: #136f36;
   --okt: #e6f4ea;
   --warn: #b45309;
   --warnt: #fdf2e3;
@@ -678,8 +678,12 @@ textarea:focus {
   margin-top: 24px;
 }
 
+/* four cards would leave one orphan in a 3 column grid, so use 2 x 2 */
+.grid3:has(> :nth-child(4):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
 @media (max-width: 900px) {
-  .grid3 {
+  .grid3,
+  .grid3:has(> :nth-child(4):last-child) {
     grid-template-columns: minmax(0, 1fr);
   }
 }
@@ -795,6 +799,7 @@ textarea:focus {
   background: transparent;
   border-radius: 999px;
   padding: 4px 12px;
+  min-height: 32px;
   font: 600 12px var(--body);
   cursor: pointer;
   color: var(--muted);
