@@ -32,7 +32,7 @@ type Dash = {
 const getToken = () => {
   try { return sessionStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; }
 };
-const usd = (n: number | null | undefined) => (n === null || n === undefined ? '' : `$${Number(n).toFixed(Number(n) < 1 ? 3 : 2)}`);
+const usd = (n: number | null | undefined) => (n === null || n === undefined ? '' : `$${Number(n).toFixed(Number(n) < 0.1 ? 4 : Number(n) < 1 ? 3 : 2)}`);
 const fmt = (s: string | null) => (s ? new Date(s).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' }) : '');
 
 async function api(path: string, init?: RequestInit) {
