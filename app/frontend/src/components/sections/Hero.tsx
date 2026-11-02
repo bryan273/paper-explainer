@@ -1,3 +1,4 @@
+import { GradLast } from '@/components/SuiteUI';
 import { srcLabel } from '@/components/sections/MakeSection';
 import { videoUrl, type Job } from '@/lib/explainer';
 import { usePrefs } from '@/lib/prefs';
@@ -37,9 +38,9 @@ export default function Hero({ items, error }: { items: Job[] | null; error: boo
     <section className="hero" aria-labelledby="hero-title">
       <div className="hero-grid">
         <div>
-          <span className="eyebrow">Paper Explainer</span>
+          <span className="su-pill"><i />Paper Explainer</span>
           <h1 className="hero-title" id="hero-title" style={{ marginTop: 10 }}>
-            {t('heroTitle')}
+            <GradLast text={t('heroTitle')} words={4} />
           </h1>
           <p className="lede">{t('heroSub')}</p>
           <div className="actions">
