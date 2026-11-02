@@ -1157,3 +1157,6 @@ h1.hero-title { font-weight: 700; letter-spacing: -0.04em; }
 
 html { overflow-x: clip; }
 
+
+/* footer links: a comfortable touch target without changing the look */
+.foot a { display: inline-block; padding: 12px 6px; margin: -12px -2px; }
