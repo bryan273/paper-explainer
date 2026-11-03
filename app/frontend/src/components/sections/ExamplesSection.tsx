@@ -5,23 +5,11 @@ import { copyText, shareUrl, videoUrl, availableLangs, downloadFile, type Job } 
 import { usePrefs, type Lang } from '@/lib/prefs';
 import { track } from '@/lib/account';
 
-// Start downloading a video when the pointer reaches its play button, so the lightbox finds the first seconds already in the browser cache.
-const warmed = new Set<string>();
-function warmVideo(src?: string | null) {
-  if (!src || warmed.has(src)) return;
-  warmed.add(src);
-  const v = document.createElement('video');
-  v.preload = 'auto';
-  v.muted = true;
-  v.src = src;
-}
-
 function ExampleCard({ job, onPlay }: { job: Job; onPlay: (job: Job, lang: Lang) => void }) {
   const { t } = usePrefs();
   const langs = availableLangs(job);
   const [lang, setLang] = useState<Lang>(langs[0] ?? 'en');
   const active = lang === 'zh' && langs.includes('zh') ? 'zh' : (langs[0] ?? 'en');
-  const thumb = videoUrl(job, active);
   const checked = job.checks?.checked ?? 0;
   const removed = job.checks?.removed?.length ?? 0;
 
@@ -31,14 +19,11 @@ function ExampleCard({ job, onPlay }: { job: Job; onPlay: (job: Job, lang: Lang)
         {(() => {
           const poster = job.sections?.find((x) => x.poster)?.poster;
           if (poster) return <img src={poster} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />;
-          return thumb ? <video src={`${thumb}#t=2`} preload="metadata" muted playsInline aria-hidden tabIndex={-1} /> : null;
+          return null; // no video preload in the gallery: finished videos are large and the host bills every byte served
         })()}
         <button
           type="button"
           className="play"
-          onPointerEnter={() => warmVideo(thumb)}
-          onFocus={() => warmVideo(thumb)}
-          onTouchStart={() => warmVideo(thumb)}
           onClick={() => onPlay(job, active)}
           aria-label={`${t('play')}: ${job.title ?? ''}`}
         >

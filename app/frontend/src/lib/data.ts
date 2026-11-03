@@ -1,5 +1,5 @@
 /** Feedback and Studio orders live in Supabase (explainer-data function), so the site runs on any host. */
-const URL = 'https://vzvyghmtsakixlhzzuol.supabase.co/functions/v1/explainer-data';
+const URL = 'https://wzdkroxbfrlqijbeiwpk.supabase.co/functions/v1/explainer-data';
 
 async function post(body: unknown): Promise<{ id?: string; ok?: boolean }> {
   const res = await fetch(URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
