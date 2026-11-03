@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Shell from '@/components/Shell';
 
-const SB = 'https://vzvyghmtsakixlhzzuol.supabase.co';
+const SB = 'https://wzdkroxbfrlqijbeiwpk.supabase.co';
 const TOKEN_KEY = 'pe-admin-token';
 const STATUSES = ['new', 'paid_claimed', 'paid', 'delivered', 'cancelled'] as const;
 

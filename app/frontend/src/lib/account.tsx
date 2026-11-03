@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { usePrefs } from '@/lib/prefs';
 import { visitorId } from '@/lib/explainer';
 
-export const ACCOUNT_URL = 'https://vzvyghmtsakixlhzzuol.supabase.co/functions/v1/explainer-account';
+export const ACCOUNT_URL = 'https://wzdkroxbfrlqijbeiwpk.supabase.co/functions/v1/explainer-account';
 const TOKEN_KEY = 'pe-session';
 
 export type Quota = { tier: 'guest' | 'member'; day_limit: number; day_used: number; day_left: number; credits: number; resets_in_min: number | null };

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { Lang } from '@/lib/prefs';
 import { authHeaders } from '@/lib/account';
 
-export const RENDER_URL = 'https://vzvyghmtsakixlhzzuol.supabase.co/functions/v1/explainer-render';
+export const RENDER_URL = 'https://wzdkroxbfrlqijbeiwpk.supabase.co/functions/v1/explainer-render';
 
 export const SUITE_URLS = {
   repro: 'https://bryan273.github.io/repro-suite/repro/index.html',
