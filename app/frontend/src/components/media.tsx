@@ -1,6 +1,7 @@
 import { srcLabel } from '@/components/sections/MakeSection';
 import { useEffect, useState } from 'react';
-import { copyText, downloadFile, shareUrl, videoUrl, type Job } from '@/lib/explainer';
+import { copyText, downloadFile, shareUrl, storageKind, videoUrl, type Job } from '@/lib/explainer';
+import { track } from '@/lib/account';
 import { usePrefs, type Lang } from '@/lib/prefs';
 
 export function VideoScreen({
@@ -161,6 +162,10 @@ export function Lightbox({
   }, [onClose]);
 
   const src = videoUrl(job, lang) ?? '';
+  useEffect(() => {
+    const k = storageKind(src);
+    if (k) track('video_play', { k });
+  }, [src]);
   if (!src) return null;
 
   return (

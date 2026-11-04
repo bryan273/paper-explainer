@@ -1,5 +1,6 @@
 import { usePrefs, type Lang } from '@/lib/prefs';
-import type { Job } from '@/lib/explainer';
+import { storageKind, type Job } from '@/lib/explainer';
+import { track } from '@/lib/account';
 
 /** The paper read section by section: the text, the key takeaway and a short narrated video for each part, shown as soon as that part is rendered. */
 export default function SectionsReader({ job, lang }: { job: Job; lang: Lang }) {
@@ -33,7 +34,7 @@ export default function SectionsReader({ job, lang }: { job: Job; lang: Lang }) 
               )}
               {src ? (
                 <div className="screen">
-                  <video key={src} src={s.poster ? src : `${src}#t=1.5`} poster={s.poster ?? undefined} controls playsInline preload="metadata" />
+                  <video key={src} src={s.poster ? src : `${src}#t=1.5`} poster={s.poster ?? undefined} controls playsInline preload="metadata" onPlay={() => { const k = storageKind(src); if (k) track('video_play', { k }); }} />
                 </div>
               ) : (
                 <div className="screen" style={{ display: 'grid', placeItems: 'center', minHeight: 160, color: 'var(--muted)' }}>

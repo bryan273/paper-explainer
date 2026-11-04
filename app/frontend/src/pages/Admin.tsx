@@ -18,6 +18,9 @@ type Ops = {
   llm: { app: string; calls_24h: number; calls_7d: number; tokens_24h: number; tokens_7d: number }[];
   jobs: Record<string, number>;
   last_backup: { taken_at: string; tables: number; rows: number; source: string } | null;
+  llm_daily: { d: string; calls: number; tokens: number }[];
+  jobs_daily: { d: string; n: number }[];
+  egress: { plays_30d: number; downloads_30d: number; est_bytes: number };
 };
 type Dash = {
   ops?: Ops | null;
@@ -52,7 +55,7 @@ async function api(path: string, init?: RequestInit) {
 
 // Supabase free-plan limits this project lives under. Egress (5 GB a month) is not readable through any API, so it is read in the Supabase dashboard (Usage).
 const MB = 1024 * 1024;
-const LIMITS = { db: 500 * MB, storage: 1024 * MB };
+const LIMITS = { db: 500 * MB, storage: 1024 * MB, egress: 5 * 1024 * MB };
 const mb = (n: number) => (n >= 1024 * MB ? `${(n / 1024 / MB).toFixed(2)} GB` : `${(n / MB).toFixed(n < 10 * MB ? 1 : 0)} MB`);
 
 function Bar({ label, used, limit }: { label: string; used: number; limit: number }) {
@@ -68,12 +71,44 @@ function Bar({ label, used, limit }: { label: string; used: number; limit: numbe
   );
 }
 
+function BarChart({ title, data, unit }: { title: string; data: { d: string; v: number }[]; unit: string }) {
+  const W = 560, H = 190, L = 30, B = 24, T = 18;
+  const max = Math.max(...data.map((x) => x.v), 1);
+  const nice = max <= 4 ? max : Math.ceil(max / 5) * 5;
+  const bw = (W - L) / Math.max(data.length, 1);
+  const total = data.reduce((a, x) => a + x.v, 0);
+  return (
+    <div className="card" style={{ padding: 16 }}>
+      <div className="row between"><b>{title}</b><span className="small muted">{total.toLocaleString()} {unit}, last {data.length} days</span></div>
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${title}: ${total} ${unit}`} style={{ width: '100%', height: 'auto', marginTop: 8, display: 'block' }}>
+        {[0, 0.5, 1].map((f) => {
+          const y = T + (H - T - B) * (1 - f);
+          return <g key={f}><line x1={L} x2={W} y1={y} y2={y} stroke="currentColor" opacity={f === 0 ? 0.35 : 0.12} /><text x={L - 6} y={y + 3} textAnchor="end" fontSize="9" fill="currentColor" opacity="0.55">{Math.round(nice * f)}</text></g>;
+        })}
+        {data.map((x, i) => {
+          const h = (H - T - B) * (x.v / nice);
+          const cx = L + bw * i + bw / 2;
+          return (
+            <g key={x.d}>
+              <title>{`${x.d}: ${x.v} ${unit}`}</title>
+              <rect x={cx - Math.min(bw * 0.32, 13)} y={H - B - Math.max(h, x.v ? 2 : 0)} width={Math.min(bw * 0.64, 26)} height={Math.max(h, x.v ? 2 : 0)} rx="4" fill="var(--acc)" opacity={x.v ? 1 : 0} />
+              {x.v > 0 && <text x={cx} y={H - B - h - 5} textAnchor="middle" fontSize="9.5" fontWeight="600" fill="currentColor">{x.v}</text>}
+              {(i % 2 === data.length % 2 || data.length < 8) && <text x={cx} y={H - 8} textAnchor="middle" fontSize="9" fill="currentColor" opacity="0.55">{x.d}</text>}
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
 function OpsPanel({ ops }: { ops: Ops | null | undefined }) {
   if (!ops) return <div className="card" style={{ padding: 16, marginBottom: 16 }}><b>System</b><p className="small muted" style={{ margin: '6px 0 0' }}>Could not read the system stats. Check that supabase/ops.sql is applied.</p></div>;
   const storage = ops.storage.reduce((a, s) => a + s.bytes, 0);
   const age = ops.last_backup ? (Date.now() - new Date(ops.last_backup.taken_at).getTime()) / 3600_000 : null;
   const warns: string[] = [];
   if (storage >= LIMITS.storage * 0.7) warns.push('Storage is above 70% of the free limit.');
+  if (ops.egress.est_bytes >= LIMITS.egress * 0.6) warns.push('Estimated egress is above 60% of the 5 GB monthly cap. Check Usage in the Supabase dashboard now.');
   if (ops.db_bytes >= LIMITS.db * 0.7) warns.push('Database is above 70% of the free limit.');
   if (age === null) warns.push('No backup has been recorded yet.');
   else if (age > 36) warns.push(`The last backup is ${Math.round(age)} hours old. The daily run may be failing (GitHub Actions: backup-supabase).`);
@@ -86,8 +121,9 @@ function OpsPanel({ ops }: { ops: Ops | null | undefined }) {
       <div style={{ marginTop: 12 }}>
         <Bar label="Database" used={ops.db_bytes} limit={LIMITS.db} />
         <Bar label={`Storage (${ops.storage.map((s) => `${s.bucket}: ${s.objects} files`).join(', ') || 'empty'})`} used={storage} limit={LIMITS.storage} />
+        <Bar label="Egress, last 30 days (estimate)" used={ops.egress.est_bytes} limit={LIMITS.egress} />
       </div>
-      <p className="small muted" style={{ margin: '4px 0 12px' }}>Egress (5 GB a month) cannot be read from here. Check Usage in the Supabase dashboard; a cap hit there stops every function and download.</p>
+      <p className="small muted" style={{ margin: '4px 0 12px' }}>Egress estimate: {ops.egress.plays_30d} plays and {ops.egress.downloads_30d} downloads of stored videos times the average file size. It is an upper bound (a partly watched or cached play costs less) and does not count the gallery, which ships with the site. The exact figure is only in the Supabase dashboard, Usage; a cap hit there stops every function and download.</p>
       <div className="small"><b>Last backup:</b> {ops.last_backup ? `${fmt(ops.last_backup.taken_at)} (${ops.last_backup.tables} tables, ${ops.last_backup.rows} rows)` : 'none recorded'}</div>
       {ops.llm.length > 0 && (
         <table className="small" style={{ marginTop: 12, width: '100%', borderCollapse: 'collapse' }}>
@@ -102,6 +138,7 @@ function OpsPanel({ ops }: { ops: Ops | null | undefined }) {
 export default function Admin() {
   const [token, setToken] = useState(getToken());
   const [code, setCode] = useState('');
+  const [showSign, setShowSign] = useState(false);
     const [err, setErr] = useState('');
   const [dash, setDash] = useState<Dash | null>(null);
   const [tab, setTab] = useState<'overview' | 'users' | 'orders' | 'jobs' | 'feedback' | 'events'>('overview');
@@ -154,26 +191,23 @@ export default function Admin() {
     <Shell>
       <section className="section" style={{ paddingTop: 36 }}>
         <h2 className="sec">Admin</h2>
-        {!token && (
-          <details className="card" style={{ maxWidth: 440, marginBottom: 16 }}>
-            <summary className="small" style={{ cursor: 'pointer' }}>Read-only preview. Enter the passcode to change things.</summary>
-            <form className="stack" style={{ marginTop: 12 }} onSubmit={(e) => { e.preventDefault(); const v = code.trim(); if (!v) return; try { sessionStorage.setItem(TOKEN_KEY, v); } catch { /* ignore */ } setToken(v); }}>
-              <label className="field">Passcode<input type="password" value={code} onChange={(e) => setCode(e.target.value)} autoComplete="current-password" required /></label>
-              <button className="btn primary" type="submit">Unlock changes</button>
-            </form>
-          </details>
-        )}
         {!token && err && <p className="err">{err}</p>}
 
         {(token || dash) && (
           <>
             <div className="row between" style={{ marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
-              <span className="small muted">{dash ? (dash.viewer ? 'Read-only preview (emails masked)' : `Signed in as ${dash.me}`) : 'Loading...'}</span>
+              <span className="small muted">{dash ? (dash.viewer ? 'View only, emails masked' : `Signed in as ${dash.me}`) : 'Loading...'}</span>
               <div className="row" style={{ gap: 8 }}>
                 <button className="btn ghost small" onClick={load}>Refresh</button>
-                {token && <button className="btn ghost small" onClick={signOut}>Sign out</button>}
+                {token ? <button className="btn ghost small" onClick={signOut}>Sign out</button> : <button className="btn ghost small" onClick={() => setShowSign((v) => !v)}>{showSign ? 'Cancel' : 'Sign in to edit'}</button>}
               </div>
             </div>
+            {!token && showSign && (
+              <form className="card row" style={{ gap: 10, marginBottom: 16, alignItems: 'flex-end', flexWrap: 'wrap', maxWidth: 520 }} onSubmit={(e) => { e.preventDefault(); const v = code.trim(); if (!v) return; try { sessionStorage.setItem(TOKEN_KEY, v); } catch { /* ignore */ } setToken(v); }}>
+                <label className="field" style={{ flex: 1, minWidth: 200 }}>Passcode<input type="password" value={code} onChange={(e) => setCode(e.target.value)} autoComplete="current-password" autoFocus required /></label>
+                <button className="btn primary small" type="submit">Unlock</button>
+              </form>
+            )}
             {err && <p className="err">{err}</p>}
             {dash && (
               <>
@@ -201,6 +235,12 @@ export default function Admin() {
                       ))}
                     </div>
                     {dash.costs && <p className="small muted" style={{ margin: '10px 0 0' }}>{dash.costs.note} Priced videos so far: {dash.costs.priced_jobs}.</p>}
+                    {dash.ops && (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 12, marginTop: 24 }}>
+                        <BarChart title="Videos per day" unit="videos" data={dash.ops.jobs_daily.map((x) => ({ d: x.d, v: x.n }))} />
+                        <BarChart title="LLM calls per day" unit="calls" data={dash.ops.llm_daily.map((x) => ({ d: x.d, v: x.calls }))} />
+                      </div>
+                    )}
                     <h3 style={{ font: '700 16px var(--display)', margin: '24px 0 10px' }}>Conversion funnel (last 30 days, unique visitors)</h3>
                     <div className="stack" style={{ gap: 8 }}>
                       {dash.funnel.map((f, i) => {
@@ -216,18 +256,6 @@ export default function Admin() {
                       })}
                     </div>
                     <p className="small muted" style={{ margin: '8px 0 0' }}>Visit to sign-up: {dash.funnel[0].n ? Math.round((dash.funnel[4].n / dash.funnel[0].n) * 100) : 0}% · sign-up to order: {dash.funnel[4].n ? Math.round((dash.funnel[5].n / dash.funnel[4].n) * 100) : 0}%</p>
-                    <h3 style={{ font: '700 16px var(--display)', margin: '24px 0 10px' }}>Videos per day</h3>
-                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 120 }}>
-                      {dash.perDay.map((d) => {
-                        const max = Math.max(...dash.perDay.map((x) => x.n), 1);
-                        return (
-                          <div key={d.date} title={`${d.date}: ${d.n}`} style={{ flex: 1, display: 'grid', gap: 4, justifyItems: 'center' }}>
-                            <div style={{ width: '100%', maxWidth: 28, height: Math.max(4, (d.n / max) * 90), background: 'var(--acc)', borderRadius: 6 }} />
-                            <span className="small muted" style={{ fontSize: 10 }}>{d.date.slice(5)}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
                   </>
                 )}
 
