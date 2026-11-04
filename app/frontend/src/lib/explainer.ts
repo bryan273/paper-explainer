@@ -32,7 +32,10 @@ export interface Section {
   takeaway_zh?: string;
   status?: 'waiting' | 'done';
   poster?: string | null;
+  /** Set while this job is still rendering: this section's own clip, before the full video exists. */
   videos?: { en?: string | null; zh?: string | null };
+  /** Set once the full video exists: this section plays from [start, end] of the main video instead (its own clip is deleted). */
+  clip?: { en?: [number, number]; zh?: [number, number] };
 }
 
 export interface Job {
