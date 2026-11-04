@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Lang } from '@/lib/prefs';
-import { authHeaders } from '@/lib/account';
+import { authHeaders, track } from '@/lib/account';
 
 export const RENDER_URL = 'https://wzdkroxbfrlqijbeiwpk.supabase.co/functions/v1/explainer-render';
 
@@ -203,7 +203,12 @@ export async function copyText(text: string): Promise<boolean> {
 }
 
 /** Downloads a cross-origin MP4 via blob so the browser saves it instead of opening it. */
+/** Plays and downloads of videos served from Storage are logged so the admin can estimate egress; the gallery examples ship with the site and are not. */
+export const storageKind = (url: string) => (!url.includes('/storage/v1/') ? '' : url.includes('_vertical') ? 'vertical' : /_s\d+\.mp4/.test(url) ? 'section' : 'main');
+
 export async function downloadFile(url: string, filename: string): Promise<void> {
+  const k = storageKind(url);
+  if (k) track('video_download', { k });
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
