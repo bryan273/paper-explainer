@@ -12,7 +12,15 @@ type UserRow = { id: string; username: string; credits: number; banned: boolean;
 type EventRow = { id: number; created_at: string; actor: string; user_id: string | null; type: string; meta: Record<string, unknown> };
 type CreditRow = { id: number; created_at: string; user_id: string; delta: number; reason: string };
 type Costs = { total_usd: number; usd_24h: number; usd_7d: number; priced_jobs: number; avg_usd: number; note: string };
+type Ops = {
+  db_bytes: number;
+  storage: { bucket: string; objects: number; bytes: number }[];
+  llm: { app: string; calls_24h: number; calls_7d: number; tokens_24h: number; tokens_7d: number }[];
+  jobs: Record<string, number>;
+  last_backup: { taken_at: string; tables: number; rows: number; source: string } | null;
+};
 type Dash = {
+  ops?: Ops | null;
   viewer?: boolean;
   costs?: Costs;
   funnel: { step: string; n: number }[];
@@ -40,6 +48,55 @@ async function api(path: string, init?: RequestInit) {
   const out = await res.json().catch(() => ({}));
   if (!res.ok) throw Object.assign(new Error(String(out?.error ?? out?.msg ?? out?.error_description ?? `HTTP ${res.status}`)), { status: res.status });
   return out;
+}
+
+// Supabase free-plan limits this project lives under. Egress (5 GB a month) is not readable through any API, so it is read in the Supabase dashboard (Usage).
+const MB = 1024 * 1024;
+const LIMITS = { db: 500 * MB, storage: 1024 * MB };
+const mb = (n: number) => (n >= 1024 * MB ? `${(n / 1024 / MB).toFixed(2)} GB` : `${(n / MB).toFixed(n < 10 * MB ? 1 : 0)} MB`);
+
+function Bar({ label, used, limit }: { label: string; used: number; limit: number }) {
+  const pct = Math.min(100, (used / limit) * 100);
+  const tone = pct >= 90 ? '#d64545' : pct >= 70 ? '#d68a1f' : '#2f9e6b';
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <div className="row between small"><span>{label}</span><span className="muted">{mb(used)} of {mb(limit)} ({pct.toFixed(0)}%)</span></div>
+      <div style={{ height: 8, borderRadius: 4, background: 'rgba(120,120,120,.18)', marginTop: 4 }}>
+        <div style={{ width: `${Math.max(pct, 1)}%`, height: '100%', borderRadius: 4, background: tone }} />
+      </div>
+    </div>
+  );
+}
+
+function OpsPanel({ ops }: { ops: Ops | null | undefined }) {
+  if (!ops) return <div className="card" style={{ padding: 16, marginBottom: 16 }}><b>System</b><p className="small muted" style={{ margin: '6px 0 0' }}>Could not read the system stats. Check that supabase/ops.sql is applied.</p></div>;
+  const storage = ops.storage.reduce((a, s) => a + s.bytes, 0);
+  const age = ops.last_backup ? (Date.now() - new Date(ops.last_backup.taken_at).getTime()) / 3600_000 : null;
+  const warns: string[] = [];
+  if (storage >= LIMITS.storage * 0.7) warns.push('Storage is above 70% of the free limit.');
+  if (ops.db_bytes >= LIMITS.db * 0.7) warns.push('Database is above 70% of the free limit.');
+  if (age === null) warns.push('No backup has been recorded yet.');
+  else if (age > 36) warns.push(`The last backup is ${Math.round(age)} hours old. The daily run may be failing (GitHub Actions: backup-supabase).`);
+  const failed = ops.jobs.failed ?? 0;
+  if (failed > 0) warns.push(`${failed} video job${failed > 1 ? 's' : ''} failed.`);
+  return (
+    <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+      <div className="row between"><b>System</b><span className="small muted">Supabase free plan</span></div>
+      {warns.length > 0 && <ul style={{ margin: '10px 0', paddingLeft: 18, color: '#d68a1f' }} className="small">{warns.map((w) => <li key={w}>{w}</li>)}</ul>}
+      <div style={{ marginTop: 12 }}>
+        <Bar label="Database" used={ops.db_bytes} limit={LIMITS.db} />
+        <Bar label={`Storage (${ops.storage.map((s) => `${s.bucket}: ${s.objects} files`).join(', ') || 'empty'})`} used={storage} limit={LIMITS.storage} />
+      </div>
+      <p className="small muted" style={{ margin: '4px 0 12px' }}>Egress (5 GB a month) cannot be read from here. Check Usage in the Supabase dashboard; a cap hit there stops every function and download.</p>
+      <div className="small"><b>Last backup:</b> {ops.last_backup ? `${fmt(ops.last_backup.taken_at)} (${ops.last_backup.tables} tables, ${ops.last_backup.rows} rows)` : 'none recorded'}</div>
+      {ops.llm.length > 0 && (
+        <table className="small" style={{ marginTop: 12, width: '100%', borderCollapse: 'collapse' }}>
+          <thead><tr style={{ textAlign: 'left' }}><th>LLM calls by app</th><th>24 h</th><th>7 days</th><th>Tokens 24 h</th><th>Tokens 7 d</th></tr></thead>
+          <tbody>{ops.llm.map((l) => <tr key={l.app}><td>{l.app}</td><td>{l.calls_24h}</td><td>{l.calls_7d}</td><td>{l.tokens_24h.toLocaleString()}</td><td>{l.tokens_7d.toLocaleString()}</td></tr>)}</tbody>
+        </table>
+      )}
+    </div>
+  );
 }
 
 export default function Admin() {
@@ -130,6 +187,7 @@ export default function Admin() {
 
                 {tab === 'overview' && (
                   <>
+                    <OpsPanel ops={dash.ops} />
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
                       {[
                         ['Videos made', dash.counts.jobs_total], ['Last 24 hours', dash.counts.jobs_24h], ['Last 7 days', dash.counts.jobs_7d], ['Failed', dash.counts.jobs_failed],
