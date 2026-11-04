@@ -1,0 +1,2 @@
+# plain git, not LFS: the deploy does not fetch LFS objects, so pointers would ship instead of media
+* -filter -diff -merge -text
