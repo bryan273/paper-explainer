@@ -92,8 +92,27 @@ export async function fetchRecent(): Promise<Job[]> {
   const playable = (list as Job[]).filter(isPlayable);
   const current = playable.filter((j) => j.sections?.some((s) => s.poster));
   const seen = new Set<string>();
-  return (current.length ? current : playable).filter((j) => !seen.has(j.arxiv) && !!seen.add(j.arxiv));
+  return (current.length ? current : playable).filter((j) => !seen.has(j.arxiv) && !!seen.add(j.arxiv)).map(selfHosted);
 }
+
+/** The gallery's 16:9 videos and posters ship with the site (public/examples/<job id>/), so viewing them costs no storage egress. Jobs without a copy there keep their storage URLs. */
+function selfHosted(job: Job): Job {
+  const dir = `${import.meta.env.BASE_URL}examples/${job.id}/`;
+  if (!job.id || !EXAMPLE_COPIES.has(job.id)) return job;
+  const videos = { ...job.videos };
+  for (const l of ['en', 'zh'] as const) if (videos[l]) videos[l] = `${dir}${l}.mp4`;
+  const sections = job.sections?.map((s) => (s.poster ? { ...s, poster: `${dir}poster${s.i}.jpg` } : s));
+  return { ...job, videos, sections };
+}
+
+const EXAMPLE_COPIES = new Set([
+  '6a21030a-b5f8-4c0e-977e-39090d7ebc70',
+  'ea94b4d8-195f-43b5-a267-72d7ac02bbad',
+  'c91b06ea-3226-4fdf-90ae-1a7a21b9f283',
+  '7b19a9ff-6cbb-4049-931e-9308f5d8c819',
+  '4c6f43f4-0849-4f95-815e-8c7d5c3b151d',
+  '5420c9c1-a5f6-48b0-a506-10ab1f13d691',
+]);
 
 export const STYLES = ['animated', 'cinema', 'classic', 'light', 'sunset', 'mono'] as const;
 export const TONES = ['teacher', 'casual', 'academic', 'eli5', 'story'] as const;
