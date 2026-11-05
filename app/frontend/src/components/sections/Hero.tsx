@@ -1,6 +1,6 @@
 import { GradLast } from '@/components/SuiteUI';
 import { srcLabel } from '@/components/sections/MakeSection';
-import { videoUrl, type Job } from '@/lib/explainer';
+import { HERO_EXAMPLE, videoUrl, type Job } from '@/lib/explainer';
 import { usePrefs } from '@/lib/prefs';
 import { scrollToSection } from '@/components/Shell';
 
@@ -29,8 +29,7 @@ export function StatsStrip({ items }: { items: Job[] }) {
 
 export default function Hero({ items, error }: { items: Job[] | null; error: boolean }) {
   const { t } = usePrefs();
-  // the hero shows a real paper (arXiv), not a document someone pasted in; falls back to the newest video if none
-  const latest = items?.find((j) => !j.source_url) ?? items?.[0] ?? null;
+  const latest = items?.find((j) => j.id === HERO_EXAMPLE) ?? items?.[0] ?? null;
   const base = latest ? (videoUrl(latest, 'en') ?? '') : '';
   const poster = latest?.sections?.find((x) => x.poster)?.poster ?? undefined;
   const src = poster ? base : `${base}#t=1.5`;

@@ -91,11 +91,9 @@ export function isPlayable(job: Job | null | undefined): job is Job {
 export async function fetchRecent(): Promise<Job[]> {
   const body = await request(undefined, '?recent=1');
   const list = Array.isArray(body) ? body : ((body as { items?: unknown[] } | null)?.items ?? []);
-  // the gallery shows the current look only (jobs with a poster), one video per paper, newest first
-  const playable = (list as Job[]).filter(isPlayable);
-  const current = playable.filter((j) => j.sections?.some((s) => s.poster));
-  const seen = new Set<string>();
-  return (current.length ? current : playable).filter((j) => !seen.has(j.arxiv) && !!seen.add(j.arxiv)).map(selfHosted);
+  // the gallery is a fixed set of six examples (EXAMPLE_COPIES, in that order): new videos people make never appear here
+  const byId = new Map((list as Job[]).filter(isPlayable).map((j) => [j.id, j]));
+  return EXAMPLE_ORDER.map((id) => byId.get(id)).filter((j): j is Job => !!j).map(selfHosted);
 }
 
 /** The gallery's 16:9 videos and posters ship with the site (public/examples/<job id>/), so viewing them costs no storage egress. Jobs without a copy there keep their storage URLs. */
@@ -108,14 +106,17 @@ function selfHosted(job: Job): Job {
   return { ...job, videos, sections };
 }
 
-const EXAMPLE_COPIES = new Set([
+const EXAMPLE_ORDER = [
   '6a21030a-b5f8-4c0e-977e-39090d7ebc70',
   'ea94b4d8-195f-43b5-a267-72d7ac02bbad',
   'c91b06ea-3226-4fdf-90ae-1a7a21b9f283',
   '7b19a9ff-6cbb-4049-931e-9308f5d8c819',
   '4c6f43f4-0849-4f95-815e-8c7d5c3b151d',
   '5420c9c1-a5f6-48b0-a506-10ab1f13d691',
-]);
+];
+const EXAMPLE_COPIES = new Set(EXAMPLE_ORDER);
+/** The one video shown at the top of the page: fixed on purpose (ResNet), not whatever was made last. */
+export const HERO_EXAMPLE = EXAMPLE_ORDER[0];
 
 export const STYLES = ['animated', 'cinema', 'classic', 'light', 'sunset', 'mono'] as const;
 export const TONES = ['teacher', 'casual', 'academic', 'eli5', 'story'] as const;
