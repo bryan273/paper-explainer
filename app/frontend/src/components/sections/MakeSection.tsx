@@ -30,6 +30,8 @@ function stepFromStage(job: Job): number {
   const s = (job.stage ?? '').toLowerCase();
   if (/(queue|wait)/.test(s)) return -1;
   if (/(zh|chinese|中文|mandarin)/.test(s)) return 4;
+  // the sections stage texts ("getting the drawing tools ready", "sections ready: 2 of 4", "drawing 4 sections", "putting the sections together") all belong to the recording step
+  if (/(sections|drawing)/.test(s)) return 3;
   if (/(check|verif|quote|number)/.test(s)) return 2;
   if (/(script|writ|llm|deepseek|scene)/.test(s)) return 1;
   if (/(english|record|voice|narrat|tts|audio|render|video|ffmpeg|upload)/.test(s)) return 3;
@@ -171,7 +173,10 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
   const STEP_SECS = stepSecs(job?.seconds ?? 36);
   const TOTAL_SECS = STEP_SECS.reduce((a, b) => a + b, 0);
   const doneSecs = STEP_SECS.slice(0, Math.max(step, 0)).reduce((a, b) => a + b, 0);
-  const inStep = step >= 0 ? Math.min((now - stageAt.current.at) / 1000, STEP_SECS[step] * 0.9) : 0;
+  // while sections are being recorded the stage text says how many are done, which is a better clock than elapsed time
+  const secsDone = /sections ready:\s*(\d+) of (\d+)/i.exec(job?.stage ?? '');
+  const byTime = step >= 0 ? Math.min((now - stageAt.current.at) / 1000, STEP_SECS[step] * 0.9) : 0;
+  const inStep = secsDone && step === 3 ? Math.max(byTime, Math.min(STEP_SECS[3] * 0.9, (Number(secsDone[1]) / Number(secsDone[2])) * STEP_SECS[3])) : byTime;
   const pct = Math.min(97, Math.round(((doneSecs + inStep) / TOTAL_SECS) * 100));
   const secsLeft = Math.max(0, TOTAL_SECS - doneSecs - inStep);
   const elapsed = Math.max(0, Math.round((now - startedAt.current) / 1000));
