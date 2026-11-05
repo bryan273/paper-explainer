@@ -12,7 +12,7 @@ export function AccountStrip() {
   return (
     <div className="card" style={{ margin: '0 0 16px', padding: '10px 14px', display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', justifyContent: 'space-between' }}>
       <div className="small" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
-        <b>{user ? `@${user.username}` : a('guest')}</b>
+        <b>{user ? user.username : a('guest')}</b>
         <span className="muted">{left}{reset}</span>
         {user && <span className="muted">· {a('creditsN', { n: user.credits })}</span>}
         {!user && <span className="muted">· {a('guestHint', { m: me.limits.member, w: me.limits.welcome })}</span>}
@@ -78,7 +78,7 @@ export function AuthModal() {
         </div>
         {mode === 'register' && me && <p className="small muted" style={{ margin: 0 }}>{a('perks', { m: me.limits.member, w: me.limits.welcome })}</p>}
         <label className="field">{a('username')}
-          <input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" autoCapitalize="none" spellCheck={false} maxLength={20} required autoFocus />
+          <input type="email" inputMode="email" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="email" autoCapitalize="none" spellCheck={false} maxLength={80} required autoFocus />
         </label>
         <label className="field">{a('password')}
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={mode === 'register' ? 'new-password' : 'current-password'} minLength={8} maxLength={72} required placeholder={mode === 'register' ? a('passwordHint') : ''} />

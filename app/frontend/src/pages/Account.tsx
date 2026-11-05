@@ -60,7 +60,7 @@ export default function Account() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12 }}>
               <div className="card" style={{ margin: 0 }}><div className="small muted">{a('freeToday')}</div><div style={{ font: '700 30px var(--display)' }}>{quota?.day_left ?? 0} / {quota?.day_limit ?? 0}</div></div>
               <div className="card" style={{ margin: 0 }}><div className="small muted">{a('credits')}</div><div style={{ font: '700 30px var(--display)' }}>{user.credits}</div><div className="small muted">{a('creditsNote')}</div></div>
-              <div className="card" style={{ margin: 0 }}><div className="small muted">{a('username')}</div><div style={{ font: '700 22px var(--display)' }}>@{user.username}</div></div>
+              <div className="card" style={{ margin: 0 }}><div className="small muted">{a('username')}</div><div style={{ font: '700 22px var(--display)' }}>{user.username}</div></div>
             </div>
 
             <div id="buy">

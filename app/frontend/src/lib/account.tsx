@@ -107,7 +107,7 @@ export function useAccount(): Ctx {
 const EN = {
   guest: 'Guest', freeLeft: '{n} of {m} free videos left today', creditsN: '{n} credits', signUp: 'Sign up free', logIn: 'Log in', logOut: 'Log out', myVideos: 'My account',
   guestHint: 'Sign up free for {m} videos a day and {w} welcome credits.', resetsIn: 'more in about {h} h',
-  authTitleRegister: 'Create your free account', authTitleLogin: 'Welcome back', username: 'Username', password: 'Password', passwordHint: '8 characters or more',
+  authTitleRegister: 'Create your free account', authTitleLogin: 'Welcome back', username: 'Email', password: 'Password', passwordHint: '8 characters or more',
   haveAccount: 'Already have an account? Log in', noAccount: 'No account yet? Sign up free', submitRegister: 'Create account', submitLogin: 'Log in',
   perks: 'Free account: {m} videos every day, {w} welcome credits, your videos saved in one place.', agree: 'By signing up you agree to the Terms and the Privacy policy.',
   close: 'Close', working: 'One moment...',
@@ -132,7 +132,7 @@ const EN = {
 const ZH: typeof EN = {
   guest: '访客', freeLeft: '今日剩余免费视频 {n} / {m}', creditsN: '{n} 点额度', signUp: '免费注册', logIn: '登录', logOut: '退出登录', myVideos: '我的账户',
   guestHint: '免费注册后每天 {m} 个视频，另送 {w} 点额度。', resetsIn: '约 {h} 小时后恢复',
-  authTitleRegister: '创建免费账户', authTitleLogin: '欢迎回来', username: '用户名', password: '密码', passwordHint: '至少 8 位',
+  authTitleRegister: '创建免费账户', authTitleLogin: '欢迎回来', username: '邮箱', password: '密码', passwordHint: '至少 8 位',
   haveAccount: '已有账户？去登录', noAccount: '还没有账户？免费注册', submitRegister: '创建账户', submitLogin: '登录',
   perks: '免费账户：每天 {m} 个视频，赠送 {w} 点额度，视频集中保存。', agree: '注册即表示同意服务条款和隐私政策。',
   close: '关闭', working: '请稍候...',
