@@ -178,7 +178,7 @@ export default function Admin() {
     } catch (x) { setErr((x as Error).message); }
   };
   const grantCredits = (u: UserRow) => {
-    const v = window.prompt(`Add credits to @${u.username} (negative to remove)`, '5');
+    const v = window.prompt(`Add credits to ${u.username} (negative to remove)`, '5');
     const n = Number(v);
     if (v && Number.isFinite(n) && n !== 0) post({ op: 'grant', username: u.username, amount: n, reason: 'admin grant' });
   };
@@ -262,13 +262,13 @@ export default function Admin() {
                 {tab === 'users' && (
                   <div style={wrap}>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                      <thead><tr>{['Joined', 'Username', 'Credits', 'Videos', 'Last login', 'Last video', ''].map((h) => <th key={h} style={th}>{h}</th>)}</tr></thead>
+                      <thead><tr>{['Joined', 'Email', 'Credits', 'Videos', 'Last login', 'Last video', ''].map((h) => <th key={h} style={th}>{h}</th>)}</tr></thead>
                       <tbody>
                         {dash.users.length === 0 && <tr><td style={td} colSpan={7}>No members yet.</td></tr>}
                         {dash.users.map((u) => (
                           <tr key={u.id}>
                             <td style={td}>{fmt(u.created_at)}</td>
-                            <td style={td}><b>@{u.username}</b>{u.banned ? ' (disabled)' : ''}</td>
+                            <td style={td}><b>{u.username}</b>{u.banned ? ' (disabled)' : ''}</td>
                             <td style={td}>{u.credits}</td>
                             <td style={td}>{u.jobs}</td>
                             <td style={td}>{fmt(u.last_login)}</td>
