@@ -4,7 +4,7 @@ import Shell from '@/components/Shell';
 import PayPanel from '@/components/PayPanel';
 import { accountApi, accountGet, track, useAccount, useAcctText, type Pack } from '@/lib/account';
 
-type MyJob = { id: string; arxiv: string; title: string | null; status: string; stage: string | null; seconds: number | null; created_at: string };
+type MyJob = { id: string; arxiv: string; title: string | null; status: string; stage: string | null; seconds: number | null; created_at: string; expired_at?: string | null };
 type Ledger = { created_at: string; delta: number; reason: string };
 const fmt = (s: string) => new Date(s).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' });
 
@@ -89,7 +89,7 @@ export default function Account() {
                   {jobs.map((j) => (
                     <div key={j.id} className="card row between" style={{ margin: 0, padding: '10px 14px', gap: 10, flexWrap: 'wrap' }}>
                       <span style={{ flex: 1, minWidth: 180 }}><b className="small">{j.title || j.arxiv}</b><br /><span className="small muted">{fmt(j.created_at)} · {Math.max(1, Math.round((j.seconds ?? 60) / 60))} min</span></span>
-                      {j.status === 'done' ? <Link className="btn ghost small" to={`/?paper=${encodeURIComponent(j.arxiv)}#make`}>{a('open')}</Link> : <span className="small muted">{j.status === 'failed' ? a('failed') : a('making')}</span>}
+                      {j.status === 'done' && j.expired_at ? <span className="row" style={{ gap: 8 }}><span className="small muted">{a('expired')}</span><Link className="btn ghost small" to={`/?paper=${encodeURIComponent(j.arxiv)}#make`}>{a('makeAgain')}</Link></span> : j.status === 'done' ? <Link className="btn ghost small" to={`/?paper=${encodeURIComponent(j.arxiv)}#make`}>{a('open')}</Link> : <span className="small muted">{j.status === 'failed' ? a('failed') : a('making')}</span>}
                     </div>
                   ))}
                 </div>

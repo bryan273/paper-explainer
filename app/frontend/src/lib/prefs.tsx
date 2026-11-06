@@ -121,6 +121,7 @@ const EN = {
   shareText: 'A short video explainer of "{title}"',
   share: 'Share',
   download: 'Download MP4',
+  keepNote: 'Videos are kept for 14 days, then removed to keep the service free. Download the ones you want to keep.',
   downloading: 'Downloading',
 
   usefulQ: 'Was this useful?',
@@ -341,6 +342,7 @@ const ZH: Record<StringKey, string> = {
   shareText: '《{title}》的视频讲解',
   share: '分享',
   download: '下载 MP4',
+  keepNote: '视频保留 14 天，之后会清理以保持服务免费。想长期保存的请先下载。',
   downloading: '正在下载',
 
   usefulQ: '这个视频有帮助吗？',
