@@ -384,6 +384,7 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
               })()}
             </div>
             <ShareRow job={job} lang={activeLang} />
+            {!job.videos?.en?.includes('/examples/') && <p className="small muted" style={{ margin: '8px 0 0' }}>{t('keepNote')}</p>}
             <SectionsReader job={job} lang={activeLang} />
             <VideoFeedback arxiv={job.arxiv} />
             <div className="actions">

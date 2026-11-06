@@ -21,6 +21,10 @@ type Ops = {
   llm_daily: { d: string; calls: number; tokens: number }[];
   jobs_daily: { d: string; n: number }[];
   egress: { plays_30d: number; downloads_30d: number; est_bytes: number };
+  r2?: { taken_at: string; bytes: number; objects: number } | null;
+  r2_daily?: { d: string; bytes: number }[];
+  stuck_jobs?: number;
+  expired_jobs?: number;
 };
 type Dash = {
   ops?: Ops | null;
@@ -55,7 +59,7 @@ async function api(path: string, init?: RequestInit) {
 
 // Supabase free-plan limits this project lives under. Egress (5 GB a month) is not readable through any API, so it is read in the Supabase dashboard (Usage).
 const MB = 1024 * 1024;
-const LIMITS = { db: 500 * MB, storage: 1024 * MB, egress: 5 * 1024 * MB };
+const LIMITS = { db: 500 * MB, storage: 1024 * MB, egress: 5 * 1024 * MB, r2: 10 * 1024 * MB };
 const mb = (n: number) => (n >= 1024 * MB ? `${(n / 1024 / MB).toFixed(2)} GB` : `${(n / MB).toFixed(n < 10 * MB ? 1 : 0)} MB`);
 
 function Bar({ label, used, limit }: { label: string; used: number; limit: number }) {
@@ -110,6 +114,8 @@ function OpsPanel({ ops }: { ops: Ops | null | undefined }) {
   if (storage >= LIMITS.storage * 0.7) warns.push('Storage is above 70% of the free limit.');
   if (ops.egress.est_bytes >= LIMITS.egress * 0.6) warns.push('Estimated egress is above 60% of the 5 GB monthly cap. Check Usage in the Supabase dashboard now.');
   if (ops.db_bytes >= LIMITS.db * 0.7) warns.push('Database is above 70% of the free limit.');
+  if (ops.r2 && ops.r2.bytes >= LIMITS.r2 * 0.7) warns.push('The Cloudflare R2 bucket is above 70% of its free 10 GB. Videos older than 14 days are removed daily; above 9 GB the oldest go first.');
+  if ((ops.stuck_jobs ?? 0) > 0) warns.push(`${ops.stuck_jobs} video job(s) have been queued or running for over 30 minutes. The renderer may be down: check the explainer-render runs in GitHub Actions.`);
   if (age === null) warns.push('No backup has been recorded yet.');
   else if (age > 36) warns.push(`The last backup is ${Math.round(age)} hours old. The daily run may be failing (GitHub Actions: backup-supabase).`);
   const failed = ops.jobs.failed ?? 0;
@@ -122,7 +128,9 @@ function OpsPanel({ ops }: { ops: Ops | null | undefined }) {
         <Bar label="Database" used={ops.db_bytes} limit={LIMITS.db} />
         <Bar label={`Storage (${ops.storage.map((s) => `${s.bucket}: ${s.objects} files`).join(', ') || 'empty'})`} used={storage} limit={LIMITS.storage} />
         <Bar label="Egress, last 30 days (estimate)" used={ops.egress.est_bytes} limit={LIMITS.egress} />
+        <Bar label={`Cloudflare R2 videos${ops.r2 ? ` (${ops.r2.objects} files, measured ${fmt(ops.r2.taken_at)})` : ' (not measured yet)'}`} used={ops.r2?.bytes ?? 0} limit={LIMITS.r2} />
       </div>
+      <p className="small muted" style={{ margin: '0 0 8px' }}>R2: free plan 10 GB, no egress fees. Videos are kept 14 days then removed ({ops.expired_jobs ?? 0} expired so far); above 9 GB the oldest go first. Run by the daily retention workflow.</p>
       <p className="small muted" style={{ margin: '4px 0 12px' }}>Egress estimate: {ops.egress.plays_30d} plays and {ops.egress.downloads_30d} downloads of stored videos times the average file size. It is an upper bound (a partly watched or cached play costs less) and does not count the gallery, which ships with the site. The exact figure is only in the Supabase dashboard, Usage; a cap hit there stops every function and download.</p>
       <div className="small"><b>Last backup:</b> {ops.last_backup ? `${fmt(ops.last_backup.taken_at)} (${ops.last_backup.tables} tables, ${ops.last_backup.rows} rows)` : 'none recorded'}</div>
       {ops.llm.length > 0 && (
