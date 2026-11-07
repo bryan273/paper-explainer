@@ -40,7 +40,7 @@ export default function Hero({ items, error }: { items: Job[] | null; error: boo
         <div>
           <span className="su-pill"><i />Paper Explainer</span>
           <h1 className="hero-title" id="hero-title" style={{ marginTop: 10 }}>
-            <GradLast text={t('heroTitle')} words={4} />
+            <GradLast text={t('heroTitle')} words={2} />
           </h1>
           <p className="lede">{t('heroSub')}</p>
           <div className="actions">

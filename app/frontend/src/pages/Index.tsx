@@ -48,7 +48,7 @@ export default function Index() {
       <ContactSection />
 
       <SuiteCta
-        title={lang === 'zh' ? '把一篇论文变成 40 秒视频' : 'Turn a paper into a 40 second video'}
+        title={lang === 'zh' ? '把一篇论文变成简短的解说视频' : 'Turn a paper into a short narrated video'}
         body={lang === 'zh' ? '粘贴 arXiv 链接，无需注册即可试用。' : 'Paste an arXiv link. Free to try with no sign-up.'}
         label={lang === 'zh' ? '制作视频' : 'Make a video'}
         href="#make"

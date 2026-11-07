@@ -1,5 +1,7 @@
 @font-face{font-family:'Inter';font-style:normal;font-weight:100 900;font-display:swap;src:url(/fonts/Inter-400.woff2) format('woff2')}
 @font-face{font-family:'Space Grotesk';font-style:normal;font-weight:300 700;font-display:swap;src:url(/fonts/SpaceGrotesk-500.woff2) format('woff2')}
+@font-face{font-family:'Newsreader';font-style:normal;font-weight:200 800;font-display:swap;src:url(/fonts/Newsreader.woff2) format('woff2')}
+@font-face{font-family:'Newsreader';font-style:italic;font-weight:200 800;font-display:swap;src:url(/fonts/Newsreader-Italic.woff2) format('woff2')}
 @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:100 800;font-display:swap;src:url(/fonts/JetBrainsMono-400.woff2) format('woff2')}
 
 @tailwind base;
@@ -10,14 +12,14 @@
    Light first (paper white, near-black ink, one blue accent), dark on request. */
 :root {
   color-scheme: light;
-  --bg: #f8f7f4;
+  --bg: #fbfaf6;
   --surface: #ffffff;
-  --ink: #15151c;
-  --muted: #5e5e6b;
-  --line: #e7e5df;
-  --soft: #f1efea;
-  --acc: #5b4bff;
-  --acct: #f2edff;
+  --ink: #17150f;
+  --muted: #5d5a50;
+  --line: #e8e5db;
+  --soft: #f0eee6;
+  --acc: #17150f;
+  --acct: #f0eee6;
   --ok: #136f36;
   --okt: #e6f4ea;
   --warn: #b45309;
@@ -26,39 +28,42 @@
   --badt: #fbe7e7;
   --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
   --body: 'Inter', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --display: 'Space Grotesk', 'Inter', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  --display: 'Newsreader', 'Noto Serif SC', 'Songti SC', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
   --r: 16px;
   --shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 8px 24px rgba(16, 24, 40, 0.06);
   --side: 248px;
   /* shadcn tokens kept in sync so template components stay readable */
-  --background: 43 22% 96%;
-  --foreground: 240 14% 10%;
-  --border: 46 17% 88%;
-  --primary: 247 100% 65%;
-  --primary-foreground: 0 0% 100%;
-  --muted-foreground: 240 7% 39%;
+  --background: 48 40% 97%;
+  --foreground: 43 21% 8%;
+  --border: 45 23% 88%;
+  --primary: 43 21% 8%;
+  --primary-foreground: 48 40% 97%;
+  --muted-foreground: 46 7% 33%;
   --card: 0 0% 100%;
   --radius: 1rem;
-  --stb-bg: #f8f7f4;
-  --stb-fg: #15151c;
-  --stb-mutedfg: #5e5e6b;
-  --stb-border: #e7e5df;
-  --stb-soft: #f1efea;
+  --stb-bg: #fbfaf6;
+  --stb-fg: #17150f;
+  --stb-mutedfg: #5d5a50;
+  --stb-border: #e8e5db;
+  --stb-soft: #f0eee6;
   --stb-card: #ffffff;
-  --stb-primary: #5b4bff;
-  --grad: linear-gradient(135deg, #5b4bff, #8a5cff);
+  --stb-primary: #17150f;
+  --grad: linear-gradient(var(--acc), var(--acc));
+  --on-acc: #fbfaf6;
+  --hl: #ffe36e;
+  --serif: 'Newsreader', 'Noto Serif SC', 'Songti SC', 'STSong', Georgia, serif;
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #09090f;
-  --surface: #12121b;
-  --ink: #f3f3f8;
-  --muted: #a7a7b8;
-  --line: #262634;
-  --soft: #191924;
-  --acc: #8e83ff;
-  --acct: #1d1b45;
+  --bg: #12110e;
+  --surface: #1c1b17;
+  --ink: #f3f0e7;
+  --muted: #aaa79b;
+  --line: #2c2a24;
+  --soft: #26241f;
+  --acc: #f3f0e7;
+  --acct: #26241f;
   --ok: #4ade80;
   --okt: #11291a;
   --warn: #f5a524;
@@ -66,20 +71,22 @@
   --bad: #f87171;
   --badt: #3a1717;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
-  --background: 240 25% 5%;
-  --foreground: 240 25% 96%;
-  --border: 240 16% 17%;
-  --primary: 246 100% 76%;
-  --primary-foreground: 240 12% 5%;
-  --muted-foreground: 240 12% 69%;
-  --card: 240 20% 9%;
-  --stb-bg: #09090f;
-  --stb-fg: #f3f3f8;
-  --stb-mutedfg: #a7a7b8;
-  --stb-border: #262634;
-  --stb-soft: #191924;
-  --stb-card: #12121b;
-  --stb-primary: #8e83ff;
+  --background: 45 12% 6%;
+  --foreground: 45 33% 93%;
+  --border: 45 8% 16%;
+  --primary: 45 33% 93%;
+  --primary-foreground: 45 12% 6%;
+  --muted-foreground: 46 6% 64%;
+  --card: 48 11% 10%;
+  --on-acc: #12110e;
+  --hl: #6e5c10;
+  --stb-bg: #12110e;
+  --stb-fg: #f3f0e7;
+  --stb-mutedfg: #aaa79b;
+  --stb-border: #2c2a24;
+  --stb-soft: #26241f;
+  --stb-card: #1c1b17;
+  --stb-primary: #f3f0e7;
 }
 
 * {
@@ -177,10 +184,10 @@ a {
   height: 34px;
   border-radius: 10px;
   background: #0b0b0e;
-  color: #fff;
+  color: var(--on-acc);
   display: grid;
   place-items: center;
-  font: 800 17px var(--display);
+  font: 400 17px var(--display);
   flex: none;
 }
 
@@ -191,7 +198,7 @@ a {
 
 .brand b {
   display: block;
-  font: 700 15px var(--display);
+  font: 500 15px var(--display);
   letter-spacing: -0.01em;
 }
 
@@ -314,7 +321,7 @@ a {
   }
 
   .mtop b {
-    font: 700 15px var(--display);
+    font: 500 15px var(--display);
   }
 }
 
@@ -336,7 +343,7 @@ a {
 
 /* ---------- type ---------- */
 h1.hero-title {
-  font: 800 clamp(34px, 5.2vw, 60px) / 1.05 var(--display);
+  font: 400 clamp(34px, 5.2vw, 60px) / 1.05 var(--display);
   letter-spacing: -0.035em;
   max-width: 17ch;
 }
@@ -350,7 +357,7 @@ h1.hero-title {
 }
 
 h2.sec {
-  font: 800 clamp(24px, 3.2vw, 32px) / 1.15 var(--display);
+  font: 400 clamp(24px, 3.2vw, 32px) / 1.15 var(--display);
   letter-spacing: -0.03em;
 }
 
@@ -383,7 +390,7 @@ h2.sec {
 }
 
 .card.tint {
-  background: linear-gradient(180deg, var(--acct), var(--surface) 70%);
+  background: var(--surface);
   border-color: color-mix(in srgb, var(--acc) 22%, var(--line));
 }
 
@@ -412,7 +419,7 @@ h2.sec {
 
 .btn.primary {
   background: var(--acc);
-  color: #fff;
+  color: var(--on-acc);
 }
 
 :root[data-theme='dark'] .btn.primary {
@@ -483,7 +490,7 @@ h2.sec {
 .facts b {
   display: block;
   color: var(--ink);
-  font: 800 26px var(--display);
+  font: 400 26px var(--display);
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
 }
@@ -661,13 +668,13 @@ textarea:focus {
 .steps li.done .dot {
   background: var(--ok);
   border-color: var(--ok);
-  color: #fff;
+  color: var(--on-acc);
 }
 
 .steps li.active .dot {
   background: var(--acc);
   border-color: var(--acc);
-  color: #fff;
+  color: var(--on-acc);
 }
 
 /* ---------- examples ---------- */
@@ -718,7 +725,7 @@ textarea:focus {
   border: 0;
   background: rgba(11, 11, 14, 0.18);
   cursor: pointer;
-  color: #fff;
+  color: var(--on-acc);
 }
 
 .thumb .play span {
@@ -745,7 +752,7 @@ textarea:focus {
 }
 
 .ex-title {
-  font: 700 15px / 1.35 var(--display);
+  font: 500 15px / 1.35 var(--display);
   letter-spacing: -0.01em;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -807,7 +814,7 @@ textarea:focus {
 
 .seg button.on {
   background: var(--acc);
-  color: #fff;
+  color: var(--on-acc);
 }
 
 :root[data-theme='dark'] .seg button.on {
@@ -891,7 +898,7 @@ textarea:focus {
 
 .how b {
   display: block;
-  font: 700 15px var(--display);
+  font: 500 15px var(--display);
   margin-bottom: 6px;
 }
 
@@ -928,7 +935,7 @@ a.cardlink:hover {
 }
 
 a.cardlink b {
-  font: 700 16px var(--display);
+  font: 500 16px var(--display);
 }
 
 a.cardlink .go {
@@ -966,7 +973,7 @@ a.cardlink .go {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  font: 800 40px var(--display);
+  font: 400 40px var(--display);
   letter-spacing: -0.035em;
 }
 
@@ -1149,14 +1156,15 @@ a.cardlink .go {
 .shell { display: block; }
 .main { max-width: 1160px; padding: 48px 28px 80px; }
 @media (max-width: 900px) { .main { padding: 24px 16px 56px; } }
-body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background: radial-gradient(55% 45% at 86% -8%, color-mix(in srgb, var(--acc) 15%, transparent), transparent 70%),
-              radial-gradient(40% 35% at 4% 6%, rgba(34, 195, 238, 0.11), transparent 70%),
-              radial-gradient(35% 30% at 60% 100%, rgba(255, 180, 138, 0.10), transparent 70%); }
-h1.hero-title { font-weight: 700; letter-spacing: -0.04em; }
+h1.hero-title { font-weight: 400; letter-spacing: -0.026em; }
 
 html { overflow-x: clip; }
 
 
 /* footer links: a comfortable touch target without changing the look */
 .foot a { display: inline-block; padding: 12px 6px; margin: -12px -2px; }
+
+
+/* design v4: paper, ink, one highlighter */
+:lang(zh-CN) h1.hero-title { letter-spacing: 0; }
+.su-pill, .btn { box-shadow: none; }

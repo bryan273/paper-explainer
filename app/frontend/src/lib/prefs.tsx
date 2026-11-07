@@ -30,7 +30,7 @@ const EN = {
   toLight: 'Switch to light theme',
   language: 'Language',
 
-  heroTitle: 'Understand any AI paper in under a minute.',
+  heroTitle: 'Understand any AI paper in a few minutes.',
   heroSub:
     'Paste an arXiv link. We turn the paper into a short narrated video in English and 中文, and check every quote and number on screen against the paper text.',
   heroMake: 'Make a video',
@@ -252,7 +252,7 @@ const ZH: Record<StringKey, string> = {
   toLight: '切换到浅色主题',
   language: '语言',
 
-  heroTitle: '一分钟内读懂任何一篇 AI 论文。',
+  heroTitle: '几分钟读懂任何一篇 AI 论文。',
   heroSub: '粘贴 arXiv 链接，我们会把论文变成一段带旁白的英文和中文短视频，并把屏幕上的每一句引用和每一个数字与论文原文逐一核对。',
   heroMake: '制作视频',
   heroWatch: '观看示例',
