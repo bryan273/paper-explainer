@@ -273,3 +273,27 @@ export function useRecent() {
 
   return { items, error, reload };
 }
+
+export const ASK_URL = 'https://wzdkroxbfrlqijbeiwpk.supabase.co/functions/v1/explainer-ask';
+
+/** One part of a tutor answer: from the paper (quote checked), background knowledge, or a paper claim whose quote was not found. */
+export type AskBlock = { kind: 'paper' | 'general' | 'unverified'; text: string; quote?: string };
+export type ChatMsg = { role: 'user'; text: string; section?: number | null } | { role: 'ai'; blocks: AskBlock[]; followups?: string[] };
+
+async function askRequest(init: RequestInit, query = ''): Promise<Record<string, unknown>> {
+  const res = await fetch(`${ASK_URL}${query}`, init);
+  const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!res.ok || typeof body.error === 'string') throw new ApiError(typeof body.error === 'string' && body.error ? body.error : `HTTP ${res.status}`, res.status, typeof body.code === 'string' ? body.code : undefined);
+  return body;
+}
+
+export async function askPaper(p: { job: string; q: string; mode: 'plus' | 'paper'; intent: 'ask' | 'simpler'; section?: number; history: { role: 'user' | 'ai'; text: string }[]; lang: Lang }): Promise<{ blocks: AskBlock[]; followups: string[]; left: number }> {
+  const out = await askRequest({ method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ ...p, visitor: visitorId() }) });
+  return { blocks: (out.blocks as AskBlock[]) ?? [], followups: (out.followups as string[]) ?? [], left: Number(out.left ?? 0) };
+}
+
+/** This visitor's saved conversation about one video. */
+export async function getChat(job: string): Promise<ChatMsg[]> {
+  const out = await askRequest({ headers: authHeaders() }, `?chat=${encodeURIComponent(job)}`);
+  return Array.isArray(out.messages) ? (out.messages as ChatMsg[]) : [];
+}

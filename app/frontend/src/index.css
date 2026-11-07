@@ -1171,3 +1171,39 @@ html { overflow-x: clip; }
 .filelist button { display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 8px; background: none; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; }
 .filelist button:hover:not(:disabled) { background: var(--soft); color: var(--ink); }
 .filelist button:focus-visible { outline: 2px solid var(--acc); outline-offset: 1px; }
+
+/* Ask tab: tabs above the result, then the tutor chat */
+.tabs2 { display: flex; gap: 4px; width: fit-content; margin: 0 0 16px; padding: 4px; border-radius: 12px; background: var(--soft); }
+.tabs2 button { border: 0; border-radius: 9px; padding: 8px 18px; background: none; color: var(--muted); font: 600 14px var(--body); cursor: pointer; }
+.tabs2 button[aria-selected='true'] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(16, 24, 40, 0.1); }
+.tabs2 button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+.ask { display: grid; gap: 14px; }
+.askhead { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.askseg { display: inline-flex; padding: 3px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.askseg button { border: 0; border-radius: 8px; padding: 7px 12px; background: none; color: var(--muted); font: 600 13px var(--body); cursor: pointer; }
+.askseg button[aria-checked='true'] { background: var(--acct); color: var(--acc); }
+.askseg button:focus-visible { outline: 2px solid var(--acc); outline-offset: 1px; }
+.askmsgs { display: grid; gap: 12px; max-height: 620px; overflow-y: auto; padding: 2px 4px 2px 0; }
+.amsg.user { justify-self: end; max-width: 85%; padding: 10px 14px; border-radius: 14px 14px 4px 14px; background: var(--acc); color: #fff; line-height: 1.5; overflow-wrap: anywhere; }
+.amsg.ai { display: grid; gap: 10px; }
+.ablock { padding: 12px 14px; border: 1px solid var(--line); border-left-width: 3px; border-radius: 12px; background: var(--surface); }
+.ablock p { margin: 6px 0 0; line-height: 1.65; overflow-wrap: anywhere; }
+.abadge { font: 600 11.5px var(--mono); letter-spacing: 0.04em; text-transform: uppercase; }
+.ablock.paper { border-left-color: var(--ok); }
+.ablock.paper .abadge { color: var(--ok); }
+.ablock.general { border-left-color: var(--acc); }
+.ablock.general .abadge { color: var(--acc); }
+.ablock.unverified { border-left-color: var(--warn); }
+.ablock.unverified .abadge { color: var(--warn); }
+.ablock blockquote { margin: 10px 0 0; padding: 8px 12px; border-radius: 8px; background: var(--soft); color: var(--ink); font-size: 14px; line-height: 1.55; }
+.ablock blockquote span { display: block; margin-top: 4px; color: var(--muted); font-size: 12.5px; }
+.askform { display: flex; gap: 8px; }
+.askform input { flex: 1; min-width: 0; }
+@media (max-width: 560px) { .askform { flex-direction: column; } .askform .btn { width: 100%; } .amsg.user { max-width: 100%; } }
+.askmsgs { position: relative; }
+.askmsgs:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; border-radius: 8px; }
+/* the title row of a finished video must be able to shrink on a phone */
+.row > .media-cap { flex: 1 1 200px; max-width: 100%; }
+/* the page grid had no column definition, so one long unwrapped title made the whole page wider than a phone */
+.main { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 560px) { .media-cap { flex-wrap: wrap; } .media-cap .t { white-space: normal; } }

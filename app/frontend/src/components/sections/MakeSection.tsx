@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { LangSeg, ShareRow } from '@/components/media';
 import VideoFeedback from '@/components/VideoFeedback';
 import SectionsReader from '@/components/SectionsReader';
+import AskPanel from '@/components/AskPanel';
 import { ApiError, availableLangs, createJob, getJob, lookupPaper, uploadPaper, videoUrl, LENGTHS, MAX_PDF_BYTES, MAX_PDF_FILES, STYLES, TONES, type Job, type MakeOpts } from '@/lib/explainer';
 import { usePrefs, type Lang, type StringKey } from '@/lib/prefs';
 import { scrollToSection } from '@/components/Shell';
@@ -74,6 +75,8 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
   const [sending, setSending] = useState<{ i: number; n: number } | null>(null);
   const [batch, setBatch] = useState<Job[]>([]);
   const [dragging, setDragging] = useState(false);
+  const [tab, setTab] = useState<'video' | 'ask'>('video');
+  const [askSeed, setAskSeed] = useState<{ i: number; n: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [now, setNow] = useState(() => Date.now());
   const startedAt = useRef<number>(Date.now());
@@ -139,6 +142,11 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
     }, 8000);
     return () => window.clearInterval(id);
   }, [batch]);
+
+  useEffect(() => {
+    setTab('video');
+    setAskSeed(null);
+  }, [job?.id]);
 
   const clearTimer = () => {
     if (timer.current !== null) {
@@ -470,6 +478,14 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
               </div>
               <LangSeg value={activeLang} options={langs} onChange={setLang} />
             </div>
+            <div className="tabs2" role="tablist">
+              <button type="button" role="tab" aria-selected={tab === 'video'} onClick={() => setTab('video')}>{t('tabVideo')}</button>
+              <button type="button" role="tab" aria-selected={tab === 'ask'} onClick={() => setTab('ask')}>{t('tabAsk')}</button>
+            </div>
+            {tab === 'ask' ? (
+              <AskPanel job={job} lang={activeLang} seed={askSeed} />
+            ) : (
+              <>
             <div className="screen">
               {(() => {
                 const poster = job.sections?.find((s) => s.poster)?.poster ?? undefined;
@@ -478,8 +494,10 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
             </div>
             <ShareRow job={job} lang={activeLang} />
             {!job.videos?.en?.includes('/examples/') && <p className="small muted" style={{ margin: '8px 0 0' }}>{t('keepNote')}</p>}
-            <SectionsReader job={job} lang={activeLang} />
+            <SectionsReader job={job} lang={activeLang} onAsk={(i) => { setAskSeed({ i, n: Date.now() }); setTab('ask'); }} />
             <VideoFeedback arxiv={job.arxiv} />
+              </>
+            )}
             <div className="actions">
               <button
                 type="button"
