@@ -36,7 +36,7 @@ function sectionSrc(s: Section, job: Job, lang: Lang): { src: string; range: [nu
 }
 
 /** The paper read section by section: the text, the key takeaway and a short narrated video for each part, shown as soon as that part is rendered. */
-export default function SectionsReader({ job, lang }: { job: Job; lang: Lang }) {
+export default function SectionsReader({ job, lang, onAsk }: { job: Job; lang: Lang; onAsk?: (i: number) => void }) {
   const { t } = usePrefs();
   const secs = job.sections ?? [];
   if (!secs.length) return null;
@@ -64,6 +64,11 @@ export default function SectionsReader({ job, lang }: { job: Job; lang: Lang }) 
                   <b>{t('secTakeaway')}: </b>
                   {takeaway}
                 </p>
+              )}
+              {onAsk && job.status === 'done' && (
+                <button type="button" className="btn ghost small" style={{ margin: '0 0 14px' }} onClick={() => onAsk(i)}>
+                  {t('askSimpler')}
+                </button>
               )}
               {v ? (
                 <div className="screen">
