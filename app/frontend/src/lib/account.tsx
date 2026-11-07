@@ -66,6 +66,13 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     } catch { /* offline: keep what we have */ }
   }, []);
 
+  // the navbar account (suite-account.js) signs in and out for every app: follow it
+  useEffect(() => {
+    const on = () => { refresh(); };
+    window.addEventListener('suite-auth', on);
+    return () => window.removeEventListener('suite-auth', on);
+  }, [refresh]);
+
   useEffect(() => {
     refresh();
     try {
@@ -83,14 +90,21 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       setToken(out.token);
       setMe((m) => (m ? { ...m, user: out.user, quota: out.quota } : m));   // the answer already carries the balance, no second round trip
       if (!me) await refresh();
+      window.dispatchEvent(new Event('suite-auth'));
     },
     signOut: async () => {
       try { await accountApi('logout'); } catch { /* the token is dropped locally either way */ }
       setToken('');
       await refresh();
+      window.dispatchEvent(new Event('suite-auth'));
     },
     authOpen,
-    openAuth: (mode = 'register') => { track('open_signup'); setAuthOpen(mode); },
+    openAuth: (mode = 'register') => {
+      track('open_signup');
+      // one sign-in dialog for every app (the navbar account); the local one is only a fallback
+      if ((window as unknown as { __suiteAccount?: boolean }).__suiteAccount) window.dispatchEvent(new CustomEvent('suite-open-auth', { detail: mode }));
+      else setAuthOpen(mode);
+    },
     closeAuth: () => setAuthOpen(null),
   }), [me, refresh, authOpen]);
 
