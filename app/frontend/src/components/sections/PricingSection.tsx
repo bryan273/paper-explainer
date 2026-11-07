@@ -7,7 +7,7 @@ export default function PricingSection() {
   const ac = useAcctText();
   const { me, user, openAuth } = useAccount();
   const lim = me?.limits ?? { guest: 1, member: 3, welcome: 3 };
-  const packs = Object.values(me?.packs ?? { 10: { credits: 10, price: 10 } });
+  const packs = Object.values(me?.packs ?? { 10: { credits: 10, price: 30 } });
   const from = packs.length ? packs.reduce((a, b) => (a.credits <= b.credits ? a : b)) : null;
   const list = (items: string[]) => (
     <ul className="tick">
@@ -48,7 +48,7 @@ export default function PricingSection() {
         <div className="card price-card">
           <b style={{ font: '700 17px var(--display)' }}>{ac('packsPlan')}</b>
           <div className="price">
-            {from ? `¥${from.price}` : '¥10'} <small>{from ? ac('forVideos', { n: from.credits }) : ''}</small>
+            {from ? `¥${from.price}` : '¥30'} <small>{from ? ac('forVideos', { n: from.credits }) : ''}</small>
           </div>
           {list([ac('packsL1'), ac('packsL2'), ac('packsL3'), ac('packsL4')])}
           {user ? (

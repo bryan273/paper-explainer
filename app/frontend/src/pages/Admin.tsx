@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import Shell from '@/components/Shell';
+import { getToken as sessionToken } from '@/lib/account';
 
 const SB = 'https://wzdkroxbfrlqijbeiwpk.supabase.co';
 const TOKEN_KEY = 'pe-admin-token';
@@ -158,30 +159,34 @@ export default function Admin() {
     setCode('');
   };
 
+  // the owner signs in from the navbar like anyone else; an address on the admin list sees this page. The passcode stays as a fallback.
+  const who = (): Record<string, string> => (token ? { 'x-admin-token': token } : sessionToken() ? { 'x-session': sessionToken() } : {});
+
   const load = useCallback(async () => {
     setErr('');
     try {
       // without a passcode the server answers a read-only preview (e-mail addresses masked); with one, the full dashboard
-      setDash(await api('/functions/v1/explainer-admin', token ? { headers: { 'x-admin-token': token } } : undefined));
+      setDash(await api('/functions/v1/explainer-admin', { headers: who() }));
     } catch (e) {
       const x = e as Error & { status?: number };
       if (token && (x.status === 401 || x.status === 403)) signOut();
       setErr(x.message);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   useEffect(() => { load(); }, [load]);
 
   const setStatus = async (id: string, status: string) => {
     try {
-      await api('/functions/v1/explainer-admin', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': token }, body: JSON.stringify({ op: 'order_status', id, status }) });
+      await api('/functions/v1/explainer-admin', { method: 'POST', headers: { 'Content-Type': 'application/json', ...who() }, body: JSON.stringify({ op: 'order_status', id, status }) });
       setDash((d) => (d ? { ...d, orders: d.orders.map((o) => (o.id === id ? { ...o, status } : o)) } : d));
     } catch (x) { setErr((x as Error).message); }
   };
 
   const post = async (body: Record<string, unknown>) => {
     try {
-      await api('/functions/v1/explainer-admin', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': token }, body: JSON.stringify(body) });
+      await api('/functions/v1/explainer-admin', { method: 'POST', headers: { 'Content-Type': 'application/json', ...who() }, body: JSON.stringify(body) });
       await load();
     } catch (x) { setErr((x as Error).message); }
   };
