@@ -225,7 +225,8 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
   };
 
   const running = !!job && job.status !== 'done' && job.status !== 'failed';
-  const step = job ? stepFromStage(job) : -1;
+  const stepKeys: StringKey[] = job?.langs === 'zh' ? ['stepRead', 'stepScript', 'stepCheck', 'stepZh'] : job?.langs === 'en' ? ['stepRead', 'stepScript', 'stepCheck', 'stepEn'] : STEP_KEYS;   // one language has one recording step
+  const step = job ? Math.min(stepFromStage(job), stepKeys.length - 1) : -1;
   if (stageAt.current.step !== step) stageAt.current = { step, at: Date.now() };
   // progress: finished steps in full, plus the part of the current step that has probably passed (never past 90% of it)
   const STEP_SECS = stepSecs(job?.seconds ?? 36);
@@ -446,7 +447,7 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
               </div>
             )}
             <ol className="steps">
-              {STEP_KEYS.map((key, i) => (
+              {stepKeys.map((key, i) => (
                 <li key={key} className={i < step ? 'done' : i === step ? 'active' : undefined}>
                   <span className="dot" aria-hidden>
                     {i < step ? '✓' : i + 1}
