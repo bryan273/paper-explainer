@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { LangSeg, ShareRow } from '@/components/media';
 import VideoFeedback from '@/components/VideoFeedback';
 import SectionsReader from '@/components/SectionsReader';
-import { ApiError, availableLangs, createJob, getJob, lookupPaper, videoUrl, LENGTHS, STYLES, TONES, type Job, type MakeOpts } from '@/lib/explainer';
+import { ApiError, availableLangs, createJob, getJob, lookupPaper, uploadPaper, videoUrl, LENGTHS, MAX_PDF_BYTES, MAX_PDF_FILES, STYLES, TONES, type Job, type MakeOpts } from '@/lib/explainer';
 import { usePrefs, type Lang, type StringKey } from '@/lib/prefs';
 import { scrollToSection } from '@/components/Shell';
 import { AccountStrip, LimitPanel } from '@/components/AccountUI';
@@ -41,6 +41,7 @@ function stepFromStage(job: Job): number {
 
 /** arXiv id, or the site a non-arXiv paper came from. */
 export function srcLabel(job: Job): string {
+  if (job.source_url?.startsWith('upload:')) return 'PDF';
   if (job.source_url) {
     try {
       return new URL(job.source_url).hostname.replace(/^www\./, '');
@@ -68,6 +69,12 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
   const [seconds, setSeconds] = useState<number>(180);
   const [custom, setCustom] = useState('');
   const [existing, setExisting] = useState<Job[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [sending, setSending] = useState<{ i: number; n: number } | null>(null);
+  const [batch, setBatch] = useState<Job[]>([]);
+  const [dragging, setDragging] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [now, setNow] = useState(() => Date.now());
   const startedAt = useRef<number>(Date.now());
   const stageAt = useRef<{ step: number; at: number }>({ step: -1, at: Date.now() });
@@ -108,6 +115,31 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
     };
   }, [input]);
 
+  const MB = MAX_PDF_BYTES / 1024 / 1024;
+  const addFiles = (list: FileList | File[]) => {
+    const next = [...files];
+    let err: string | null = null;
+    for (const f of Array.from(list)) {
+      if (f.type !== 'application/pdf' && !/\.pdf$/i.test(f.name)) { err = t('uploadNotPdf'); continue; }
+      if (f.size > MAX_PDF_BYTES) { err = t('uploadTooBig').replace('{name}', f.name).replace('{mb}', String(MB)); continue; }
+      if (next.some((x) => x.name === f.name && x.size === f.size)) continue;
+      if (next.length >= MAX_PDF_FILES) { err = t('uploadTooMany').replace('{n}', String(MAX_PDF_FILES)); break; }
+      next.push(f);
+    }
+    setFiles(next);
+    setFileError(err);
+    if (next.length) { setInput(''); setError(null); }
+  };
+
+  // the other videos of a batch: refresh their status every few seconds until they are all over
+  useEffect(() => {
+    if (batch.length < 2 || !batch.some((j) => j.status !== 'done' && j.status !== 'failed')) return;
+    const id = window.setInterval(() => {
+      Promise.all(batch.map((j) => (j.status === 'done' || j.status === 'failed' ? j : getJob(j.id).catch(() => j)))).then(setBatch);
+    }, 8000);
+    return () => window.clearInterval(id);
+  }, [batch]);
+
   const clearTimer = () => {
     if (timer.current !== null) {
       window.clearTimeout(timer.current);
@@ -137,7 +169,7 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) {
+    if (!input.trim() && files.length === 0) {
       setError(t('makeEmpty'));
       return;
     }
@@ -148,21 +180,40 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
     setJob(null);
     setCached(false);
     clearTimer();
+    setBatch([]);
+    const made: Job[] = [];
     try {
-      const created = await createJob(input.trim(), { voice, style, tone, seconds, custom: custom.trim(), force_new: existing.length > 0 });
+      const opts = { voice, style, tone, seconds, custom: custom.trim() };
+      if (files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+          setSending({ i: i + 1, n: files.length });
+          const path = await uploadPaper(files[i]);
+          made.push(await createJob('', { ...opts, force_new: true, upload: path, name: files[i].name }));
+        }
+      } else {
+        made.push(await createJob(input.trim(), { ...opts, force_new: existing.length > 0 }));
+      }
+    } catch (err) {
+      const stopped = made.length ? ' ' + t('batchStopped').replace('{done}', String(made.length)).replace('{total}', String(files.length)) : '';
+      if (err instanceof ApiError && (err.code === 'quota_guest' || err.code === 'quota_member')) { setLimit(err.code); refreshAccount(); if (made.length) setError(t('batchPartial').replace('{done}', String(made.length)).replace('{total}', String(files.length))); }
+      else if (err instanceof ApiError && err.code === 'upload_failed') setError(t('uploadFailed') + stopped);
+      else setError((err instanceof ApiError ? err.message : t('networkError')) + stopped);
+    } finally {
+      setSending(null);
+      setSubmitting(false);
+    }
+    if (made.length) {
+      const created = made[0];
       startedAt.current = created.created_at ? Date.parse(created.created_at) || Date.now() : Date.now();
       stageAt.current = { step: -2, at: Date.now() };
       setJob(created);
+      setBatch(made.length > 1 ? made : []);
+      if (files.length) { setFiles((f) => f.slice(made.length)); setFileError(null); }
       refreshAccount();
       setCached(!!created.cached || created.status === 'done');
       if (created.status !== 'done' && created.status !== 'failed') {
         timer.current = window.setTimeout(() => poll(created.id), POLL_MS);
       }
-    } catch (err) {
-      if (err instanceof ApiError && (err.code === 'quota_guest' || err.code === 'quota_member')) { setLimit(err.code); refreshAccount(); }
-      else setError(err instanceof ApiError ? err.message : t('networkError'));
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -204,7 +255,7 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
                 id="arxiv"
                 type="text"
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => { setInput(e.target.value); if (e.target.value && files.length) { setFiles([]); setFileError(null); } }}
                 placeholder="https://arxiv.org/abs/1706.03762  ·  https://…/paper.pdf  ·  10.1145/…"
                 autoComplete="off"
                 spellCheck={false}
@@ -212,9 +263,36 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
             </label>
             <button type="submit" className="btn primary" disabled={submitting || running}>
               {submitting ? <span className="spin" aria-hidden /> : null}
-              {submitting ? t('makeSending') : existing.length > 0 ? t('makeNewBtn') : t('makeBtn')}
+              {sending ? t('uploadingN').replace('{i}', String(sending.i)).replace('{n}', String(sending.n)) : submitting ? t('makeSending') : files.length > 1 ? t('makeNBtn').replace('{n}', String(files.length)) : existing.length > 0 && !files.length ? t('makeNewBtn') : t('makeBtn')}
             </button>
           </div>
+          <div
+            className={`upload${dragging ? ' over' : ''}`}
+            onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={(e) => { e.preventDefault(); setDragging(false); if (!submitting && !running) addFiles(e.dataTransfer.files); }}
+          >
+            <input ref={fileRef} type="file" accept="application/pdf,.pdf" multiple hidden onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ''; }} />
+            <button type="button" className="btn ghost small" disabled={submitting || running} onClick={() => fileRef.current?.click()}>
+              {t('uploadBtn')}
+            </button>
+            <span className="small muted">{t('uploadOr').replace('{n}', String(MAX_PDF_FILES)).replace('{mb}', String(MB))}</span>
+          </div>
+          {fileError && <p className="small" role="alert" style={{ margin: '8px 0 0', color: 'var(--bad)' }}>{fileError}</p>}
+          {files.length > 0 && (
+            <>
+              <ul className="filelist">
+                {files.map((f) => (
+                  <li key={f.name + f.size}>
+                    <span className="nm" title={f.name}>{f.name}</span>
+                    <span className="sz">{f.size < 1024 * 1024 ? `${Math.max(1, Math.round(f.size / 1024))} KB` : `${(f.size / 1024 / 1024).toFixed(1)} MB`}</span>
+                    <button type="button" aria-label={t('uploadRemove').replace('{name}', f.name)} disabled={submitting} onClick={() => setFiles(files.filter((x) => x !== f))}>×</button>
+                  </li>
+                ))}
+              </ul>
+              <p className="small muted" style={{ margin: '8px 0 0' }}>{t('uploadPrivate')}</p>
+            </>
+          )}
           <div className="row" style={{ gap: 14, marginTop: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <label className="field" style={{ minWidth: 130 }}>
               {t('optLength')}
@@ -254,6 +332,21 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
             </p>
           )}
         </form>
+
+        {batch.length > 1 && (
+          <div className="note" style={{ marginTop: 16 }}>
+            <strong>{t('batchTitle')}</strong>
+            <div className="stack" style={{ gap: 8, marginTop: 10 }}>
+              {batch.map((j) => (
+                <div key={j.id} className="row between" style={{ gap: 10, alignItems: 'center' }}>
+                  <span className="small" style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{j.title || 'PDF'}</span>
+                  <span className="small muted">{j.status === 'done' ? t('batchDone') : j.status === 'failed' ? t('batchFailed') : t('batchMaking')}</span>
+                  <button type="button" className="btn ghost small" disabled={job?.id === j.id} onClick={() => { clearTimer(); setError(null); setJob(j); setCached(j.status === 'done'); if (j.status !== 'done' && j.status !== 'failed') poll(j.id); }}>{t('batchShow')}</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {existing.length > 0 && !running && (
           <div className="note" style={{ marginTop: 16 }}>
