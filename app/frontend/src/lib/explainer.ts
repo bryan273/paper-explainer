@@ -51,6 +51,7 @@ export interface Job {
   title?: string | null;
   videos?: Videos | null;
   sections?: Section[] | null;
+  langs?: 'en' | 'zh' | 'both' | null;
   checks?: { checked?: number | null; removed?: string[] | null } | null;
   error?: string | null;
   cached?: boolean;
@@ -85,7 +86,7 @@ async function request(init?: RequestInit, query = ''): Promise<unknown> {
 }
 
 export function isPlayable(job: Job | null | undefined): job is Job {
-  return !!job && job.status === 'done' && !!job.videos?.en;
+  return !!job && job.status === 'done' && !!(job.videos?.en || job.videos?.zh);
 }
 
 export async function fetchRecent(): Promise<Job[]> {
@@ -128,12 +129,17 @@ export type MakeOpts = {
   tone: (typeof TONES)[number];
   seconds: number;
   custom: string;
+  /** the language the video is made in */
+  langs?: 'en' | 'zh' | 'both';
   force_new?: boolean;
   /** a path from uploadPaper(): make the video from that PDF instead of a link */
   upload?: string;
   /** the original file name, used as the first title */
   name?: string;
 };
+
+/** PDFs the visitor uploaded in this browser tab, by job id: the file is never kept on the server, but it can still be shown beside the video. */
+export const localPdfs = new Map<string, string>();
 
 export const MAX_PDF_BYTES = 20 * 1024 * 1024;
 export const MAX_PDF_FILES = 5;
@@ -277,7 +283,7 @@ export function useRecent() {
 export const ASK_URL = 'https://wzdkroxbfrlqijbeiwpk.supabase.co/functions/v1/explainer-ask';
 
 /** One part of a tutor answer: from the paper (quote checked), background knowledge, or a paper claim whose quote was not found. */
-export type AskBlock = { kind: 'paper' | 'general' | 'unverified'; text: string; quote?: string };
+export type AskBlock = { kind: 'paper' | 'general' | 'unverified'; text: string; quote?: string; page?: number; t?: number; sec?: number };
 export type ChatMsg = { role: 'user'; text: string; section?: number | null } | { role: 'ai'; blocks: AskBlock[]; followups?: string[] };
 
 async function askRequest(init: RequestInit, query = ''): Promise<Record<string, unknown>> {

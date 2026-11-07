@@ -2,8 +2,8 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { LangSeg, ShareRow } from '@/components/media';
 import VideoFeedback from '@/components/VideoFeedback';
 import SectionsReader from '@/components/SectionsReader';
-import AskPanel from '@/components/AskPanel';
-import { ApiError, availableLangs, createJob, getJob, lookupPaper, uploadPaper, videoUrl, LENGTHS, MAX_PDF_BYTES, MAX_PDF_FILES, STYLES, TONES, type Job, type MakeOpts } from '@/lib/explainer';
+import Studio from '@/components/Studio';
+import { ApiError, availableLangs, localPdfs, createJob, getJob, lookupPaper, uploadPaper, videoUrl, LENGTHS, MAX_PDF_BYTES, MAX_PDF_FILES, STYLES, TONES, type Job, type MakeOpts } from '@/lib/explainer';
 import { usePrefs, type Lang, type StringKey } from '@/lib/prefs';
 import { scrollToSection } from '@/components/Shell';
 import { AccountStrip, LimitPanel } from '@/components/AccountUI';
@@ -54,7 +54,7 @@ export function srcLabel(job: Job): string {
 }
 
 export default function MakeSection({ prefill, autoOpen }: { prefill?: string | null; autoOpen?: boolean }) {
-  const { t } = usePrefs();
+  const { t, lang: uiLang } = usePrefs();
   const { refresh: refreshAccount } = useAccount();
   const [limit, setLimit] = useState<null | 'quota_guest' | 'quota_member'>(null);
   const [input, setInput] = useState(prefill ?? '');
@@ -75,8 +75,7 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
   const [sending, setSending] = useState<{ i: number; n: number } | null>(null);
   const [batch, setBatch] = useState<Job[]>([]);
   const [dragging, setDragging] = useState(false);
-  const [tab, setTab] = useState<'video' | 'ask'>('video');
-  const [askSeed, setAskSeed] = useState<{ i: number; n: number } | null>(null);
+  const [vlang, setVlang] = useState<'en' | 'zh' | 'both'>(uiLang === 'zh' ? 'zh' : 'en');   // the language the video is made in: one is faster than both
   const fileRef = useRef<HTMLInputElement>(null);
   const [now, setNow] = useState(() => Date.now());
   const startedAt = useRef<number>(Date.now());
@@ -144,8 +143,6 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
   }, [batch]);
 
   useEffect(() => {
-    setTab('video');
-    setAskSeed(null);
   }, [job?.id]);
 
   const clearTimer = () => {
@@ -191,12 +188,14 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
     setBatch([]);
     const made: Job[] = [];
     try {
-      const opts = { voice, style, tone, seconds, custom: custom.trim() };
+      const opts = { voice, style, tone, seconds, custom: custom.trim(), langs: vlang };
       if (files.length > 0) {
         for (let i = 0; i < files.length; i++) {
           setSending({ i: i + 1, n: files.length });
           const path = await uploadPaper(files[i]);
-          made.push(await createJob('', { ...opts, force_new: true, upload: path, name: files[i].name }));
+          const j = await createJob('', { ...opts, force_new: true, upload: path, name: files[i].name });
+          localPdfs.set(j.id, URL.createObjectURL(files[i]));   // kept in this browser only, so the paper can be read beside the video
+          made.push(j);
         }
       } else {
         made.push(await createJob(input.trim(), { ...opts, force_new: existing.length > 0 }));
@@ -320,6 +319,14 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
                     {t(TONE_KEYS[k])}
                   </option>
                 ))}
+              </select>
+            </label>
+            <label className="field" style={{ minWidth: 150 }}>
+              {t('optLangs')}
+              <select value={vlang} onChange={(e) => setVlang(e.target.value as 'en' | 'zh' | 'both')} disabled={submitting || running}>
+                <option value="en">{t('langEn')}</option>
+                <option value="zh">{t('langZh')}</option>
+                <option value="both">{t('langBoth')}</option>
               </select>
             </label>
             <label className="field" style={{ minWidth: 150 }}>
@@ -478,26 +485,10 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
               </div>
               <LangSeg value={activeLang} options={langs} onChange={setLang} />
             </div>
-            <div className="tabs2" role="tablist">
-              <button type="button" role="tab" aria-selected={tab === 'video'} onClick={() => setTab('video')}>{t('tabVideo')}</button>
-              <button type="button" role="tab" aria-selected={tab === 'ask'} onClick={() => setTab('ask')}>{t('tabAsk')}</button>
-            </div>
-            {tab === 'ask' ? (
-              <AskPanel job={job} lang={activeLang} seed={askSeed} />
-            ) : (
-              <>
-            <div className="screen">
-              {(() => {
-                const poster = job.sections?.find((s) => s.poster)?.poster ?? undefined;
-                return <video key={src} src={poster ? src : `${src}#t=1.5`} poster={poster} controls playsInline preload="metadata" title={job.title ?? ''} />;
-              })()}
-            </div>
+            <Studio job={job} lang={activeLang} localPdf={localPdfs.get(job.id) ?? null} />
             <ShareRow job={job} lang={activeLang} />
             {!job.videos?.en?.includes('/examples/') && <p className="small muted" style={{ margin: '8px 0 0' }}>{t('keepNote')}</p>}
-            <SectionsReader job={job} lang={activeLang} onAsk={(i) => { setAskSeed({ i, n: Date.now() }); setTab('ask'); }} />
             <VideoFeedback arxiv={job.arxiv} />
-              </>
-            )}
             <div className="actions">
               <button
                 type="button"

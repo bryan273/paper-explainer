@@ -28,7 +28,7 @@ const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<Index />} />
     {/* <Route path="/blog/*" element={<BlogRoutes />} /> */}
-    <Route path="/admin" element={<Admin />} />
+    <Route path="/console" element={<Admin />} />
     <Route path="/abs/:id" element={<AbsPage />} />
     <Route path="/account" element={<Account />} />
     <Route path="/terms" element={<Legal kind="terms" />} />

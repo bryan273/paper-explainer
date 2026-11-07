@@ -2,35 +2,24 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useAccount, useAcctText } from '@/lib/account';
 
-/** One line under the nav: who is using the app and how many free videos and credits are left. */
+/** One quiet line under the form: how many free videos are left. Signing in and out lives in the navbar only. */
 export function AccountStrip() {
-  const { user, quota, me, signOut, openAuth } = useAccount();
+  const { user, quota, me, openAuth } = useAccount();
   const a = useAcctText();
   if (!quota || !me) return null;
   const left = a('freeLeft', { n: quota.day_left, m: quota.day_limit });
   const reset = quota.day_left === 0 && quota.resets_in_min ? ` · ${a('resetsIn', { h: Math.max(1, Math.ceil(quota.resets_in_min / 60)) })}` : '';
   return (
-    <div className="card" style={{ margin: '0 0 16px', padding: '10px 14px', display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', justifyContent: 'space-between' }}>
-      <div className="small" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
-        <b>{user ? user.username : a('guest')}</b>
-        <span className="muted">{left}{reset}</span>
-        {user && <span className="muted">· {a('creditsN', { n: user.credits })}</span>}
-        {!user && <span className="muted">· {a('guestHint', { m: me.limits.member, w: me.limits.welcome })}</span>}
-      </div>
-      <div className="row" style={{ gap: 8 }}>
-        {user ? (
-          <>
-            <Link className="btn ghost small" to="/account">{a('myVideos')}</Link>
-            <button type="button" className="btn ghost small" onClick={() => signOut()}>{a('logOut')}</button>
-          </>
-        ) : (
-          <>
-            <button type="button" className="btn primary small" onClick={() => openAuth('register')}>{a('signUp')}</button>
-            <button type="button" className="btn ghost small" onClick={() => openAuth('login')}>{a('logIn')}</button>
-          </>
-        )}
-      </div>
-    </div>
+    <p className="small muted" style={{ margin: '14px 2px 0', display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+      <span>{left}{reset}</span>
+      {user && <span>· {a('creditsN', { n: user.credits })}</span>}
+      {!user && (
+        <>
+          <span>·</span>
+          <button type="button" className="linkbtn" onClick={() => openAuth('register')}>{a('guestHint', { m: me.limits.member, w: me.limits.welcome })}</button>
+        </>
+      )}
+    </p>
   );
 }
 

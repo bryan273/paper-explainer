@@ -15,8 +15,10 @@ function inline(text: string) {
 }
 
 /** One part of an answer. The badge says in words where it comes from; a quote is shown with whether it was found in the paper text. */
-function Block({ b }: { b: AskBlock }) {
-  const { t } = usePrefs();
+function Block({ b, onCite }: { b: AskBlock; onCite?: (c: { page?: number; t?: number }) => void }) {
+  const { t, lang } = usePrefs();
+  const zh = lang === 'zh';
+  const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
   const label = b.kind === 'paper' ? `✓ ${t('askBadgePaper')}` : b.kind === 'unverified' ? t('askBadgeUnverified') : t('askBadgeGeneral');
   return (
     <div className={`ablock ${b.kind}`}>
@@ -28,12 +30,18 @@ function Block({ b }: { b: AskBlock }) {
           <span>{b.kind === 'paper' ? t('askQuoteFound') : t('askQuoteMissing')}</span>
         </blockquote>
       )}
+      {b.kind === 'paper' && onCite && (b.page || b.t !== undefined) && (
+        <div className="acite">
+          {b.page ? <button type="button" onClick={() => onCite({ page: b.page })}>{zh ? `原文第 ${b.page} 页` : `Paper p. ${b.page}`}</button> : null}
+          {b.t !== undefined ? <button type="button" onClick={() => onCite({ t: b.t })}>{zh ? `视频 ${mmss(b.t)}` : `Video ${mmss(b.t)}`}</button> : null}
+        </div>
+      )}
     </div>
   );
 }
 
 /** A tutor chat about the paper behind a finished video. Answers are labelled: from the paper (with a checked quote) or background knowledge. */
-export default function AskPanel({ job, lang, seed }: { job: Job; lang: Lang; seed: { i: number; n: number } | null }) {
+export default function AskPanel({ job, lang, seed, onCite }: { job: Job; lang: Lang; seed: { i: number; n: number } | null; onCite?: (c: { page?: number; t?: number }) => void }) {
   const { t } = usePrefs();
   const { openAuth } = useAccount();
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
@@ -154,7 +162,7 @@ export default function AskPanel({ job, lang, seed }: { job: Job; lang: Lang; se
             ) : (
               <div key={i} className="amsg ai">
                 {m.blocks.map((b, k) => (
-                  <Block key={k} b={b} />
+                  <Block key={k} b={b} onCite={onCite} />
                 ))}
               </div>
             ),

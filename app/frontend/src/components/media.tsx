@@ -59,7 +59,7 @@ export function useVideoTools(job: Job | null, lang: Lang) {
     return () => window.clearTimeout(timer);
   }, [copied]);
 
-  const en = job?.videos?.en ?? '';
+  const en = job?.videos?.en ?? job?.videos?.zh ?? '';
   const suffix = lang === 'zh' ? 'zh' : 'en';
   const arxiv = job?.arxiv ?? '';
 
