@@ -58,11 +58,11 @@ export default function Index() {
       <footer className="foot">
         <span>
           {t('footerLine')}{' '}
-          <a href={SUITE_URLS.all} target="_blank" rel="noopener noreferrer">
-            {t('appAll')} ↗
+          <a href={SUITE_URLS.all}>
+            {t('appAll')}
           </a>{' '}
-          <a href={SUITE_URLS.repro} target="_blank" rel="noopener noreferrer">
-            {t('appRepro')} ↗
+          <a href={SUITE_URLS.repro}>
+            {t('appRepro')}
           </a>
         </span>
         <span className="tiny">

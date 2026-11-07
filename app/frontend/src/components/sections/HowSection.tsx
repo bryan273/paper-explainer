@@ -37,7 +37,7 @@ export default function HowSection() {
             {t('notCheck')}
           </p>
         </div>
-        <a className="card cardlink" href={SUITE_URLS.repro} target="_blank" rel="noopener noreferrer">
+        <a className="card cardlink" href={SUITE_URLS.repro}>
           <b>{t('reproTitle')}</b>
           <span className="small muted">{t('reproSub')}</span>
           <span className="go">
