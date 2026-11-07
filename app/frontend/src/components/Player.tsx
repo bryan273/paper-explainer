@@ -100,6 +100,7 @@ const Player = forwardRef<PlayerHandle, { src: string; poster?: string; chapters
       role="group"
       aria-label={title || 'Video'}
     >
+      <div className="pl-stage">
       <video
         ref={vid}
         src={src}
@@ -118,6 +119,7 @@ const Player = forwardRef<PlayerHandle, { src: string; poster?: string; chapters
           <svg viewBox="0 0 24 24" aria-hidden><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
         </button>
       )}
+      </div>
       <div className="pl-ctl">
         {now?.title && <div className="pl-now">{now.title}</div>}
         <div

@@ -1306,3 +1306,15 @@ html { overflow-x: clip; }
 .member-thumb { position: relative; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; background: linear-gradient(135deg, #1a1740, #3b2f9a); display: grid; place-items: center; color: rgba(255, 255, 255, 0.75); font: 700 30px var(--display); }
 .member-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .member-t { font: 600 14px/1.35 var(--body); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; padding: 0 4px 4px; }
+
+.pl-stage { position: absolute; inset: 0; }
+.pl.full .pl-stage { position: absolute; inset: 0; }
+/* on a phone the controls sit under the picture, so they never cover the burned-in captions */
+@media (max-width: 640px) {
+  .pl { aspect-ratio: auto; background: #0b0c14; }
+  .pl-stage { position: relative; inset: auto; aspect-ratio: 16 / 9; }
+  .pl.full .pl-stage { aspect-ratio: auto; position: absolute; inset: 0; }
+  .pl-ctl { position: static; background: #0b0c14; padding: 8px 12px 6px; }
+  .pl.idle .pl-ctl { opacity: 1; pointer-events: auto; }
+  .pl.full .pl-ctl { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(transparent, rgba(0, 0, 0, 0.78)); }
+}
