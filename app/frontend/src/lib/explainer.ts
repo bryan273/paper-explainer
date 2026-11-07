@@ -129,7 +129,31 @@ export type MakeOpts = {
   seconds: number;
   custom: string;
   force_new?: boolean;
+  /** a path from uploadPaper(): make the video from that PDF instead of a link */
+  upload?: string;
+  /** the original file name, used as the first title */
+  name?: string;
 };
+
+export const MAX_PDF_BYTES = 20 * 1024 * 1024;
+export const MAX_PDF_FILES = 5;
+
+/** Sends one PDF to the private upload bucket and returns its path, to be passed to createJob as `upload`. */
+export async function uploadPaper(file: File): Promise<string> {
+  const addr = (await request({
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ op: 'upload_url', name: file.name, size: file.size, visitor: visitorId() }),
+  })) as { path: string; upload_url: string };
+  let res: Response;
+  try {
+    res = await fetch(addr.upload_url, { method: 'PUT', headers: { 'Content-Type': 'application/pdf' }, body: file });
+  } catch {
+    throw new ApiError('upload failed', 0, 'upload_failed');
+  }
+  if (!res.ok) throw new ApiError('upload failed', res.status, 'upload_failed');
+  return addr.path;
+}
 
 /** Videos that already exist (or are being made) for this paper, newest first. */
 export async function lookupPaper(input: string): Promise<Job[]> {

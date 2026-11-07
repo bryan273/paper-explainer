@@ -1160,3 +1160,14 @@ html { overflow-x: clip; }
 
 /* footer links: a comfortable touch target without changing the look */
 .foot a { display: inline-block; padding: 12px 6px; margin: -12px -2px; }
+
+/* PDF upload under the link field: a drop area, then the chosen files */
+.upload { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 12px; padding: 12px 14px; border: 1.5px dashed var(--line); border-radius: 14px; background: var(--soft); transition: border-color 0.15s, background 0.15s; }
+.upload.over { border-color: var(--acc); background: var(--acct); }
+.filelist { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; }
+.filelist li { display: flex; align-items: center; gap: 10px; padding: 7px 8px 7px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); font-size: 14px; }
+.filelist .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.filelist .sz { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.filelist button { display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 8px; background: none; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; }
+.filelist button:hover:not(:disabled) { background: var(--soft); color: var(--ink); }
+.filelist button:focus-visible { outline: 2px solid var(--acc); outline-offset: 1px; }
