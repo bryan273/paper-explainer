@@ -1605,3 +1605,9 @@ html[lang='vi'] .mono, html[lang='vi'] code { font-family: 'JetBrains Mono', ui-
 
 .tour-fab-wrap { left: auto; right: 16px; justify-items: end; }
 @media (max-width: 700px) { .tour-fab-wrap { bottom: 12px; right: 12px; } .tour-offer { max-width: calc(100vw - 24px); } }
+
+/* pricing: the price line wraps cleanly in four columns, the list keeps its own spacing */
+.price-card .price { flex-wrap: wrap; row-gap: 6px; }
+.price-card .price small { white-space: nowrap; }
+.price-card .save-pill { margin-left: 0; font-size: 11.5px; padding: 2px 9px; }
+.price-card .tick { align-content: start; }
