@@ -28,11 +28,11 @@ export function SuiteFooter({ lang, appId, note }: { lang: Lang; appId: string; 
       <div className="sft-in">
         <div className="sft-brand">
           <span className="stb-logo" aria-hidden>R</span>
-          <b>Repro Suite</b>
+          <b>Paperlit</b>
           <p>{t.tag}</p>
           <small>{t.made}</small>
         </div>
-        {col(t.learn, [{ id: 'explainer', label: 'Paper Explainer', href: EXPLAINER }, ...pick(['companion'])])}
+        {col(t.learn, [{ id: 'explainer', label: 'Paperlit', href: EXPLAINER }, ...pick(['companion'])])}
         {col(t.check, pick(['agent', 'lite', 'desk', 'indexboard']))}
         {col(t.about, pick(['bench', 'hub']))}
       </div>

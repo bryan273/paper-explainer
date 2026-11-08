@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { PURPOSE, useSettings } from '@/lib/settings';
 import { LangSeg, ShareRow } from '@/components/media';
@@ -157,6 +158,25 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
   };
 
   useEffect(() => clearTimer, []);
+
+  // /?job=<id>: open that exact video (finished, still rendering or failed) with its Ask history, instead of looking a paper up by its link
+  const [qs] = useSearchParams();
+  const wantJob = qs.get('job');
+  useEffect(() => {
+    if (!wantJob || !/^[0-9a-f-]{36}$/.test(wantJob)) return;
+    let alive = true;
+    getJob(wantJob)
+      .then((j) => {
+        if (!alive) return;
+        setJob(j);
+        setCached(j.status === 'done');
+        if (j.status !== 'done' && j.status !== 'failed') poll(j.id);
+        window.setTimeout(() => document.getElementById('make')?.scrollIntoView({ behavior: 'smooth' }), 200);
+      })
+      .catch(() => alive && setError(t('networkError')));
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wantJob]);
 
   const poll = (id: string, fails = 0) => {
     getJob(id)

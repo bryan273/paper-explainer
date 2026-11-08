@@ -120,7 +120,7 @@ export function useAccount(): Ctx {
 // ---- text for the account, credits, contact and legal screens (English and Chinese)
 const EN = {
   guest: 'Guest', freeLeft: '{n} of {m} free videos left today', creditsN: '{n} credits', signUp: 'Sign up free', logIn: 'Log in', logOut: 'Log out', myVideos: 'My account',
-  guestHint: 'Sign up free for {m} videos a day and {w} welcome credits.', resetsIn: 'more in about {h} h',
+  guestHint: 'Sign up free: a video every day and {w} welcome videos.', resetsIn: 'more in about {h} h',
   authTitleRegister: 'Create your free account', authTitleLogin: 'Welcome back', username: 'Email', password: 'Password', passwordHint: '8 characters or more',
   haveAccount: 'Already have an account? Log in', noAccount: 'No account yet? Sign up free', submitRegister: 'Create account', submitLogin: 'Log in',
   perks: 'Free account: {m} videos every day, {w} welcome credits, your videos saved in one place.', agree: 'By signing up you agree to the Terms and the Privacy policy.',
@@ -140,7 +140,7 @@ const EN = {
   packsPlan: 'Credit packs', packsL1: 'For heavy use, long videos and series', packsL2: 'Credits never expire', packsL3: 'Failed video: credits refunded automatically', packsL4: 'Pay with WeChat Pay or Alipay',
   needLogin: 'Log in to buy credits', orderMade: 'Order {id} created. Scan the code, pay, then tap "I have paid". Credits are added as soon as we confirm the payment.',
   limitGuest: 'You used your free guest videos.', limitMember: 'Your free videos for today are used.',
-  limitGuestBody: 'Sign up free: {m} videos a day and {w} welcome credits, and your videos stay in your account.', limitMemberBody: 'Buy credits to keep going now, or come back tomorrow.',
+  limitGuestBody: 'Sign up free: a video every day and {w} welcome videos, and your videos stay in your account.', limitMemberBody: 'Buy credits to keep going now, or come back tomorrow.',
   termsTitle: 'Terms of use', privacyTitle: 'Privacy policy', updated: 'Last updated 29 October 2026',
 };
 const ZH: typeof EN = {

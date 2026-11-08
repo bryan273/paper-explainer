@@ -38,7 +38,7 @@ export default function Hero({ items, error }: { items: Job[] | null; error: boo
     <section className="hero" aria-labelledby="hero-title">
       <div className="hero-grid">
         <div>
-          <span className="su-pill"><i />Paper Explainer</span>
+          <span className="su-pill"><i />Paperlit</span>
           <h1 className="hero-title" id="hero-title" style={{ marginTop: 10 }}>
             <GradLast text={t('heroTitle')} words={4} />
           </h1>
