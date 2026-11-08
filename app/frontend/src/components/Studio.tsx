@@ -31,13 +31,13 @@ const T = {
 
 const SH = {"btn": {"en": "Share this video", "zh": "分享这个视频", "vi": "Chia sẻ video này", "id": "Bagikan video ini"}, "done": {"en": "Link copied", "zh": "链接已复制", "vi": "Đã sao chép liên kết", "id": "Tautan disalin"}, "hint": {"en": "Anyone with the link can watch it, for as long as the video is kept. To ask questions they sign up free.", "zh": "任何拿到链接的人都可以观看，在视频保留期内有效。提问需要免费注册。", "vi": "Ai có liên kết đều xem được, chừng nào video còn được lưu. Muốn đặt câu hỏi thì cần đăng ký miễn phí.", "id": "Siapa pun yang punya tautan bisa menonton, selama video masih disimpan. Untuk bertanya, mereka perlu daftar gratis."}} as const;
 const GV = {"h": {"en": "You are watching a shared video", "zh": "你正在观看分享的视频", "vi": "Bạn đang xem một video được chia sẻ", "id": "Anda sedang menonton video yang dibagikan"}, "p": {"en": "The link lets you watch it. To ask questions, take the quiz and make your own videos, sign up free.", "zh": "链接只能用来观看。注册后即可提问、做测验并制作自己的视频，免费。", "vi": "Liên kết chỉ để xem. Muốn đặt câu hỏi, làm bài kiểm tra và tạo video của riêng bạn, hãy đăng ký miễn phí.", "id": "Tautan ini hanya untuk menonton. Untuk bertanya, mengerjakan kuis, dan membuat video sendiri, daftar gratis."}, "btn": {"en": "Sign up free", "zh": "免费注册", "vi": "Đăng ký miễn phí", "id": "Daftar gratis"}, "login": {"en": "Log in", "zh": "登录", "vi": "Đăng nhập", "id": "Masuk"}} as const;
-const IA = {"quizTab": {"en": "Quiz", "zh": "测验", "vi": "Kiểm tra", "id": "Kuis"}, "exLoading": {"en": "Writing a simpler explanation…", "zh": "正在写更通俗的讲解…", "vi": "Đang viết lời giải thích dễ hiểu hơn…", "id": "Menulis penjelasan yang lebih sederhana…"}, "exErr": {"en": "Could not explain this right now.", "zh": "暂时无法讲解。", "vi": "Hiện chưa giải thích được.", "id": "Belum bisa menjelaskan sekarang."}, "prep": {"en": "Questions ready", "zh": "题目已准备", "vi": "Câu hỏi đã sẵn sàng", "id": "Pertanyaan siap"}, "introH": {"en": "New: Interactive mode", "zh": "新功能：互动模式", "vi": "Mới: Chế độ tương tác", "id": "Baru: Mode interaktif"}, "introP": {"en": "Want to be sure you got it? Turn it on and the video pauses after each part with one question. It is off unless you choose it. Free to try. Students and teachers get a free month of Plus.", "zh": "想确认自己真的懂了吗？打开后，每段结束视频会暂停并问你一个问题。默认关闭，由你决定。可免费试用。学生和教师可免费用 1 个月 Plus。", "vi": "Muốn chắc là mình hiểu? Bật lên và video sẽ dừng sau mỗi phần với một câu hỏi. Mặc định tắt, do bạn chọn. Dùng thử miễn phí. Sinh viên và giảng viên được tặng 1 tháng Plus.", "id": "Ingin memastikan Anda paham? Nyalakan dan video berhenti setiap bagian dengan satu pertanyaan. Mati kecuali Anda memilihnya. Gratis dicoba. Mahasiswa dan pengajar dapat 1 bulan Plus gratis."}, "introOn": {"en": "Turn it on", "zh": "打开", "vi": "Bật lên", "id": "Nyalakan"}, "introNo": {"en": "Not now", "zh": "暂不需要", "vi": "Để sau", "id": "Nanti saja"}, "mode": {"en": "Interactive mode", "zh": "互动模式", "vi": "Chế độ tương tác", "id": "Mode interaktif"}, "free": {"en": "Free to try", "zh": "免费试用", "vi": "Dùng thử miễn phí", "id": "Gratis dicoba"}, "hint": {"en": "The video stops after each part and asks you one question.", "zh": "每段结束后视频会暂停，并问你一个问题。", "vi": "Video dừng sau mỗi phần và hỏi bạn một câu.", "id": "Video berhenti setiap bagian dan menanyakan satu pertanyaan."}, "q": {"en": "Check yourself", "zh": "自测一下", "vi": "Tự kiểm tra", "id": "Uji diri Anda"}, "right": {"en": "Correct", "zh": "答对了", "vi": "Chính xác", "id": "Benar"}, "wrong": {"en": "Not quite", "zh": "不太对", "vi": "Chưa đúng", "id": "Belum tepat"}, "cont": {"en": "Continue the video", "zh": "继续播放", "vi": "Xem tiếp", "id": "Lanjutkan video"}, "more": {"en": "Explain this more", "zh": "再讲深一点", "vi": "Giải thích sâu hơn", "id": "Jelaskan lebih dalam"}, "replay": {"en": "Replay this part", "zh": "重看这一段", "vi": "Xem lại phần này", "id": "Putar ulang bagian ini"}, "loading": {"en": "Writing a question about this part…", "zh": "正在为这一段出题…", "vi": "Đang viết câu hỏi cho phần này…", "id": "Menulis pertanyaan untuk bagian ini…"}, "skip": {"en": "Skip", "zh": "跳过", "vi": "Bỏ qua", "id": "Lewati"}, "signup": {"en": "Sign up free", "zh": "免费注册", "vi": "Đăng ký miễn phí", "id": "Daftar gratis"}, "plus": {"en": "See Plus", "zh": "查看 Plus", "vi": "Xem gói Plus", "id": "Lihat Plus"}, "next": {"en": "Go further with this paper", "zh": "继续深入这篇论文", "vi": "Đi sâu hơn với bài báo này", "id": "Telusuri makalah ini lebih jauh"}, "nextRead": {"en": "Read it with cited answers", "zh": "带引用地阅读原文", "vi": "Đọc kèm câu trả lời có trích dẫn", "id": "Baca dengan jawaban bersitasi"}, "nextCheck": {"en": "Re-run it: does the number hold?", "zh": "重新运行：结果成立吗？", "vi": "Chạy lại: con số có đúng không?", "id": "Jalankan ulang: apakah angkanya benar?"}} as const;
+const IA = {"upsell": {"en": "Plus gives 10 interactive videos a month, Pro 30, Premium 80.", "zh": "Plus 每月 10 个互动视频，Pro 30 个，Premium 80 个。", "vi": "Plus có 10 video tương tác mỗi tháng, Pro 30, Premium 80.", "id": "Plus memberi 10 video interaktif per bulan, Pro 30, Premium 80."}, "left": {"en": "{n} of {c} interactive videos left this month", "zh": "本月还剩 {n} / {c} 个互动视频", "vi": "Còn {n}/{c} video tương tác trong tháng này", "id": "Sisa {n} dari {c} video interaktif bulan ini"}, "uses": {"en": "Turning it on here uses 1.", "zh": "在这里打开会用掉 1 个。", "vi": "Bật ở video này sẽ dùng 1 lượt.", "id": "Menyalakannya di sini memakai 1."}, "usedHere": {"en": "Counted for this video: turning it off and on again is free.", "zh": "这个视频已计入：再次开关不再扣次数。", "vi": "Đã tính cho video này: tắt bật lại không mất thêm lượt.", "id": "Sudah dihitung untuk video ini: mematikan dan menyalakan lagi gratis."}, "none": {"en": "No interactive videos left this month. They come back on {d}.", "zh": "本月互动视频已用完，{d} 恢复。", "vi": "Đã hết video tương tác tháng này. Sẽ có lại vào {d}.", "id": "Video interaktif bulan ini habis. Kembali pada {d}."}, "quizTab": {"en": "Quiz", "zh": "测验", "vi": "Kiểm tra", "id": "Kuis"}, "exLoading": {"en": "Writing a simpler explanation…", "zh": "正在写更通俗的讲解…", "vi": "Đang viết lời giải thích dễ hiểu hơn…", "id": "Menulis penjelasan yang lebih sederhana…"}, "exErr": {"en": "Could not explain this right now.", "zh": "暂时无法讲解。", "vi": "Hiện chưa giải thích được.", "id": "Belum bisa menjelaskan sekarang."}, "prep": {"en": "Questions ready", "zh": "题目已准备", "vi": "Câu hỏi đã sẵn sàng", "id": "Pertanyaan siap"}, "introH": {"en": "New: Interactive mode", "zh": "新功能：互动模式", "vi": "Mới: Chế độ tương tác", "id": "Baru: Mode interaktif"}, "introP": {"en": "Want to be sure you got it? Turn it on and the video pauses after each part with one question. It is off unless you choose it. Free to try. Students and teachers get a free month of Plus.", "zh": "想确认自己真的懂了吗？打开后，每段结束视频会暂停并问你一个问题。默认关闭，由你决定。可免费试用。学生和教师可免费用 1 个月 Plus。", "vi": "Muốn chắc là mình hiểu? Bật lên và video sẽ dừng sau mỗi phần với một câu hỏi. Mặc định tắt, do bạn chọn. Dùng thử miễn phí. Sinh viên và giảng viên được tặng 1 tháng Plus.", "id": "Ingin memastikan Anda paham? Nyalakan dan video berhenti setiap bagian dengan satu pertanyaan. Mati kecuali Anda memilihnya. Gratis dicoba. Mahasiswa dan pengajar dapat 1 bulan Plus gratis."}, "introOn": {"en": "Turn it on", "zh": "打开", "vi": "Bật lên", "id": "Nyalakan"}, "introNo": {"en": "Not now", "zh": "暂不需要", "vi": "Để sau", "id": "Nanti saja"}, "mode": {"en": "Interactive mode", "zh": "互动模式", "vi": "Chế độ tương tác", "id": "Mode interaktif"}, "free": {"en": "Free to try", "zh": "免费试用", "vi": "Dùng thử miễn phí", "id": "Gratis dicoba"}, "hint": {"en": "The video stops after each part and asks you one question.", "zh": "每段结束后视频会暂停，并问你一个问题。", "vi": "Video dừng sau mỗi phần và hỏi bạn một câu.", "id": "Video berhenti setiap bagian dan menanyakan satu pertanyaan."}, "q": {"en": "Check yourself", "zh": "自测一下", "vi": "Tự kiểm tra", "id": "Uji diri Anda"}, "right": {"en": "Correct", "zh": "答对了", "vi": "Chính xác", "id": "Benar"}, "wrong": {"en": "Not quite", "zh": "不太对", "vi": "Chưa đúng", "id": "Belum tepat"}, "cont": {"en": "Continue the video", "zh": "继续播放", "vi": "Xem tiếp", "id": "Lanjutkan video"}, "more": {"en": "Explain this more", "zh": "再讲深一点", "vi": "Giải thích sâu hơn", "id": "Jelaskan lebih dalam"}, "replay": {"en": "Replay this part", "zh": "重看这一段", "vi": "Xem lại phần này", "id": "Putar ulang bagian ini"}, "loading": {"en": "Writing a question about this part…", "zh": "正在为这一段出题…", "vi": "Đang viết câu hỏi cho phần này…", "id": "Menulis pertanyaan untuk bagian ini…"}, "skip": {"en": "Skip", "zh": "跳过", "vi": "Bỏ qua", "id": "Lewati"}, "signup": {"en": "Sign up free", "zh": "免费注册", "vi": "Đăng ký miễn phí", "id": "Daftar gratis"}, "plus": {"en": "See Plus", "zh": "查看 Plus", "vi": "Xem gói Plus", "id": "Lihat Plus"}, "next": {"en": "Go further with this paper", "zh": "继续深入这篇论文", "vi": "Đi sâu hơn với bài báo này", "id": "Telusuri makalah ini lebih jauh"}, "nextRead": {"en": "Read it with cited answers", "zh": "带引用地阅读原文", "vi": "Đọc kèm câu trả lời có trích dẫn", "id": "Baca dengan jawaban bersitasi"}, "nextCheck": {"en": "Re-run it: does the number hold?", "zh": "重新运行：结果成立吗？", "vi": "Chạy lại: con số có đúng không?", "id": "Jalankan ulang: apakah angkanya benar?"}} as const;
 
 /** The finished video as one workspace: the player with a chaptered timeline, the chapters with their explanations, and beside them the questions and the paper. */
 export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; localPdf?: string | null }) {
   const { lang: ui } = usePrefs();   // the buttons and labels follow the page language; the video, its parts and its questions follow the video language
   const t = T[ui];
-  const { user, openAuth } = useAccount();
+  const { user, me, openAuth } = useAccount();
   const guestView = !user && !isMine(job.id);   // a shared link: watching only
   const src = videoUrl(job, lang);
   const player = useRef<PlayerHandle>(null);
@@ -46,7 +46,19 @@ export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; 
   const [pageKey, setPageKey] = useState(0);
   const [seed, setSeed] = useState<{ i: number; n: number } | null>(null);
   const [now, setNow] = useState(0);
-  const [interactive, setInteractive] = useState(() => { try { return localStorage.getItem('pe-interactive') === '1'; } catch { return false; } });
+  // interactive mode is chosen per video (each one counts against the month); a video you made with the switch on starts with it on
+  const interKey = `pe-inter:${job.id}`;
+  const readInter = () => { try { const v = localStorage.getItem(interKey); return v ? v === '1' : localStorage.getItem('pe-interactive') === '1' && isMine(job.id); } catch { return false; } };
+  const [interactive, setInteractive] = useState(readInter);
+  const [iu, setIu] = useState(me?.interactive ?? null);
+  const [interErr, setInterErr] = useState<{ msg: string; code: string } | null>(null);
+  const [counted, setCounted] = useState(() => { try { return localStorage.getItem(`pe-inter-counted:${job.id}`) === '1'; } catch { return false; } });
+  useEffect(() => { if (me?.interactive) setIu(me.interactive); }, [me?.interactive]);
+  useEffect(() => {
+    const on = (e: Event) => { const d = (e as CustomEvent).detail; if (d) { setIu(d); setCounted(true); try { localStorage.setItem(`pe-inter-counted:${job.id}`, '1'); } catch { /* private mode */ } } };
+    window.addEventListener('pe-interactive-used', on);
+    return () => window.removeEventListener('pe-interactive-used', on);
+  }, [job.id]);
   const [check, setCheck] = useState<{ i: number; status: 'loading' | 'ready' | 'error'; quiz?: Quiz; picked?: number; err?: string; code?: string; explain?: { status: 'loading' | 'ready' | 'error'; text?: string; err?: string } } | null>(null);
   const quizCache = useRef<Map<number, Promise<Quiz>>>(new Map());
   const allRef = useRef<Promise<Quiz[]> | null>(null);
@@ -96,7 +108,7 @@ export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; 
       let saved: Quiz | null = null;
       try { saved = JSON.parse(localStorage.getItem(key) ?? 'null') as Quiz | null; } catch { /* no cache */ }
       // the whole set is written in one go; a single question is only asked for when that did not work
-      pr = saved ? Promise.resolve(saved) : getAll().then((by) => by[i] ?? quizPart({ job: job.id, section: i, lang })).catch(() => quizPart({ job: job.id, section: i, lang }));
+      pr = saved ? Promise.resolve(saved) : getAll().then((by) => by[i] ?? quizPart({ job: job.id, section: i, lang })).catch((e) => (e instanceof ApiError && /^quiz_/.test(e.code ?? '') ? Promise.reject(e) : quizPart({ job: job.id, section: i, lang })));
       quizCache.current.set(i, pr);
       pr.then((q) => { try { localStorage.setItem(key, JSON.stringify(q)); } catch { /* full */ } }).catch(() => { quizCache.current.delete(i); });
     }
@@ -110,7 +122,13 @@ export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; 
   };
   useEffect(() => {
     if (!interactive || guestView || chapters.length === 0) return;
-    chapters.forEach((_, i) => { void getQuiz(i).catch(() => undefined); });
+    setInterErr(null);
+    chapters.forEach((_, i) => {
+      void getQuiz(i).catch((e) => {
+        // no interactive videos left this month (or a guest's one try is used): say so at once and switch it off for this video
+        if (e instanceof ApiError && /^quiz_/.test(e.code ?? '')) { setInterErr({ msg: e.message, code: e.code ?? '' }); setInteractive(false); try { localStorage.setItem(interKey, '0'); } catch { /* private mode */ } }
+      });
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [interactive, job.id, lang, chapters.length]);
   const explainMore = (i: number) => {
@@ -126,7 +144,7 @@ export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; 
     setInteractive(next);
     checked.current = new Set();
     setCheck(null);
-    try { localStorage.setItem('pe-interactive', next ? '1' : '0'); } catch { /* private mode */ }
+    try { localStorage.setItem(interKey, next ? '1' : '0'); } catch { /* private mode */ }
     track('interactive_toggle', { on: next });
   };
   // in interactive mode the video stops at the end of each part and asks one question about it
@@ -139,7 +157,7 @@ export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; 
     openCheck(i);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [now, interactive, check]);
-  useEffect(() => { checked.current = new Set(); quizCache.current = new Map(); allRef.current = null; setPrepared(0); setCheck(null); setQlogState(readLog()); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [job.id, lang]);
+  useEffect(() => { checked.current = new Set(); quizCache.current = new Map(); allRef.current = null; setPrepared(0); setCheck(null); setQlogState(readLog()); setInteractive(readInter()); try { setCounted(localStorage.getItem(`pe-inter-counted:${job.id}`) === '1'); } catch { setCounted(false); } /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [job.id, lang]);
 
   const goVideo = (time: number) => {
     player.current?.seek(time, true);
@@ -164,7 +182,7 @@ export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; 
                 <p style={{ margin: '0 0 10px' }}>{check.err}</p>
                 <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
                   {(check.code === 'quiz_signup') && <button type="button" className="btn primary small" onClick={() => openAuth('register')}>{pick(ui, IA.signup)}</button>}
-                  {(check.code === 'quiz_premium') && <button type="button" className="btn primary small" onClick={() => { setCheck(null); scrollToSection('pricing'); }}>{pick(ui, IA.plus)}</button>}
+                  {(check.code === 'quiz_premium' || check.code === 'quiz_quota') && <button type="button" className="btn primary small" onClick={() => { setCheck(null); scrollToSection('pricing'); }}>{pick(ui, IA.plus)}</button>}
                   <button type="button" className="btn ghost small" onClick={() => { setCheck(null); player.current?.play(); }}>{pick(ui, IA.cont)}</button>
                 </div>
               </div>
@@ -249,9 +267,22 @@ export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; 
             <span className="inter-knob" aria-hidden />
             <b>{pick(ui, IA.mode)}</b>
           </button>
-          <span className="inter-free">{pick(ui, IA.free)}</span>
+          {iu && !m_admin(me) ? (
+            <span className={`inter-free${iu.left === 0 && !counted ? ' out' : ''}`}>
+              {iu.left === 0 && !counted ? pick(ui, IA.none).replace('{d}', new Date(iu.resets).toLocaleDateString(ui === 'zh' ? 'zh-CN' : ui === 'vi' ? 'vi-VN' : ui === 'id' ? 'id-ID' : 'en-GB', { day: 'numeric', month: 'short' })) : pick(ui, IA.left).replace('{n}', String(iu.left)).replace('{c}', String(iu.cap))}
+            </span>
+          ) : <span className="inter-free">{pick(ui, IA.free)}</span>}
+          {iu && !m_admin(me) && (counted || iu.left > 0) && <span className="small muted">{counted ? pick(ui, IA.usedHere) : !interactive ? pick(ui, IA.uses) : ''}</span>}
           {interactive && chapters.length > 0 && <span className="small muted" role="status">{prepared >= chapters.length ? '✓ ' : <span className="spin" aria-hidden />} {pick(ui, IA.prep)} {Math.min(prepared, chapters.length)}/{chapters.length}</span>}
           <span className="small muted">{pick(ui, IA.hint)}</span>
+          {interErr && (
+            <div className="inter-err" role="alert">
+              <span>{interErr.code === 'quiz_quota' ? pick(ui, IA.upsell) : interErr.msg}</span>
+              {interErr.code === 'quiz_signup'
+                ? <button type="button" className="btn primary small" onClick={() => openAuth('register')}>{pick(ui, IA.signup)}</button>
+                : <button type="button" className="btn primary small" onClick={() => { setInterErr(null); window.dispatchEvent(new Event('pe-show-plans')); scrollToSection('pricing'); }}>{pick(ui, IA.plus)}</button>}
+            </div>
+          )}
         </div>
         )}
         {secs.length > 0 && (() => {
@@ -323,3 +354,5 @@ export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; 
     </div>
   );
 }
+
+const m_admin = (me: unknown) => !!(me as { admin?: boolean } | null)?.admin;

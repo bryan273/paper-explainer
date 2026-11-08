@@ -12,7 +12,7 @@ import { scrollToSection } from '@/components/Shell';
 
 const D = {
   fast: { en: 'Quick', zh: '快速', vi: 'Nhanh', id: 'Cepat' }, deep: { en: 'In-depth', zh: '深入', vi: 'Chuyên sâu', id: 'Mendalam' },
-  deepHint: { en: 'In-depth mode uses a stronger AI that thinks longer, good for hard questions. {n} free answers for each video, 30 with Plus, unlimited with Pro.', zh: '深入模式使用更强、思考更久的 AI，适合难题。每个视频 {n} 次免费，Plus 30 次，Pro 不限次数。', vi: 'Chế độ chuyên sâu dùng AI mạnh hơn và suy nghĩ lâu hơn, hợp cho câu hỏi khó. Mỗi video {n} lần miễn phí, 30 lần với Plus, không giới hạn với Pro.', id: 'Mode mendalam memakai AI yang lebih kuat dan berpikir lebih lama, cocok untuk pertanyaan sulit. {n} gratis untuk setiap video, 30 dengan Plus, tanpa batas dengan Pro.' },
+  deepHint: { en: 'In-depth mode uses a stronger AI that thinks longer, good for hard questions. Per video: 3 answers free, 10 with Plus, 20 with Pro, 30 with Premium.', zh: '深入模式使用更强、思考更久的 AI，适合难题。每个视频：免费 3 次，Plus 10 次，Pro 20 次，Premium 30 次。', vi: 'Chế độ chuyên sâu dùng AI mạnh hơn và suy nghĩ lâu hơn, hợp cho câu hỏi khó. Mỗi video: miễn phí 3 lần, Plus 10 lần, Pro 20 lần, Premium 30 lần.', id: 'Mode mendalam memakai AI yang lebih kuat dan berpikir lebih lama, cocok untuk pertanyaan sulit. Per video: gratis 3 jawaban, Plus 10, Pro 20, Premium 30.' },
   signup: { en: 'Sign up free to try in-depth answers', zh: '免费注册，试用深入回答', vi: 'Đăng ký miễn phí để thử câu trả lời chuyên sâu', id: 'Daftar gratis untuk mencoba jawaban mendalam' },
   signupAsk: { en: 'Sign up free to ask', zh: '免费注册后提问', vi: 'Đăng ký miễn phí để đặt câu hỏi', id: 'Daftar gratis untuk bertanya' },
   seePlus: { en: 'See plans', zh: '查看套餐', vi: 'Xem các gói', id: 'Lihat paket' },

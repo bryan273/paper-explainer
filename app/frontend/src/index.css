@@ -1688,3 +1688,20 @@ input[type='password']:focus, input[type='number']:focus { border-color: var(--a
 .member-cards { display: grid; gap: 4px; padding-top: 8px; }
 @media (max-width: 640px) { .mh-ava { width: 44px; height: 44px; font-size: 18px; } .mh-stat.big b { font-size: 22px; } }
 @media (max-width: 640px) { .member-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .member-card { padding: 8px; } .member-thumb { aspect-ratio: 16 / 10; } .member-t { font-size: 13.5px; } }
+
+/* Premium: the top plan, black and gold; Custom sits under the four cards as one strip */
+.price-card.premium { background: linear-gradient(165deg, #121212 0%, #2a2414 100%); border: 1.5px solid #d9b45a; color: #f6efe0; }
+.price-card.premium b, .price-card.premium .price { color: #fff; }
+.price-card.premium .price small, .price-card.premium .muted, .price-card.premium .tick, .price-card.premium p { color: #d9cfb8; }
+.price-card.premium .tick li::before { color: #e6c46a; }
+.price-card.premium .btn { background: #e6c46a; border-color: #e6c46a; color: #1b1606; font-weight: 700; }
+.price-card.premium .save-pill { color: #1b1606; background: #e6c46a; }
+.custom-strip { margin-top: 14px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-style: dashed; }
+.custom-strip .tick { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 8px 0 0; }
+@media (max-width: 700px) { .custom-strip { flex-direction: column; align-items: stretch; } }
+.quota-line { font-size: 12.5px; color: var(--text2); }
+.quota-line b { color: var(--text); }
+.inter-free.out { background: #fdeceb; color: #b3261e; }
+.inter-err { flex-basis: 100%; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 10px; border-radius: 10px; background: #fff6e5; border: 1px solid #f0d49a; font-size: 13px; }
+.mh-of { font-style: normal; font-size: .55em; color: var(--text2); font-weight: 600; }
+.mh-badge.premium { background: linear-gradient(135deg, #1b1606, #4a3b12); color: #f3d98a; }

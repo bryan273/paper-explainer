@@ -92,7 +92,8 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
   const { t, lang: uiLang } = usePrefs();
   const { refresh: refreshAccount, user: acctUser } = useAccount();
   const [limit, setLimit] = useState<null | 'quota_guest' | 'quota_member'>(null);
-  const { quota: liveQuota, user: liveUser } = useAccount();
+  const { quota: liveQuota, user: liveUser, me: liveMe } = useAccount();
+  const meInter = liveUser && !liveMe?.admin ? liveMe?.interactive : undefined;
   // credits added by the owner, or a new day, make an old "limit reached" notice wrong: drop it
   useEffect(() => { if (limit && ((liveQuota?.day_left ?? 0) > 0 || (liveUser?.credits ?? 0) > 0)) setLimit(null); }, [limit, liveQuota?.day_left, liveUser?.credits]);
   const [input, setInput] = useState(prefill ?? '');
@@ -429,7 +430,7 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
               <span className="inter-knob" aria-hidden />
               <b>{pick(uiLang, { en: 'Interactive video', zh: '互动视频', vi: 'Video tương tác', id: 'Video interaktif' })}</b>
             </button>
-            <span className="inter-free">{pick(uiLang, { en: 'Free to try', zh: '免费试用', vi: 'Dùng thử miễn phí', id: 'Gratis dicoba' })}</span>
+            <span className="inter-free">{meInter ? pick(uiLang, { en: '{n} of {c} left this month', zh: '本月还剩 {n} / {c} 个', vi: 'Còn {n}/{c} trong tháng này', id: 'Sisa {n} dari {c} bulan ini' }).replace('{n}', String(meInter.left)).replace('{c}', String(meInter.cap)) : pick(uiLang, { en: 'Free to try', zh: '免费试用', vi: 'Dùng thử miễn phí', id: 'Gratis dicoba' })}</span>
             <span className="small muted">{pick(uiLang, { en: 'Answer a question inside the video after each part. Optional, you can also switch it on later.', zh: '每段结束后在视频里答题。可选，之后也可以再打开。', vi: 'Trả lời một câu hỏi ngay trong video sau mỗi phần. Tùy chọn, bật sau cũng được.', id: 'Jawab satu pertanyaan di dalam video setelah tiap bagian. Opsional, bisa dinyalakan nanti.' })}</span>
           </div>
 

@@ -23,7 +23,9 @@ const T = {
   pickMode: { en: 'Pick a mode to make it yours', zh: '选一个模式，让它更懂你', vi: 'Chọn một chế độ để cá nhân hóa', id: 'Pilih mode untuk mempersonalisasi' } as L4,
   change: { en: 'Change', zh: '更改', vi: 'Đổi', id: 'Ubah' } as L4,
   bannerH: { en: 'Your free month of Plus is active', zh: '你的 Plus 免费月已开通', vi: 'Tháng Plus miễn phí của bạn đã được kích hoạt', id: 'Bulan Plus gratis Anda sudah aktif' } as L4,
-  bannerP: { en: 'Until {d}: 100 videos, interactive video and in-depth answers. Enjoy.', zh: '有效期至 {d}：100 个视频、互动视频和深入回答。', vi: 'Đến {d}: 100 video, video tương tác và câu trả lời chuyên sâu. Chúc bạn học tốt.', id: 'Sampai {d}: 100 video, video interaktif, dan jawaban mendalam. Selamat belajar.' } as L4,
+  bannerP: { en: 'Until {d}: 50 videos, 10 interactive videos and in-depth answers. Enjoy.', zh: '有效期至 {d}：50 个视频、10 个互动视频和深入回答。', vi: 'Đến {d}: 50 video, 10 video tương tác và câu trả lời chuyên sâu. Chúc bạn học tốt.', id: 'Sampai {d}: 50 video, 10 video interaktif, dan jawaban mendalam. Selamat belajar.' } as L4,
+  inter: { en: 'interactive videos left this month', zh: '本月剩余互动视频', vi: 'video tương tác còn lại tháng này', id: 'video interaktif tersisa bulan ini' } as L4,
+  interSub: { en: 'about {q} questions inside videos · resets {d}', zh: '约 {q} 道视频内答题 · {d} 重置', vi: 'khoảng {q} câu hỏi trong video · làm mới {d}', id: 'sekitar {q} pertanyaan di dalam video · reset {d}' } as L4,
   pendingH: { en: 'We are checking your proof', zh: '我们正在审核你的证明', vi: 'Chúng tôi đang duyệt giấy tờ của bạn', id: 'Kami sedang memeriksa bukti Anda' } as L4,
   pendingP: { en: 'Usually within a day. You will get an email and this page will show your plan.', zh: '通常一天内完成。结果会发到邮箱，本页也会显示你的套餐。', vi: 'Thường trong vòng một ngày. Bạn sẽ nhận email và trang này sẽ hiện gói của bạn.', id: 'Biasanya dalam sehari. Anda akan mendapat email dan halaman ini akan menampilkan paket Anda.' } as L4,
   jobs: { en: 'Your videos', zh: '你的视频', vi: 'Video của bạn', id: 'Video Anda' } as L4,
@@ -49,12 +51,12 @@ export function MemberHead() {
   const { lang } = usePrefs();
   const { user, me } = useAccount();
   const [s] = useSettings();
-  const m = me as unknown as { admin?: boolean; plan?: string | null; plan_until?: string | null; plan_source?: string | null; quota?: { day_left: number } } | null;
+  const m = me as unknown as { admin?: boolean; plan?: string | null; plan_until?: string | null; plan_source?: string | null; quota?: { day_left: number }; interactive?: { used: number; cap: number; left: number; resets: string } } | null;
   const name = user?.handle || (user?.username ?? '').split('@')[0];
   const free = m?.quota?.day_left ?? 0;
   const credits = user?.credits ?? 0;
   const days = m?.plan_until ? Math.max(0, Math.ceil((Date.parse(m.plan_until) - Date.now()) / 86400000)) : 0;
-  const planName = m?.plan ? `${m.plan === 'pro' ? 'Pro' : 'Plus'}${m.plan_source === 'student' ? ` · ${pick(lang, T.student)}` : m.plan_source === 'teacher' ? ` · ${pick(lang, T.teacher)}` : ''}` : pick(lang, T.free);
+  const planName = m?.plan ? `${m.plan === 'premium' ? 'Premium' : m.plan === 'pro' ? 'Pro' : 'Plus'}${m.plan_source === 'student' ? ` · ${pick(lang, T.student)}` : m.plan_source === 'teacher' ? ` · ${pick(lang, T.teacher)}` : ''}` : pick(lang, T.free);
   return (
     <section className="member-head" aria-label={pick(lang, T.hi)}>
       <div className="mh-top">
@@ -62,7 +64,7 @@ export function MemberHead() {
         <div>
           <h1 className="mh-hi">{pick(lang, T.hi)}, {name}</h1>
           <div className="mh-plan">
-            <span className={`mh-badge ${m?.plan === 'pro' ? 'pro' : m?.plan ? 'plus' : ''}`}>{planName}</span>
+            <span className={`mh-badge ${m?.plan === 'premium' ? 'pro premium' : m?.plan === 'pro' ? 'pro' : m?.plan ? 'plus' : ''}`}>{planName}</span>
             {m?.plan && m.plan_until && <span className="small muted">{pick(lang, T.until).replace('{d}', fmtDate(m.plan_until, lang))} · {pick(lang, T.left).replace('{n}', String(days))}</span>}
             {!m?.plan && <button type="button" className="linkbtn small" onClick={() => window.dispatchEvent(new Event('pe-show-plans'))}>{pick(lang, T.seePlans)}</button>}
           </div>
@@ -72,6 +74,11 @@ export function MemberHead() {
         <span className="mh-stat big"><b>{m?.admin ? pick(lang, T.unlimited) : free + credits}</b> {pick(lang, T.available)}
           {!m?.admin && <small>{pick(lang, T.breakdown).replace('{f}', String(free)).replace('{c}', String(credits))}</small>}
         </span>
+        {m?.interactive && !m.admin && (
+          <span className="mh-stat big"><b>{m.interactive.left}<em className="mh-of"> / {m.interactive.cap}</em></b> {pick(lang, T.inter)}
+            <small>{pick(lang, T.interSub).replace('{q}', String(m.interactive.left * 4)).replace('{d}', fmtDate(m.interactive.resets, lang))}</small>
+          </span>
+        )}
         <button type="button" className={`mh-mode${s.purpose ? ' on' : ''}`} onClick={() => window.dispatchEvent(new Event('pe-open-settings'))}>
           <span>{s.purpose ? `${pick(lang, T.mode)}: ${pick(lang, { study: T.student, research: { en: 'Researcher', zh: '研究者', vi: 'Nhà nghiên cứu', id: 'Peneliti' }, teach: T.teacher, share: { en: 'Creator', zh: '内容创作者', vi: 'Người sáng tạo', id: 'Kreator' }, curious: { en: 'Curious', zh: '好奇的人', vi: 'Tò mò', id: 'Penasaran' } }[s.purpose] as L4)}` : `✦ ${pick(lang, T.pickMode)}`}</span>
           <em>{pick(lang, T.change)}</em>
