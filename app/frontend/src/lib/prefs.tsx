@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
-export type Lang = 'en' | 'zh';
+import { ID, VI } from '@/lib/i18n_extra';
+
+export type Lang = 'en' | 'zh' | 'vi' | 'id';
 export type Theme = 'light' | 'dark';
 
 const THEME_KEY = 'repro.theme2';
@@ -17,7 +19,7 @@ const EN = {
   navFeedback: 'Feedback',
   navFaq: 'FAQ',
   navContact: 'Contact',
-  appRepro: 'Paper Repro Agent',
+  appRepro: 'Reproduce a paper',
   appBench: 'Benchmark',
   appLite: 'Repro Lite',
   appReading: 'Reading Companion',
@@ -140,6 +142,10 @@ const EN = {
   optLangs: 'Video language',
   langEn: 'English',
   langZh: '中文',
+  langVi: 'Tiếng Việt',
+  langId: 'Bahasa Indonesia',
+  stepVi: 'Recording Tiếng Việt',
+  stepId: 'Recording Bahasa Indonesia',
   optVoice: 'Voice',
   voiceFemale: 'Female',
   voiceMale: 'Male',
@@ -283,7 +289,7 @@ const ZH: Record<StringKey, string> = {
   navFeedback: '反馈',
   navFaq: '常见问题',
   navContact: '联系我们',
-  appRepro: 'Paper Repro Agent',
+  appRepro: '复现论文',
   appBench: '基准测试',
   appLite: 'Repro Lite',
   appReading: 'Reading Companion',
@@ -405,6 +411,10 @@ const ZH: Record<StringKey, string> = {
   optLangs: '视频语言',
   langEn: 'English',
   langZh: '中文',
+  langVi: 'Tiếng Việt',
+  langId: 'Bahasa Indonesia',
+  stepVi: '正在录制越南语',
+  stepId: '正在录制印尼语',
   optVoice: '声音',
   voiceFemale: '女声',
   voiceMale: '男声',
@@ -535,7 +545,8 @@ const ZH: Record<StringKey, string> = {
   footerNote: '视频基于公开的 arXiv 论文制作。',
 };
 
-const STRINGS: Record<Lang, Record<StringKey, string>> = { en: EN, zh: ZH };
+const STRINGS: Record<Lang, Record<StringKey, string>> = { en: EN, zh: ZH, vi: { ...EN, ...VI } as Record<StringKey, string>, id: { ...EN, ...ID } as Record<StringKey, string> };
+const HTML_LANG: Record<Lang, string> = { en: 'en', zh: 'zh-CN', vi: 'vi', id: 'id' };
 
 type Vars = Record<string, string | number>;
 
@@ -562,11 +573,12 @@ function readTheme(): Theme {
 function readLang(): Lang {
   try {
     const v = localStorage.getItem(LANG_KEY);
-    if (v === 'en' || v === 'zh') return v;
+    if (v === 'en' || v === 'zh' || v === 'vi' || v === 'id') return v;
   } catch {
     /* storage unavailable */
   }
-  return navigator.language?.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+  const nav = navigator.language?.toLowerCase() ?? '';
+  return nav.startsWith('zh') ? 'zh' : nav.startsWith('vi') ? 'vi' : nav.startsWith('id') ? 'id' : 'en';
 }
 
 function applyTheme(theme: Theme) {
@@ -587,7 +599,7 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
   }, [theme]);
 
   useEffect(() => {
-    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+    document.documentElement.lang = HTML_LANG[lang];
     try {
       localStorage.setItem(LANG_KEY, lang);
     } catch {

@@ -41,7 +41,7 @@ export function LangSeg({ value, options, onChange }: { value: Lang; options: La
     <div className="seg" role="group" aria-label="EN / 中文">
       {options.map((l) => (
         <button key={l} type="button" className={value === l ? 'on' : undefined} aria-pressed={value === l} onClick={() => onChange(l)}>
-          {l === 'en' ? 'EN' : '中文'}
+          {l === 'en' ? 'EN' : l === 'zh' ? '中文' : l.toUpperCase()}
         </button>
       ))}
     </div>

@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { usePrefs, type Lang } from '@/lib/prefs';
-import { storageKind, type Job, type Section } from '@/lib/explainer';
+import { secText, storageKind, type Job, type Section } from '@/lib/explainer';
 import { track } from '@/lib/account';
 
 /** Once the main video exists, a section plays from it over [start, end] instead of its own clip (see render_job.py: the per-section
@@ -51,14 +51,14 @@ export default function SectionsReader({ job, lang, onAsk }: { job: Job; lang: L
       <div className="stack" style={{ gap: 22, marginTop: 14 }}>
         {secs.map((s, i) => {
           const v = sectionSrc(s, job, lang);
-          const takeaway = zh ? s.takeaway_zh || s.takeaway : s.takeaway;
+          const takeaway = secText(s, 'takeaway', lang);
           return (
             <article key={s.i} className="card" style={{ margin: 0 }}>
               <div className="mono small muted" style={{ letterSpacing: '.08em' }}>
                 {String(i + 1).padStart(2, '0')} | {t('secLabel').replace('{i}', String(i + 1)).replace('{n}', String(secs.length))}
               </div>
-              <h4 style={{ margin: '6px 0 8px', fontSize: 20 }}>{zh ? s.title_zh || s.title : s.title}</h4>
-              <p style={{ margin: '0 0 10px', lineHeight: 1.6 }}>{zh ? s.text_zh || s.text : s.text}</p>
+              <h4 style={{ margin: '6px 0 8px', fontSize: 20 }}>{secText(s, 'title', lang)}</h4>
+              <p style={{ margin: '0 0 10px', lineHeight: 1.6 }}>{secText(s, 'text', lang)}</p>
               {takeaway && (
                 <p style={{ margin: '0 0 14px', lineHeight: 1.6 }}>
                   <b>{t('secTakeaway')}: </b>

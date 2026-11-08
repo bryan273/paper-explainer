@@ -22,6 +22,9 @@ export interface Videos {
   zh_vertical?: string | null;
 }
 
+/** A section's title, text or takeaway in the viewer's language (English when that language was not written). */
+export const secText = (s: Section, key: 'title' | 'text' | 'takeaway', lang: string): string => ((s as unknown as Record<string, string | undefined>)[`${key}_${lang}`] || s[key] || '') as string;
+
 export interface Section {
   i: number;
   title: string;
@@ -51,7 +54,7 @@ export interface Job {
   title?: string | null;
   videos?: Videos | null;
   sections?: Section[] | null;
-  langs?: 'en' | 'zh' | 'both' | null;
+  langs?: 'en' | 'zh' | 'vi' | 'id' | 'both' | null;
   checks?: { checked?: number | null; removed?: string[] | null } | null;
   error?: string | null;
   cached?: boolean;
@@ -130,7 +133,7 @@ export type MakeOpts = {
   seconds: number;
   custom: string;
   /** the language the video is made in */
-  langs?: 'en' | 'zh' | 'both';
+  langs?: 'en' | 'zh' | 'vi' | 'id' | 'both';
   force_new?: boolean;
   /** a path from uploadPaper(): make the video from that PDF instead of a link */
   upload?: string;
@@ -205,13 +208,13 @@ export function parseArxivId(input: string): string | null {
 }
 
 export function videoUrl(job: Job, lang: Lang, vertical = false): string | null {
-  const v = job.videos ?? {};
-  const key = (vertical ? `${lang}_vertical` : lang) as keyof Videos;
-  return v[key] || (vertical ? null : v.en || null);
+  const v = (job.videos ?? {}) as Record<string, string | null | undefined>;
+  const key = vertical ? `${lang}_vertical` : lang;
+  return v[key] || (vertical ? null : v.en || Object.values(v).find(Boolean) || null);
 }
 
 export function availableLangs(job: Job): Lang[] {
-  return (['en', 'zh'] as Lang[]).filter((l) => !!job.videos?.[l]);
+  return (['en', 'zh', 'vi', 'id'] as Lang[]).filter((l) => !!(job.videos as Record<string, unknown> | undefined)?.[l]);
 }
 
 export function shareUrl(arxiv: string): string {
@@ -293,7 +296,7 @@ async function askRequest(init: RequestInit, query = ''): Promise<Record<string,
   return body;
 }
 
-export async function askPaper(p: { job: string; q: string; mode: 'plus' | 'paper'; intent: 'ask' | 'simpler'; section?: number; history: { role: 'user' | 'ai'; text: string }[]; lang: Lang }): Promise<{ blocks: AskBlock[]; followups: string[]; left: number }> {
+export async function askPaper(p: { job: string; q: string; mode: 'plus' | 'paper'; intent: 'ask' | 'simpler'; model?: 'fast' | 'deep'; section?: number; history: { role: 'user' | 'ai'; text: string }[]; lang: Lang }): Promise<{ blocks: AskBlock[]; followups: string[]; left: number }> {
   const out = await askRequest({ method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ ...p, visitor: visitorId() }) });
   return { blocks: (out.blocks as AskBlock[]) ?? [], followups: (out.followups as string[]) ?? [], left: Number(out.left ?? 0) };
 }
@@ -302,4 +305,13 @@ export async function askPaper(p: { job: string; q: string; mode: 'plus' | 'pape
 export async function getChat(job: string): Promise<ChatMsg[]> {
   const out = await askRequest({ headers: authHeaders() }, `?chat=${encodeURIComponent(job)}`);
   return Array.isArray(out.messages) ? (out.messages as ChatMsg[]) : [];
+}
+
+
+export type Quiz = { question: string; options: string[]; answer: number; why: string };
+
+/** One check-yourself question about a section of the video (the interactive mode). */
+export async function quizPart(p: { job: string; section: number; lang: Lang }): Promise<Quiz> {
+  const out = await askRequest({ method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ ...p, q: '', intent: 'quiz', mode: 'paper', history: [], visitor: visitorId() }) });
+  return out.quiz as Quiz;
 }

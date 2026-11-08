@@ -2,42 +2,43 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { accountApi, track, useAccount, useAcctText } from '@/lib/account';
 import { usePrefs } from '@/lib/prefs';
+import PayPanel from '@/components/PayPanel';
 
 type Billing = 'month' | 'year';
 type PlanId = 'plus' | 'pro';
 
 /** Founding prices: the list price stays crossed out next to the price a first member locks in, so a later rise never touches them. */
 const PLANS: Record<PlanId, { list: Record<Billing, number>; now: Record<Billing, number> }> = {
-  plus: { list: { month: 39, year: 468 }, now: { month: 19, year: 159 } },
-  pro: { list: { month: 99, year: 1188 }, now: { month: 59, year: 479 } },
+  plus: { list: { month: 69, year: 828 }, now: { month: 49, year: 399 } },
+  pro: { list: { month: 169, year: 2028 }, now: { month: 119, year: 999 } },
 };
 
 const L = {
   en: {
-    title: 'Pricing', sub: 'Start free. Upgrade when videos become a habit.',
-    month: 'Monthly', year: 'Yearly', save: 'save up to 60%',
-    free: 'Free', plus: 'Plus', pro: 'Pro', popular: 'Most chosen', founding: 'Founding price, locked for you for as long as you stay',
+    title: 'Pricing', sub: 'Try every feature free first. Pay only when it becomes part of how you study.',
+    month: 'Monthly', year: 'Yearly', save: 'save 32%',
+    free: 'Free', plus: 'Plus', pro: 'Pro', popular: 'Most chosen', founding: 'Founding price for the first 200 members, locked for as long as you stay',
     perMonth: '/ month', perYear: '/ year', billedYear: 'billed once a year, about ¥{m} a month',
-    freeL: ['{n} free videos a day', 'Ask questions about every video', 'English and 中文, 16:9 and 9:16', 'Videos kept for 14 days'],
-    plusL: ['40 videos a month, up to 5 minutes', 'Unlimited questions in Ask', 'Videos kept for 90 days', 'Priority when the queue is busy', 'Failed video: refunded automatically'],
-    proL: ['120 videos a month, up to 10 minutes', 'Deep study: the AI also reads trusted textbooks and papers, every source cited', 'Unlimited questions, with sources in Ask', 'Videos kept for a year', 'Highest priority'],
+    freeL: ['1 free video a day, plus 3 welcome videos', 'Try everything once: 3 interactive checks, 2 Deep answers a day', 'English, 中文, Tiếng Việt, Bahasa Indonesia', 'Videos kept for 14 days'],
+    plusL: ['30 videos a month, up to 5 minutes', 'Interactive mode: questions as you watch, unlimited', 'Ask with your profile: pitched to your level and field', 'Videos kept for 90 days, priority when busy', 'Failed video: refunded automatically'],
+    proL: ['100 videos a month, up to 10 minutes', 'Everything in Plus', 'Deep answers in Ask, unlimited (a stronger AI model)', 'Deep study: the AI also reads trusted textbooks and papers, every source cited', 'Videos kept for a year, highest priority'],
     soon: 'in development, Pro members get it first',
-    cta: 'Join the founding list', ctaSent: 'You are on the list. We will write to you.', ctaFree: 'Sign up free', ctaMine: 'My papers',
-    packs: 'No subscription? Credit packs',
-    packsLine: '10 videos for ¥{p}. Credits never expire.', buy: 'Buy credits', note: 'Payment by WeChat Pay or Alipay. Plans are confirmed by hand for now, usually within a day.',
+    cta: 'Buy {p}', ctaSent: 'Order created. Pay below.', yours: 'Your plan', ctaFree: 'Sign up free', ctaMine: 'My papers',
+    packs: 'No subscription? Credit packs (¥3 a video, a plan is about ¥1.6)',
+    packsLine: '10 videos for ¥{p}. Credits never expire.', buy: 'Buy credits', note: 'Pay with WeChat Pay or Alipay, then tap "I have paid". We confirm by hand, usually within a day, and your videos and plan switch on then. Cancel any time by not renewing.',
   },
   zh: {
     title: '价格', sub: '先免费用，成为习惯后再升级。',
-    month: '按月', year: '按年', save: '最高省 60%',
+    month: '按月', year: '按年', save: '省 32%',
     free: '免费', plus: 'Plus', pro: 'Pro', popular: '最多人选', founding: '首批会员价，只要续订就一直锁定',
     perMonth: '/ 月', perYear: '/ 年', billedYear: '一次付一年，约 ¥{m} / 月',
-    freeL: ['每天 {n} 个免费视频', '每个视频都能提问', '中英文，16:9 和 9:16', '视频保留 14 天'],
-    plusL: ['每月 40 个视频，最长 5 分钟', '提问不限次数', '视频保留 90 天', '高峰期优先', '失败自动退还'],
-    proL: ['每月 120 个视频，最长 10 分钟', '深度学习：AI 还会查阅可信教材和论文，每个来源都注明', '提问不限次数，并附来源', '视频保留一年', '最高优先级'],
+    freeL: ['每天 1 个免费视频，另送 3 个欢迎视频', '每项功能都能试一次：3 次互动自测，每天 2 次深入回答', '英文、中文、越南语、印尼语', '视频保留 14 天'],
+    plusL: ['每月 30 个视频，最长 5 分钟', '互动模式：边看边答题，不限次数', '提问会按你的水平和领域调整', '视频保留 90 天，高峰期优先', '失败自动退还'],
+    proL: ['每月 100 个视频，最长 10 分钟', '包含 Plus 的全部功能', '提问使用深入模式，不限次数（更强的 AI 模型）', '深度学习：AI 还会查阅可信教材和论文，每个来源都注明', '视频保留一年，最高优先级'],
     soon: '开发中，Pro 会员优先使用',
-    cta: '加入首批名单', ctaSent: '已加入名单，我们会联系你。', ctaFree: '免费注册', ctaMine: '我的论文',
+    cta: '购买 {p}', ctaSent: '订单已创建，请在下方付款。', yours: '你的套餐', ctaFree: '免费注册', ctaMine: '我的论文',
     packs: '不想订阅？额度包',
-    packsLine: '10 个视频 ¥{p}，额度永不过期。', buy: '购买额度', note: '微信或支付宝付款。套餐目前人工确认，通常一天内。',
+    packsLine: '10 个视频 ¥{p}，额度永不过期。', buy: '购买额度', note: '用微信或支付宝付款，然后点“我已付款”。我们人工确认，通常一天内，确认后视频额度和套餐立即生效。不续费即取消。',
   },
 } as const;
 
@@ -53,13 +54,16 @@ export default function PricingSection() {
   const packs = Object.values(me?.packs ?? { 10: { credits: 10, price: 30 } });
   const from = packs.length ? packs.reduce((a, b) => (a.credits <= b.credits ? a : b)) : null;
 
+  const [order, setOrder] = useState<{ id: string; price: number } | null>(null);
+  const myPlan = (me as unknown as { plan?: string | null } | null)?.plan ?? null;
   const join = async (plan: PlanId) => {
     if (!user) { openAuth('register'); return; }
     setBusy(plan); setErr('');
     try {
       track('click_plan', { plan, billing });
-      await accountApi('contact', { topic: 'billing', name: '', email: user.username, message: `Plan interest: ${plan}, ${billing}ly, founding price ¥${PLANS[plan].now[billing]}` });
-      setSent(plan);
+      const out = (await accountApi('buy', { plan: `${plan}_${billing}` })) as { id: string; price: number };
+      setOrder(out); setSent(plan);
+      window.setTimeout(() => document.getElementById('plan-pay')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
     } catch (e) { setErr((e as Error).message); } finally { setBusy(null); }
   };
 
@@ -91,8 +95,10 @@ export default function PricingSection() {
           user ? <Link className="btn ghost" to="/account">{l.ctaMine}</Link> : <button type="button" className="btn ghost" onClick={() => openAuth('register')}>{l.ctaFree}</button>
         ) : sent === id ? (
           <p className="small" role="status" style={{ margin: 0, color: 'var(--ok)' }}>{l.ctaSent}</p>
+        ) : myPlan === id ? (
+          <p className="small" style={{ margin: 0, color: 'var(--ok)' }}>✓ {l.yours}</p>
         ) : (
-          <button type="button" className={`btn ${featured ? 'primary' : 'ghost'}`} disabled={busy === id} onClick={() => join(id)}>{l.cta}</button>
+          <button type="button" className={`btn ${featured ? 'primary' : 'ghost'}`} disabled={busy === id} onClick={() => join(id)}>{l.cta.replace('{p}', l[id])} · ¥{billing === 'year' ? p!.now.year : p!.now.month}</button>
         )}
       </div>
     );
@@ -114,6 +120,11 @@ export default function PricingSection() {
         {card('pro')}
       </div>
       {err && <p className="err" role="alert">{err}</p>}
+      {order && (
+        <div id="plan-pay" className="card" style={{ marginTop: 16 }}>
+          <PayPanel orderId={order.id} price={`¥${order.price}`} onClose={() => { setOrder(null); setSent(null); }} />
+        </div>
+      )}
 
       <div className="packs-line">
         <span><b>{l.packs}</b> · {l.packsLine.replace('{p}', String(from?.price ?? 30))}</span>
