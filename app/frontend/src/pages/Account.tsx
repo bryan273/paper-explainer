@@ -12,12 +12,12 @@ type Ledger = { created_at: string; delta: number; reason: string };
 const L = {
   en: {
     title: 'My papers', videos: 'Your videos', hello: 'Signed in as', free: 'Free videos today', credits: 'Credits', made: 'Papers explained', left: '{n} left of {m}', empty: 'No papers yet.', first: 'Explain your first paper',
-    open: 'Open', ask: 'Ask', ready: 'Ready', making: 'Making', failed: 'Failed', expired: 'Expired', min: '{n} min', more: 'Need more videos?', moreSub: '10 videos for ¥30. Credits never expire, and a failed video is refunded.',
+    open: 'Open', ask: 'Ask', ready: 'Ready', making: 'Making', failed: 'Failed', expired: 'Expired', min: '{n} min', more: 'Need more videos?', moreSub: 'From ¥2.6 a video. Credits never expire, and a failed video is refunded. A plan is cheaper: 100 videos for ¥33 a month.',
     history: 'Credit history', show: 'Show', hide: 'Hide', security: 'Password', admin: 'Admin console', make: 'Explain a paper', soon: 'Videos are kept for 14 days, then removed.', makeAgain: 'Make it again',
   },
   zh: {
     title: '我的论文', videos: '你的视频', hello: '当前账户', free: '今日免费视频', credits: '额度', made: '已解读论文', left: '剩余 {n} / {m}', empty: '还没有论文。', first: '解读你的第一篇论文',
-    open: '打开', ask: '提问', ready: '已完成', making: '生成中', failed: '失败', expired: '已过期', min: '{n} 分钟', more: '需要更多视频？', moreSub: '10 个视频 ¥30。额度永不过期，失败的视频会自动退还。',
+    open: '打开', ask: '提问', ready: '已完成', making: '生成中', failed: '失败', expired: '已过期', min: '{n} 分钟', more: '需要更多视频？', moreSub: '每个视频低至 ¥2.6。额度永不过期，失败的视频会自动退还。套餐更划算：每月 ¥33 含 100 个视频。',
     history: '额度记录', show: '展开', hide: '收起', security: '密码', admin: '管理后台', make: '解读一篇论文', soon: '视频保留 14 天，之后删除。', makeAgain: '重新生成',
   },
 } as const;
