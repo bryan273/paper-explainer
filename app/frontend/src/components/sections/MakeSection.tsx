@@ -58,6 +58,23 @@ export function srcLabel(job: Job): string {
 
 const ACTIVE_JOB = 'pe-active-job';
 
+const STAGES: [RegExp, { en: string; zh: string; vi: string; id: string }][] = [
+  [/^waiting for a renderer/i, { en: 'Waiting for a free renderer', zh: '等待渲染器', vi: 'Đang chờ máy dựng', id: 'Menunggu perender' }],
+  [/^reading the paper/i, { en: 'Reading the source and writing the script', zh: '正在阅读并撰写脚本', vi: 'Đang đọc nội dung và viết kịch bản', id: 'Membaca sumber dan menulis naskah' }],
+  [/^getting the drawing tools/i, { en: 'Getting the drawing tools ready', zh: '正在准备绘图工具', vi: 'Đang chuẩn bị công cụ vẽ', id: 'Menyiapkan alat gambar' }],
+  [/^drawing (\d+) sections?/i, { en: 'Drawing {a} sections', zh: '正在绘制 {a} 个章节', vi: 'Đang vẽ {a} phần', id: 'Menggambar {a} bagian' }],
+  [/^sections ready: (\d+) of (\d+)/i, { en: 'Sections ready: {a} of {b}', zh: '已完成章节：{a} / {b}', vi: 'Phần đã xong: {a}/{b}', id: 'Bagian siap: {a} dari {b}' }],
+  [/^putting the sections together/i, { en: 'Putting the sections together', zh: '正在合成视频', vi: 'Đang ghép các phần lại', id: 'Menggabungkan bagian' }],
+];
+/** The server reports its step in English; show it in the language of the page. */
+const stageText = (stage: string, lang: 'en' | 'zh' | 'vi' | 'id'): string => {
+  for (const [re, tr] of STAGES) {
+    const m = re.exec(stage);
+    if (m) return tr[lang].replace('{a}', m[1] ?? '').replace('{b}', m[2] ?? '');
+  }
+  return stage;
+};
+
 const SRC = {
   label: { en: 'What to explain', zh: '要讲解什么', vi: 'Nội dung cần giải thích', id: 'Apa yang dijelaskan' },
   link: { en: 'Link', zh: '链接', vi: 'Liên kết', id: 'Tautan' },
@@ -75,6 +92,9 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
   const { t, lang: uiLang } = usePrefs();
   const { refresh: refreshAccount, user: acctUser } = useAccount();
   const [limit, setLimit] = useState<null | 'quota_guest' | 'quota_member'>(null);
+  const { quota: liveQuota, user: liveUser } = useAccount();
+  // credits added by the owner, or a new day, make an old "limit reached" notice wrong: drop it
+  useEffect(() => { if (limit && ((liveQuota?.day_left ?? 0) > 0 || (liveUser?.credits ?? 0) > 0)) setLimit(null); }, [limit, liveQuota?.day_left, liveUser?.credits]);
   const [input, setInput] = useState(prefill ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -327,7 +347,7 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
         <form onSubmit={submit} noValidate>
           <div className="src-tabs" role="tablist" aria-label={pick(uiLang, SRC.label)}>
             {(['link', 'text', 'file'] as const).map((k) => (
-              <button key={k} type="button" role="tab" aria-selected={tab === k} disabled={submitting || running} onClick={() => setTab(k)}>{pick(uiLang, SRC[k])}</button>
+              <button key={k} type="button" role="tab" aria-selected={tab === k} disabled={submitting} onClick={() => setTab(k)}>{pick(uiLang, SRC[k])}</button>
             ))}
           </div>
 
@@ -340,7 +360,7 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
           {tab === 'text' && (
             <label className="field" style={{ marginTop: 14 }}>
               <span className="small muted">{pick(uiLang, SRC.textHelp)}</span>
-              <textarea rows={7} value={pasted} maxLength={60000} onChange={(e) => setPasted(e.target.value)} placeholder={pick(uiLang, SRC.textPh)} disabled={submitting || running} />
+              <textarea rows={7} value={pasted} maxLength={60000} onChange={(e) => setPasted(e.target.value)} placeholder={pick(uiLang, SRC.textPh)} disabled={submitting} />
               <span className="small muted" style={{ justifySelf: 'end' }}>{pasted.trim().length} / 60000{pasted.trim().length > 0 && pasted.trim().length < 300 ? ` · ${pick(uiLang, SRC.tooShort)}` : ''}</span>
             </label>
           )}
@@ -354,7 +374,7 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
                 onDrop={(e) => { e.preventDefault(); setDragging(false); if (!submitting && !running) addFiles(e.dataTransfer.files); }}
               >
                 <input ref={fileRef} type="file" accept="application/pdf,.pdf,.txt,.md,text/plain" multiple hidden onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ''; }} />
-                <button type="button" className="btn ghost small" disabled={submitting || running} onClick={() => fileRef.current?.click()}>{pick(uiLang, SRC.choose)}</button>
+                <button type="button" className="btn ghost small" disabled={submitting} onClick={() => fileRef.current?.click()}>{pick(uiLang, SRC.choose)}</button>
                 <span className="small muted">{pick(uiLang, SRC.fileHelp).replace('{n}', String(MAX_PDF_FILES)).replace('{mb}', String(MB))}</span>
               </div>
               {fileError && <p className="small" role="alert" style={{ margin: '8px 0 0', color: 'var(--bad)' }}>{fileError}</p>}
@@ -375,25 +395,25 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
           <div className="make-opts">
             <label className="field">
               {t('optLangs')}
-              <select value={vlang === 'both' ? 'en' : vlang} onChange={(e) => setVlang(e.target.value as VLang)} disabled={submitting || running}>
+              <select value={vlang === 'both' ? 'en' : vlang} onChange={(e) => setVlang(e.target.value as VLang)} disabled={submitting}>
                 <option value="en">English</option><option value="zh">中文</option><option value="vi">Tiếng Việt</option><option value="id">Bahasa Indonesia</option>
               </select>
             </label>
             <label className="field">
               {t('optLength')}
-              <select value={seconds} onChange={(e) => setSeconds(Number(e.target.value))} disabled={submitting || running}>
+              <select value={seconds} onChange={(e) => setSeconds(Number(e.target.value))} disabled={submitting}>
                 {LENGTHS.map((n) => (<option key={n} value={n}>{t('min').replace('{n}', String(n / 60))}</option>))}
               </select>
             </label>
             <label className="field">
               {t('optTone')}
-              <select value={tone} onChange={(e) => setTone(e.target.value as MakeOpts['tone'])} disabled={submitting || running}>
+              <select value={tone} onChange={(e) => setTone(e.target.value as MakeOpts['tone'])} disabled={submitting}>
                 {TONES.map((k) => (<option key={k} value={k}>{t(TONE_KEYS[k])}</option>))}
               </select>
             </label>
             <label className="field">
               {t('optVoice')}
-              <select value={voice} onChange={(e) => setVoice(e.target.value as MakeOpts['voice'])} disabled={submitting || running}>
+              <select value={voice} onChange={(e) => setVoice(e.target.value as MakeOpts['voice'])} disabled={submitting}>
                 <option value="female">{t('voiceFemale')}</option>
                 <option value="male">{t('voiceMale')}</option>
               </select>
@@ -401,7 +421,7 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
           </div>
           <label className="field" style={{ marginTop: 12 }}>
             {t('optCustom')}
-            <input type="text" value={custom} maxLength={300} onChange={(e) => setCustom(e.target.value)} placeholder={t('optCustomPh')} disabled={submitting || running} />
+            <input type="text" value={custom} maxLength={300} onChange={(e) => setCustom(e.target.value)} placeholder={t('optCustomPh')} disabled={submitting} />
           </label>
 
           <div className="inter-pick">
@@ -418,7 +438,7 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
               {t('longNote').replace('{m}', String(Math.round(stepSecs(seconds).reduce((x, y) => x + y, 0) / 60)))}
             </p>
           )}
-          <button type="submit" className="btn primary make-go" disabled={submitting || running}>
+          <button type="submit" className="btn primary make-go" disabled={submitting}>
             {submitting ? <span className="spin" aria-hidden /> : null}
             {sending ? t('uploadingN').replace('{i}', String(sending.i)).replace('{n}', String(sending.n)) : submitting ? t('makeSending') : tab === 'file' && files.length > 1 ? t('makeNBtn').replace('{n}', String(files.length)) : existing.length > 0 && tab === 'link' ? t('makeNewBtn') : t('makeBtn')}
           </button>
@@ -498,7 +518,7 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
             </p>
             {job.stage && (
               <p className="small mono" style={{ margin: '8px 0 0' }}>
-                {t('currentStage')}: {job.stage}
+                {t('currentStage')}: {stageText(job.stage, uiLang)}
               </p>
             )}
             {job.status !== 'failed' && (

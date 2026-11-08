@@ -1,18 +1,25 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useAccount, useAcctText } from '@/lib/account';
+import { usePrefs } from '@/lib/prefs';
 
 /** One quiet line under the form: how many free videos are left. Signing in and out lives in the navbar only. */
+const S = {
+  credits: { en: 'No free videos left today. You have {n} credits: a new video uses 1.', zh: '今天的免费视频已用完。你有 {n} 点额度，每个视频扣 1 点。', vi: 'Hôm nay hết video miễn phí. Bạn có {n} tín dụng: mỗi video mới dùng 1.', id: 'Video gratis hari ini habis. Anda punya {n} kredit: video baru memakai 1.' },
+} as const;
 export function AccountStrip() {
+  const { lang } = usePrefs();
   const { user, quota, me, openAuth } = useAccount();
   const a = useAcctText();
   if (!quota || !me) return null;
   const left = a('freeLeft', { n: quota.day_left, m: quota.day_limit });
-  const reset = quota.day_left === 0 && quota.resets_in_min ? ` · ${a('resetsIn', { h: Math.max(1, Math.ceil(quota.resets_in_min / 60)) })}` : '';
+  const credits = user?.credits ?? 0;
+  const usesCredits = !!user && quota.day_left === 0 && credits > 0;
+  const reset = !usesCredits && quota.day_left === 0 && quota.resets_in_min ? ` · ${a('resetsIn', { h: Math.max(1, Math.ceil(quota.resets_in_min / 60)) })}` : '';
   return (
     <p className="small muted" style={{ margin: '14px 2px 0', display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
-      <span>{left}{reset}</span>
-      {user && <span>· {a('creditsN', { n: user.credits })}</span>}
+      {usesCredits ? <span>{S.credits[lang].replace('{n}', String(credits))}</span> : <span>{left}{reset}</span>}
+      {user && !usesCredits && <span>· {a('creditsN', { n: user.credits })}</span>}
       {!user && (
         <>
           <span>·</span>
