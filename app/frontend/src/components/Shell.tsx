@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import SuiteTopBar from '@/components/SuiteTopBar';
+import SettingsDialog from '@/components/SettingsDialog';
+import SuiteTopBar, { type NavLink as NavLinkT } from '@/components/SuiteTopBar';
 import { usePrefs, type StringKey } from '@/lib/prefs';
 
 const SECTIONS: { id: string; key: StringKey }[] = [
@@ -7,7 +8,6 @@ const SECTIONS: { id: string; key: StringKey }[] = [
   { id: 'examples', key: 'navExamples' },
   { id: 'how', key: 'navHow' },
   { id: 'pricing', key: 'navPricing' },
-  { id: 'contact', key: 'navContact' },
 ];
 
 function scrollTo(id: string) {
@@ -41,11 +41,13 @@ export default function Shell({ children }: { children: ReactNode }) {
     return () => observer.disconnect();
   }, []);
 
-  const nav = SECTIONS.map((s) => ({ label: t(s.key), href: `#${s.id}`, onClick: () => scrollTo(s.id), active: active === s.id }));
+  const nav: NavLinkT[] = SECTIONS.map((s) => ({ label: t(s.key), href: `#${s.id}`, onClick: () => scrollTo(s.id), active: active === s.id }));
+  nav.push({ label: t('navContact'), href: '#contact', onClick: () => window.dispatchEvent(new Event('pe-open-contact')) });
 
   return (
     <div className="shell">
-      <SuiteTopBar appId="explainer" brand="Paper Explainer" letter="E" homeTo="/" nav={nav} dark={theme === 'dark'} onToggleDark={toggleTheme} lang={lang} onLang={setLang} />
+      <SuiteTopBar appId="explainer" brand="Paper Explainer" letter="E" homeTo="/" nav={nav} dark={theme === 'dark'} onToggleDark={toggleTheme} lang={lang} onLang={setLang} onSettings={() => window.dispatchEvent(new Event('pe-open-settings'))} />
+      <SettingsDialog />
       <div className="mainwrap">
         <main className="main" id="top">
           {children}

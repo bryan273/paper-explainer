@@ -14,6 +14,9 @@ function inline(text: string) {
   });
 }
 
+/** Pieces an answer appears in: a word at a time for spaced scripts, a character at a time for Chinese. */
+const units = (text: string) => text.split(new RegExp('(?<=\\s)|(?<=[\\u3400-\\u9fff\\uff00-\\uffef])', 'u')).filter(Boolean);
+
 /** One part of an answer. The badge says in words where it comes from; a quote is shown with whether it was found in the paper text. */
 function Block({ b, onCite }: { b: AskBlock; onCite?: (c: { page?: number; t?: number }) => void }) {
   const { t, lang } = usePrefs();
@@ -57,6 +60,8 @@ export default function AskPanel({ job, lang, seed, onCite }: { job: Job; lang: 
   const [slow, setSlow] = useState(false);
   const [error, setError] = useState<{ text: string; code?: string } | null>(null);
   const [left, setLeft] = useState<number | null>(null);
+  const [phase, setPhase] = useState(0);   // which thinking step is shown while the answer is being prepared
+  const [reveal, setReveal] = useState<{ msg: number; words: number } | null>(null);   // the newest answer appears word by word, like speech
   const box = useRef<HTMLDivElement>(null);
   const seen = useRef<number | null>(null);
 
@@ -105,14 +110,17 @@ export default function AskPanel({ job, lang, seed, onCite }: { job: Job; lang: 
     setBusy(true);
     setError(null);
     const timer = window.setTimeout(() => setSlow(true), 9000);
+    setPhase(0);
+    const stepper = window.setInterval(() => setPhase((p) => Math.min(p + 1, 3)), 2200);
     try {
       const out = await askPaper({ job: job.id, q: text, mode, intent, section: opt.section, history, lang });
-      setMsgs((m) => [...m, { role: 'ai', blocks: out.blocks, followups: out.followups }]);
+      setMsgs((m) => { setReveal({ msg: m.length, words: 0 }); return [...m, { role: 'ai', blocks: out.blocks, followups: out.followups }]; });
       setLeft(out.left);
     } catch (e) {
       setError({ text: e instanceof ApiError ? e.message : t('networkError'), code: e instanceof ApiError ? e.code : undefined });
     } finally {
       window.clearTimeout(timer);
+      window.clearInterval(stepper);
       setSlow(false);
       setBusy(false);
     }
@@ -126,10 +134,22 @@ export default function AskPanel({ job, lang, seed, onCite }: { job: Job; lang: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seed]);
 
+  useEffect(() => {
+    if (!reveal) return;
+    const m = msgs[reveal.msg];
+    if (!m || m.role !== 'ai') { setReveal(null); return; }
+    const total = m.blocks.reduce((n, b) => n + units(b.text).length, 0);
+    if (reveal.words >= total) { const done = window.setTimeout(() => setReveal(null), 150); return () => window.clearTimeout(done); }
+    const tick = window.setTimeout(() => setReveal((r) => (r ? { ...r, words: r.words + 2 } : r)), 40);
+    return () => window.clearTimeout(tick);
+  }, [reveal, msgs]);
+
   const submit = (e: FormEvent) => {
     e.preventDefault();
     ask(input);
   };
+  const zh = lang === 'zh';
+  const steps = zh ? ['正在理解你的问题…', '正在原文中查找…', '正在核对引文…', '正在组织回答…'] : ['Reading your question…', 'Searching the paper…', 'Checking the quotes…', 'Writing the answer…'];
   const last = msgs[msgs.length - 1];
   const followups = last && last.role === 'ai' ? last.followups ?? [] : [];
 
@@ -161,21 +181,30 @@ export default function AskPanel({ job, lang, seed, onCite }: { job: Job; lang: 
               <div key={i} className="amsg user">{m.text}</div>
             ) : (
               <div key={i} className="amsg ai">
-                {m.blocks.map((b, k) => (
-                  <Block key={k} b={b} onCite={onCite} />
-                ))}
+                {(() => {
+                  const live = reveal && reveal.msg === i;
+                  let budget = live ? reveal.words : Infinity;
+                  return m.blocks.map((b, k) => {
+                    if (budget <= 0) return null;
+                    const words = units(b.text);
+                    const cut = words.length > budget;
+                    const shown = cut ? { ...b, text: words.slice(0, budget).join('') + ' …', quote: undefined, page: undefined, t: undefined } : b;
+                    budget -= words.length;
+                    return <Block key={k} b={shown} onCite={onCite} />;
+                  });
+                })()}
               </div>
             ),
           )}
           {busy && (
             <p className="small muted" role="status" style={{ margin: 0 }}>
-              <span className="spin" aria-hidden /> {slow ? t('askStill') : t('askThinking')}
+              <span className="spin" aria-hidden /> {slow ? t('askStill') : steps[phase]}
             </p>
           )}
         </div>
       )}
 
-      {followups.length > 0 && !busy && (
+      {followups.length > 0 && !busy && !reveal && (
         <div>
           <p className="small muted" style={{ margin: '0 0 6px' }}>{t('askNext')}</p>
           <div className="chips">

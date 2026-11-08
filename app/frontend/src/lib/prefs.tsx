@@ -179,7 +179,7 @@ const EN = {
   pickThumb: 'Choose 👍 or 👎 first.',
 
   exTitle: 'Examples',
-  exSub: 'Recently finished videos. Every one was checked against its paper.',
+  exSub: 'Sample videos made with Paper Explainer. Every quote and number in them was checked against the paper.',
   exEmpty: 'No finished videos yet.',
   checksPassed: '✓ {n} checks passed',
   removedN: '{n} removed by the check',
@@ -444,7 +444,7 @@ const ZH: Record<StringKey, string> = {
   pickThumb: '请先选择 👍 或 👎。',
 
   exTitle: '示例',
-  exSub: '最近完成的视频，每一个都已与论文原文核对。',
+  exSub: '用 Paper Explainer 制作的示例视频，其中每条引文和数字都已与论文核对。',
   exEmpty: '还没有完成的视频。',
   checksPassed: '✓ {n} 项核对通过',
   removedN: '{n} 处被核对移除',
@@ -551,10 +551,12 @@ const PrefsContext = createContext<PrefsValue | null>(null);
 
 function readTheme(): Theme {
   try {
-    return localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light';
+    const v = localStorage.getItem(THEME_KEY);
+    if (v === 'dark' || v === 'light') return v;
   } catch {
-    return 'light';
+    /* storage unavailable */
   }
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
 function readLang(): Lang {
@@ -582,11 +584,6 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     applyTheme(theme);
-    try {
-      localStorage.setItem(THEME_KEY, theme);
-    } catch {
-      /* storage unavailable */
-    }
   }, [theme]);
 
   useEffect(() => {
@@ -599,7 +596,11 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
   }, [lang]);
 
   const setLang = useCallback((next: Lang) => setLangState(next), []);
-  const toggleTheme = useCallback(() => setTheme((cur) => (cur === 'dark' ? 'light' : 'dark')), []);
+  const toggleTheme = useCallback(() => setTheme((cur) => {
+    const next = cur === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem(THEME_KEY, next); } catch { /* storage unavailable */ }
+    return next;
+  }), []);
   const t = useCallback(
     (key: StringKey, vars?: Vars) => {
       let s = STRINGS[lang][key];

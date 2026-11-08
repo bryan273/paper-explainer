@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { Lang } from '@/lib/prefs';
 import { storageKind, videoUrl, type Job } from '@/lib/explainer';
 import { track } from '@/lib/account';
@@ -9,11 +9,11 @@ import PaperPane from '@/components/PaperPane';
 const T = {
   en: {
     chapters: 'Chapters', ask: 'Ask', paper: 'Paper', play: 'Play from here', open: 'Read', close: 'Hide', takeaway: 'Takeaway', stuck: 'I do not get this part', jump: 'Jump to this part',
-    count: '{n} parts', part: 'Part',
+    count: '{n} parts', part: 'Part', prev: 'Previous', next: 'Next',
   },
   zh: {
     chapters: '章节', ask: '提问', paper: '原文', play: '从这里播放', open: '展开', close: '收起', takeaway: '要点', stuck: '这一段我没看懂', jump: '跳到这一段',
-    count: '共 {n} 段', part: '第',
+    count: '共 {n} 段', part: '第', prev: '上一段', next: '下一段',
   },
 } as const;
 
@@ -27,7 +27,6 @@ export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; 
   const [pageKey, setPageKey] = useState(0);
   const [seed, setSeed] = useState<{ i: number; n: number } | null>(null);
   const [now, setNow] = useState(0);
-  const [open, setOpen] = useState<number | null>(null);
   const top = useRef<HTMLDivElement>(null);
 
   const chapters: Chapter[] = useMemo(
@@ -40,11 +39,6 @@ export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; 
   const current = chapters.findIndex((c) => now >= c.start && now < c.end);
   const secs = job.sections ?? [];
   const poster = secs.find((s) => s.poster)?.poster ?? undefined;
-
-  // keep the section being watched in view in the list without stealing the page scroll
-  useEffect(() => {
-    setOpen(null);
-  }, [job.id, lang]);
 
   const goVideo = (time: number) => {
     player.current?.seek(time, true);
@@ -77,58 +71,46 @@ export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; 
           }}
         />
 
-        {secs.length > 0 && (
-          <div className="chap">
-            <div className="row between" style={{ marginBottom: 10 }}>
-              <h3 className="sec" style={{ fontSize: 20, margin: 0 }}>{t.chapters}</h3>
-              <span className="small muted">{t.count.replace('{n}', String(secs.length))}</span>
+        {secs.length > 0 && (() => {
+          const idx = Math.max(0, current);
+          const s = secs[idx];
+          const c = chapters[idx];
+          const title = (lang === 'zh' ? s.title_zh || s.title : s.title) || `${t.part} ${idx + 1}`;
+          const text = lang === 'zh' ? s.text_zh || s.text : s.text;
+          const take = lang === 'zh' ? s.takeaway_zh || s.takeaway : s.takeaway;
+          const go = (i: number) => { const ch = chapters[i]; if (ch) goVideo(ch.start); };
+          const frac = chapters.length > 1 ? (idx + (c && c.end > c.start ? Math.min(1, Math.max(0, (now - c.start) / (c.end - c.start))) : 0)) / chapters.length : 0;
+          return (
+            <div className="route">
+              <ol className="route-line" aria-label={t.chapters} style={{ ['--p' as string]: `${Math.round(frac * 100)}%` }}>
+                {secs.map((x, i) => {
+                  const tt = (lang === 'zh' ? x.title_zh || x.title : x.title) || `${t.part} ${i + 1}`;
+                  return (
+                    <li key={x.i} className={i < idx ? 'past' : i === idx ? 'on' : ''}>
+                      <button type="button" onClick={() => go(i)} disabled={!chapters[i]} aria-label={`${t.jump}: ${tt}`} aria-current={i === idx ? 'step' : undefined}>
+                        <span className="route-dot">{i + 1}</span>
+                        <span className="route-t">{tt}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ol>
+              <div className="route-now" aria-live="polite">
+                <div className="row between" style={{ gap: 10, alignItems: 'baseline', flexWrap: 'wrap' }}>
+                  <h3 className="sec" style={{ fontSize: 19, margin: 0 }}>{title}</h3>
+                  <span className="small muted">{t.count.replace('{n}', String(secs.length))} · {idx + 1}/{secs.length}</span>
+                </div>
+                {text && <p>{text}</p>}
+                {take && <p className="route-take"><b>{t.takeaway}: </b>{take}</p>}
+                <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+                  <button type="button" className="btn ghost small" disabled={idx === 0} onClick={() => go(idx - 1)}>← {t.prev}</button>
+                  <button type="button" className="btn ghost small" disabled={idx >= secs.length - 1} onClick={() => go(idx + 1)}>{t.next} →</button>
+                  <button type="button" className="btn ghost small" onClick={() => { setSeed({ i: idx, n: Date.now() }); setTab('ask'); }}>{t.stuck}</button>
+                </div>
+              </div>
             </div>
-            <ol className="chap-list">
-              {secs.map((s, i) => {
-                const c = chapters[i];
-                const title = (lang === 'zh' ? s.title_zh || s.title : s.title) || `${t.part} ${i + 1}`;
-                const text = lang === 'zh' ? s.text_zh || s.text : s.text;
-                const take = lang === 'zh' ? s.takeaway_zh || s.takeaway : s.takeaway;
-                const isOpen = open === i;
-                return (
-                  <li key={s.i} className={i === current ? 'on' : ''}>
-                    <div className="chap-head">
-                      <button type="button" className="chap-go" onClick={() => c && goVideo(c.start)} disabled={!c} aria-label={`${t.jump}: ${title}`}>
-                        <span className="chap-n">{String(i + 1).padStart(2, '0')}</span>
-                        <span className="chap-t">{title}</span>
-                        {c && <span className="chap-time mono">{`${Math.floor(c.start / 60)}:${String(Math.floor(c.start % 60)).padStart(2, '0')}`}</span>}
-                      </button>
-                      <button type="button" className="chap-tog" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : i)}>
-                        {isOpen ? t.close : t.open}
-                      </button>
-                    </div>
-                    {isOpen && (
-                      <div className="chap-body">
-                        <p>{text}</p>
-                        {take && (
-                          <p>
-                            <b>{t.takeaway}: </b>
-                            {take}
-                          </p>
-                        )}
-                        <button
-                          type="button"
-                          className="btn ghost small"
-                          onClick={() => {
-                            setSeed({ i, n: Date.now() });
-                            setTab('ask');
-                          }}
-                        >
-                          {t.stuck}
-                        </button>
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ol>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       <aside className="studio-side">

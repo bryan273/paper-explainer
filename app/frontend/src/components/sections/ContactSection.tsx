@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { accountApi, useAcctText } from '@/lib/account';
 import { usePrefs } from '@/lib/prefs';
 
@@ -41,7 +41,7 @@ export function FaqSection() {
   );
 }
 
-export default function ContactSection() {
+export function ContactForm({ onDone }: { onDone?: () => void }) {
   const a = useAcctText();
   const [f, setF] = useState({ topic: 'question', name: '', email: '', message: '' });
   const [state, setState] = useState<'idle' | 'sending' | 'sent'>('idle');
@@ -56,39 +56,67 @@ export default function ContactSection() {
     } catch (x) { setErr((x as Error).message); setState('idle'); }
   };
   return (
-    <section className="section" id="contact" aria-labelledby="contact-title">
-      <h2 className="sec" id="contact-title">{a('contactTitle')}</h2>
-      <p className="sec-sub">{a('contactSub')}</p>
-      <div className="card" style={{ marginTop: 22 }}>
+    <>
         {state === 'sent' ? (
-          <div className="done-box" role="status">{a('sent')}</div>
-        ) : (
-          <form className="stack" onSubmit={submit}>
-            <div className="row" style={{ gap: 12, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-              <label className="field" style={{ flex: '1 1 160px' }}>{a('topic')}
-                <select value={f.topic} onChange={(e) => setF({ ...f, topic: e.target.value })}>
-                  <option value="question">{a('topicQ')}</option>
-                  <option value="bug">{a('topicBug')}</option>
-                  <option value="idea">{a('topicIdea')}</option>
-                  <option value="billing">{a('topicBilling')}</option>
-                  <option value="business">{a('topicBiz')}</option>
-                </select>
-              </label>
-              <label className="field" style={{ flex: '1 1 160px' }}>{a('yourName')}
-                <input value={f.name} maxLength={80} onChange={(e) => setF({ ...f, name: e.target.value })} autoComplete="name" />
-              </label>
-            </div>
-            <label className="field">{a('yourEmail')}
-              <input type="email" value={f.email} maxLength={200} onChange={(e) => setF({ ...f, email: e.target.value })} autoComplete="email" />
-            </label>
-            <label className="field">{a('message')}
-              <textarea rows={5} value={f.message} maxLength={3000} onChange={(e) => setF({ ...f, message: e.target.value })} required />
-            </label>
-            {err && <p className="err" role="alert">{err}</p>}
-            <div><button className="btn primary" type="submit" disabled={state === 'sending'}>{state === 'sending' ? <span className="spin" aria-hidden /> : null}{a('send')}</button></div>
-          </form>
-        )}
-      </div>
-    </section>
+  <div className="done-box" role="status">{a('sent')}</div>
+) : (
+  <form className="stack" onSubmit={submit}>
+    <div className="row" style={{ gap: 12, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+      <label className="field" style={{ flex: '1 1 160px' }}>{a('topic')}
+        <select value={f.topic} onChange={(e) => setF({ ...f, topic: e.target.value })}>
+          <option value="question">{a('topicQ')}</option>
+          <option value="bug">{a('topicBug')}</option>
+          <option value="idea">{a('topicIdea')}</option>
+          <option value="billing">{a('topicBilling')}</option>
+          <option value="business">{a('topicBiz')}</option>
+        </select>
+      </label>
+      <label className="field" style={{ flex: '1 1 160px' }}>{a('yourName')}
+        <input value={f.name} maxLength={80} onChange={(e) => setF({ ...f, name: e.target.value })} autoComplete="name" />
+      </label>
+    </div>
+    <label className="field">{a('yourEmail')}
+      <input type="email" value={f.email} maxLength={200} onChange={(e) => setF({ ...f, email: e.target.value })} autoComplete="email" />
+    </label>
+    <label className="field">{a('message')}
+      <textarea rows={5} value={f.message} maxLength={3000} onChange={(e) => setF({ ...f, message: e.target.value })} required />
+    </label>
+    {err && <p className="err" role="alert">{err}</p>}
+    <div><button className="btn primary" type="submit" disabled={state === 'sending'}>{state === 'sending' ? <span className="spin" aria-hidden /> : null}{a('send')}</button></div>
+  </form>
+)}
+    </>
   );
 }
+
+/** The contact form in a dialog: opened from the footer or the navbar, so the page itself stays short. */
+export default function ContactModal() {
+  const a = useAcctText();
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const on = () => setOpen(true);
+    window.addEventListener('pe-open-contact', on);
+    return () => window.removeEventListener('pe-open-contact', on);
+  }, []);
+  useEffect(() => {
+    if (!open) return;
+    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    window.addEventListener('keydown', k);
+    return () => window.removeEventListener('keydown', k);
+  }, [open]);
+  if (!open) return null;
+  return (
+    <div role="dialog" aria-modal="true" aria-label={a('contactTitle')} className="modal-back" onMouseDown={(e) => { if (e.target === e.currentTarget) setOpen(false); }}>
+      <div className="card stack modal-card">
+        <div className="row between">
+          <h3 style={{ font: '700 20px var(--display)', margin: 0 }}>{a('contactTitle')}</h3>
+          <button type="button" className="btn ghost small" onClick={() => setOpen(false)} aria-label={a('close')}>×</button>
+        </div>
+        <p className="small muted" style={{ margin: 0 }}>{a('contactSub')}</p>
+        <ContactForm onDone={() => setOpen(false)} />
+      </div>
+    </div>
+  );
+}
+
+export const openContact = () => window.dispatchEvent(new Event('pe-open-contact'));
