@@ -127,7 +127,7 @@ export default function Account() {
               </div>
               <div className="acct-stat">
                 <span className="small muted">{l.credits}</span>
-                <b>{user.credits}</b>
+                <b>{me?.admin ? (lang === 'zh' ? '无限' : 'Unlimited') : user.credits}</b>
                 <a className="small" href="#buy">{l.more}</a>
               </div>
               <div className="acct-stat">

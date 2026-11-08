@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { PURPOSE, useSettings } from '@/lib/settings';
 import { LangSeg, ShareRow } from '@/components/media';
 import VideoFeedback from '@/components/VideoFeedback';
 import SectionsReader from '@/components/SectionsReader';
@@ -66,8 +67,10 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
   const [slow, setSlow] = useState(false);
   const [voice, setVoice] = useState<MakeOpts['voice']>('female');
   const [style] = useState<MakeOpts['style']>('animated');
-  const [tone, setTone] = useState<MakeOpts['tone']>('teacher');
-  const [seconds, setSeconds] = useState<number>(180);
+  const [pset] = useSettings();
+  const [tone, setTone] = useState<MakeOpts['tone']>(() => (pset.purpose ? PURPOSE[pset.purpose].tone : 'teacher'));
+  const [optsOpen, setOptsOpen] = useState(false);
+  const [seconds, setSeconds] = useState<number>(() => (pset.purpose ? PURPOSE[pset.purpose].seconds : 180));
   const [custom, setCustom] = useState('');
   const [existing, setExisting] = useState<Job[]>([]);
   const [files, setFiles] = useState<File[]>([]);
@@ -301,7 +304,18 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
               <p className="small muted" style={{ margin: '8px 0 0' }}>{t('uploadPrivate')}</p>
             </>
           )}
-          <div className="row" style={{ gap: 14, marginTop: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <button type="button" className="opt-toggle" aria-expanded={optsOpen} onClick={() => setOptsOpen((v) => !v)}>
+            <span className="opt-sum">
+              <i>{t('min').replace('{n}', String(seconds / 60))}</i>
+              <i>{t(TONE_KEYS[tone])}</i>
+              <i>{vlang === 'both' ? t('langBoth') : vlang === 'zh' ? t('langZh') : t('langEn')}</i>
+              <i>{voice === 'male' ? t('voiceMale') : t('voiceFemale')}</i>
+            </span>
+            <span className="opt-edit">{optsOpen ? '▴' : t('optMore')}</span>
+          </button>
+          {optsOpen && (
+            <div className="opt-panel">
+          <div className="row" style={{ gap: 14, flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <label className="field" style={{ minWidth: 130 }}>
               {t('optLength')}
               <select value={seconds} onChange={(e) => setSeconds(Number(e.target.value))} disabled={submitting || running}>
@@ -342,6 +356,8 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
             {t('optCustom')}
             <input type="text" value={custom} maxLength={300} onChange={(e) => setCustom(e.target.value)} placeholder={t('optCustomPh')} disabled={submitting || running} />
           </label>
+            </div>
+          )}
           {seconds > 180 && (
             <p className="small muted" style={{ margin: '10px 0 0' }}>
               {t('longNote').replace('{m}', String(Math.round(stepSecs(seconds).reduce((x, y) => x + y, 0) / 60)))}

@@ -177,3 +177,22 @@ a.card:hover { transform: translateY(-2px); box-shadow: 0 16px 34px -16px rgba(6
   .stb-sub { padding: 0 10px; }
 }
 @media (max-width: 520px) { .stb-row { height: 56px; padding: 0 12px; gap: 4px; } .stb-sheet { top: 56px; } }
+
+/* one row: brand, this app's own sections, then apps menu + theme + language + account */
+.stb { height: auto; display: block; }
+.stb-row { height: 62px; }
+.stb-own { display: flex; align-items: center; gap: 2px; min-width: 0; margin-left: 6px; }
+.stb-own > a { padding: 8px 12px; border-radius: 999px; color: var(--stb-mutedfg, hsl(var(--muted-foreground))); font: 500 14px 'Inter', 'Noto Sans SC', sans-serif; text-decoration: none; white-space: nowrap; }
+.stb-own > a:hover { color: var(--stb-fg, hsl(var(--foreground))); background: var(--stb-soft, hsl(var(--muted))); }
+.stb-own > a.on { color: var(--stb-fg, hsl(var(--foreground))); background: var(--stb-soft, hsl(var(--muted))); font-weight: 600; }
+.stb-apps { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 13px; border-radius: 999px; border: 1px solid var(--stb-border, hsl(var(--border))); background: var(--stb-card, hsl(var(--card))); color: var(--stb-fg, hsl(var(--foreground))); font: 500 13.5px 'Inter', 'Noto Sans SC', sans-serif; cursor: pointer; }
+.stb-apps:hover, .stb-apps[aria-expanded='true'] { border-color: var(--stb-primary, hsl(var(--primary))); }
+.stb-menu { grid-template-columns: 1fr; width: min(340px, 92vw); gap: 2px; }
+.stb-menu-h { margin: 2px 13px 6px; font: 600 12px 'Inter', sans-serif; color: var(--stb-mutedfg, hsl(var(--muted-foreground))); }
+.stb-menu a.on { background: var(--stb-soft, hsl(var(--muted))); }
+.stb-menu a.on b::after { content: ' (here)'; font-weight: 400; color: var(--stb-mutedfg, hsl(var(--muted-foreground))); }
+@media (max-width: 900px) { .stb-own { display: none; } .stb-burger { display: grid; } .stb-apps span { display: none; } .stb-apps { width: 36px; padding: 0; justify-content: center; } }
+@media (max-width: 760px) { .stb-menu { top: 64px; } }
+@media (max-width: 520px) { .stb-apps, .stb-act > .stb-ic[aria-label='Settings'], .stb-act > .stb-ic[aria-label='设置'] { display: none; } .stb-brand b { font-size: 14px; } }
+.stb-sheet-btn { display: flex; align-items: center; padding: 13px 12px; border-radius: 12px; border: 0; background: none; color: var(--stb-fg, hsl(var(--foreground))); font: 500 16px 'Inter', 'Noto Sans SC', sans-serif; text-align: left; cursor: pointer; }
+.stb-sheet-btn:hover { background: var(--stb-soft, hsl(var(--muted))); }
