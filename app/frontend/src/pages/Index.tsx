@@ -83,7 +83,7 @@ function MemberHead() {
             <span>{s.purpose ? `${pick(lang, MH.mode)}: ${pick(lang, MH.modes[s.purpose])}` : `✦ ${pick(lang, MH.none)}`}</span>
             <em>{pick(lang, MH.change)}</em>
           </button>
-          {q && <span className="mh-stat"><b>{admin ? pick(lang, MH.unlimited) : q.day_left}</b> {pick(lang, MH.left)}</span>}
+          {q && <span className="mh-stat"><b>{admin ? pick(lang, MH.unlimited) : q.day_left}</b> {lang === 'en' && q.day_left === 1 && !admin ? 'free video today' : pick(lang, MH.left)}</span>}
           {q && <span className="mh-stat"><b>{admin ? pick(lang, MH.unlimited) : q.credits}</b> {pick(lang, MH.credits)}</span>}
         </div>
       </div>

@@ -73,8 +73,10 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     try {
+      const sent = getToken();
       const m = (await accountGet('me=1')) as Me;
-      if (!m.user && getToken()) setToken('');   // the session ended on the server
+      if (getToken() !== sent) return;   // the person signed in or out while this was on its way: a newer answer is coming
+      if (!m.user && sent) setToken('');   // the session ended on the server
       setMe(m);
       try { if (m.user) localStorage.setItem('pe-me', JSON.stringify(m)); else localStorage.removeItem('pe-me'); } catch { /* private mode */ }
     } catch { /* offline: keep what we have */ }
@@ -182,9 +184,59 @@ const ZH: typeof EN = {
   limitGuestBody: '免费注册：每天 {m} 个视频，另送 {w} 点额度，视频保存在你的账户里。', limitMemberBody: '购买额度即可继续，或明天再来。',
   termsTitle: '使用条款', privacyTitle: '隐私政策', updated: '最后更新：2026 年 10 月 29 日',
 };
+const VI: typeof EN = {
+  guest: 'Khách', freeLeft: 'Hôm nay còn {n}/{m} video miễn phí', creditsN: '{n} tín dụng', signUp: 'Đăng ký miễn phí', logIn: 'Đăng nhập', logOut: 'Đăng xuất', myVideos: 'Tài khoản của tôi',
+  guestHint: 'Đăng ký miễn phí: mỗi ngày một video và {w} video chào mừng.', resetsIn: 'còn thêm sau khoảng {h} giờ',
+  authTitleRegister: 'Tạo tài khoản miễn phí', authTitleLogin: 'Chào mừng trở lại', username: 'Email', password: 'Mật khẩu', passwordHint: '8 ký tự trở lên',
+  haveAccount: 'Đã có tài khoản? Đăng nhập', noAccount: 'Chưa có tài khoản? Đăng ký miễn phí', submitRegister: 'Tạo tài khoản', submitLogin: 'Đăng nhập',
+  perks: 'Tài khoản miễn phí: {m} video mỗi ngày, {w} tín dụng chào mừng, video được lưu tại một nơi.', agree: 'Khi đăng ký bạn đồng ý với Điều khoản và Chính sách quyền riêng tư.',
+  close: 'Đóng', working: 'Vui lòng chờ...',
+  acctTitle: 'Tài khoản của tôi', balance: 'Số dư', freeToday: 'Video miễn phí còn lại hôm nay', credits: 'Tín dụng', creditsNote: 'Tín dụng không hết hạn. Chỉ dùng sau khi hết video miễn phí trong ngày.',
+  buyCredits: 'Mua tín dụng', pack: '{c} tín dụng', packPrice: '¥{p}', packEach: '≈ ¥{e} mỗi video', pay: 'Thanh toán',
+  history: 'Lịch sử tín dụng', noHistory: 'Chưa có gì.', videos: 'Video của tôi', noVideos: 'Chưa có video. Hãy làm video đầu tiên ở phía trên.', open: 'Mở', expired: 'Đã hết hạn sau 14 ngày', makeAgain: 'Làm lại', making: 'Đang làm', failed: 'Lỗi (đã hoàn tín dụng)',
+  changePw: 'Đổi mật khẩu', oldPw: 'Mật khẩu hiện tại', newPw: 'Mật khẩu mới', save: 'Lưu', pwDone: 'Đã đổi mật khẩu.', loginFirst: 'Hãy đăng nhập để xem tài khoản.',
+  contactTitle: 'Liên hệ chúng tôi', contactSub: 'Một câu hỏi, một lỗi, một bài báo không chạy được hoặc hợp tác: cứ viết cho chúng tôi. Chúng tôi đọc tất cả.',
+  topic: 'Chủ đề', topicQ: 'Câu hỏi', topicBug: 'Có lỗi', topicIdea: 'Ý tưởng', topicBiz: 'Hợp tác', topicBilling: 'Thanh toán',
+  yourName: 'Tên của bạn (không bắt buộc)', yourEmail: 'Email (để chúng tôi trả lời)', message: 'Nội dung', send: 'Gửi', sent: 'Cảm ơn bạn! Chúng tôi đã nhận tin nhắn và thường trả lời trong một ngày.',
+  faqTitle: 'Câu hỏi thường gặp',
+  terms: 'Điều khoản', privacy: 'Quyền riêng tư', contact: 'Liên hệ', account: 'Tài khoản',
+  plansTitle: 'Miễn phí trước. Chỉ trả tiền khi cần thêm.', freeBadge: 'Miễn phí', perDay: 'cho {n} video mỗi ngày', forVideos: 'cho {n} video',
+  guestPlan: 'Khách', guestL1: '{g} video miễn phí mỗi ngày', guestL2: 'Không cần đăng ký', guestL3: 'English, 中文, Tiếng Việt, Indonesia, 16:9 và 9:16',
+  memberPlan: 'Tài khoản miễn phí', memberL1: '{m} video miễn phí mỗi ngày', memberL2: '{w} tín dụng chào mừng', memberL3: 'Video được lưu tại một nơi', memberL4: 'Ưu tiên khi hàng đợi đông',
+  packsPlan: 'Gói tín dụng', packsL1: 'Cho người dùng nhiều, video dài và loạt video', packsL2: 'Tín dụng không hết hạn', packsL3: 'Video lỗi: tự động hoàn tín dụng', packsL4: 'Chuyển khoản ngân hàng (VietQR)',
+  needLogin: 'Đăng nhập để mua tín dụng', orderMade: 'Đã tạo đơn hàng {id}. Quét mã, thanh toán, rồi bấm "Tôi đã chuyển khoản". Tín dụng được cộng ngay khi chúng tôi xác nhận.',
+  limitGuest: 'Bạn đã dùng hết video miễn phí của khách.', limitMember: 'Video miễn phí hôm nay đã hết.',
+  limitGuestBody: 'Đăng ký miễn phí: mỗi ngày một video và {w} video chào mừng, video được lưu trong tài khoản.', limitMemberBody: 'Mua tín dụng để tiếp tục ngay, hoặc quay lại vào ngày mai.',
+  termsTitle: 'Điều khoản sử dụng', privacyTitle: 'Chính sách quyền riêng tư', updated: 'Cập nhật lần cuối 29 tháng 10 năm 2026',
+};
+const ID: typeof EN = {
+  guest: 'Tamu', freeLeft: 'Sisa {n} dari {m} video gratis hari ini', creditsN: '{n} kredit', signUp: 'Daftar gratis', logIn: 'Masuk', logOut: 'Keluar', myVideos: 'Akun saya',
+  guestHint: 'Daftar gratis: satu video setiap hari dan {w} video selamat datang.', resetsIn: 'tambah lagi sekitar {h} jam',
+  authTitleRegister: 'Buat akun gratis Anda', authTitleLogin: 'Selamat datang kembali', username: 'Email', password: 'Kata sandi', passwordHint: '8 karakter atau lebih',
+  haveAccount: 'Sudah punya akun? Masuk', noAccount: 'Belum punya akun? Daftar gratis', submitRegister: 'Buat akun', submitLogin: 'Masuk',
+  perks: 'Akun gratis: {m} video setiap hari, {w} kredit selamat datang, video tersimpan di satu tempat.', agree: 'Dengan mendaftar Anda menyetujui Ketentuan dan Kebijakan Privasi.',
+  close: 'Tutup', working: 'Sebentar...',
+  acctTitle: 'Akun saya', balance: 'Saldo', freeToday: 'Sisa video gratis hari ini', credits: 'Kredit', creditsNote: 'Kredit tidak pernah kedaluwarsa. Hanya dipakai setelah video gratis hari itu habis.',
+  buyCredits: 'Beli kredit', pack: '{c} kredit', packPrice: '¥{p}', packEach: '≈ ¥{e} per video', pay: 'Bayar',
+  history: 'Riwayat kredit', noHistory: 'Belum ada.', videos: 'Video saya', noVideos: 'Belum ada video. Buat yang pertama di atas.', open: 'Buka', expired: 'Kedaluwarsa setelah 14 hari', makeAgain: 'Buat lagi', making: 'Sedang dibuat', failed: 'Gagal (kredit dikembalikan)',
+  changePw: 'Ganti kata sandi', oldPw: 'Kata sandi saat ini', newPw: 'Kata sandi baru', save: 'Simpan', pwDone: 'Kata sandi diganti.', loginFirst: 'Silakan masuk untuk melihat akun Anda.',
+  contactTitle: 'Hubungi kami', contactSub: 'Pertanyaan, bug, makalah yang tidak berhasil, atau kerja sama: tulis kepada kami. Kami membaca semuanya.',
+  topic: 'Topik', topicQ: 'Pertanyaan', topicBug: 'Ada yang rusak', topicIdea: 'Ide', topicBiz: 'Bisnis', topicBilling: 'Pembayaran',
+  yourName: 'Nama Anda (opsional)', yourEmail: 'Email (agar kami bisa membalas)', message: 'Pesan', send: 'Kirim pesan', sent: 'Terima kasih! Pesan Anda sudah masuk. Biasanya kami membalas dalam sehari.',
+  faqTitle: 'Pertanyaan yang sering diajukan',
+  terms: 'Ketentuan', privacy: 'Privasi', contact: 'Kontak', account: 'Akun',
+  plansTitle: 'Gratis dulu. Bayar hanya saat butuh lebih.', freeBadge: 'Gratis', perDay: 'untuk {n} video per hari', forVideos: 'untuk {n} video',
+  guestPlan: 'Tamu', guestL1: '{g} video gratis per hari', guestL2: 'Tidak perlu mendaftar', guestL3: 'English, 中文, Tiếng Việt, Indonesia, 16:9 dan 9:16',
+  memberPlan: 'Akun gratis', memberL1: '{m} video gratis setiap hari', memberL2: '{w} kredit selamat datang', memberL3: 'Video tersimpan di satu tempat', memberL4: 'Prioritas saat antrean ramai',
+  packsPlan: 'Paket kredit', packsL1: 'Untuk pemakaian berat, video panjang, dan serial', packsL2: 'Kredit tidak pernah kedaluwarsa', packsL3: 'Video gagal: kredit otomatis dikembalikan', packsL4: 'Hubungi kami untuk detail pembayaran',
+  needLogin: 'Masuk untuk membeli kredit', orderMade: 'Pesanan {id} dibuat. Hubungi kami dengan kode pesanan untuk detail pembayaran. Kredit ditambahkan begitu pembayaran kami konfirmasi.',
+  limitGuest: 'Video gratis untuk tamu sudah habis.', limitMember: 'Video gratis hari ini sudah habis.',
+  limitGuestBody: 'Daftar gratis: satu video setiap hari dan {w} video selamat datang, dan video tersimpan di akun Anda.', limitMemberBody: 'Beli kredit untuk lanjut sekarang, atau kembali besok.',
+  termsTitle: 'Ketentuan penggunaan', privacyTitle: 'Kebijakan privasi', updated: 'Terakhir diperbarui 29 Oktober 2026',
+};
 export type AcctKey = keyof typeof EN;
 export function useAcctText() {
   const { lang } = usePrefs();
-  const dict = lang === 'zh' ? ZH : EN;
+  const dict = lang === 'zh' ? ZH : lang === 'vi' ? VI : lang === 'id' ? ID : EN;
   return (k: AcctKey, vars: Record<string, string | number> = {}) => Object.entries(vars).reduce((s, [a, b]) => s.split(`{${a}}`).join(String(b)), dict[k]);
 }
