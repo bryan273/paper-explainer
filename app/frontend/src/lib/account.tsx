@@ -16,7 +16,7 @@ export const getToken = () => {
 const setToken = (t: string) => {
   try {
     if (t) localStorage.setItem(TOKEN_KEY, t);
-    else localStorage.removeItem(TOKEN_KEY);
+    else { localStorage.removeItem(TOKEN_KEY); Object.keys(localStorage).filter((k) => k.startsWith('pe-swr:') || k === 'pe-me').forEach((k) => localStorage.removeItem(k)); }   // nothing of the last member may show for the next one
   } catch {
     /* private mode */
   }
@@ -35,6 +35,12 @@ export async function accountGet(qs: string) {
   const out = await res.json().catch(() => ({}));
   if (!res.ok || out.error) throw new Error(out.error || `HTTP ${res.status}`);
   return out;
+}
+/** Show what was seen last time at once, then swap in the fresh answer: a slow network (Supabase is far from China) never leaves the page empty. */
+export function accountSwr<T>(qs: string, onData: (d: T) => void): Promise<void> {
+  const key = `pe-swr:${qs}`;
+  try { const c = localStorage.getItem(key); if (c) onData(JSON.parse(c) as T); } catch { /* no cache */ }
+  return accountGet(qs).then((d) => { try { localStorage.setItem(key, JSON.stringify(d)); } catch { /* full or private */ } onData(d as T); });
 }
 /** Usage events behind the admin funnel. Never blocks or breaks the page. */
 export function track(type: string, extra: Record<string, unknown> = {}) {
@@ -55,7 +61,10 @@ type Ctx = {
 const AccountCtx = createContext<Ctx | null>(null);
 
 export function AccountProvider({ children }: { children: ReactNode }) {
-  const [me, setMe] = useState<Me | null>(null);
+  // the member of last time, so the page opens as theirs at once instead of waiting for the network
+  const [me, setMe] = useState<Me | null>(() => {
+    try { const c = getToken() ? localStorage.getItem('pe-me') : null; return c ? (JSON.parse(c) as Me) : null; } catch { return null; }
+  });
   const [authOpen, setAuthOpen] = useState<null | 'login' | 'register'>(null);
 
   const refresh = useCallback(async () => {
@@ -63,6 +72,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       const m = (await accountGet('me=1')) as Me;
       if (!m.user && getToken()) setToken('');   // the session ended on the server
       setMe(m);
+      try { if (m.user) localStorage.setItem('pe-me', JSON.stringify(m)); else localStorage.removeItem('pe-me'); } catch { /* private mode */ }
     } catch { /* offline: keep what we have */ }
   }, []);
 
