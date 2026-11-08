@@ -16,7 +16,7 @@ export default function SiteFooter() {
       <div className="foot2-in">
         <div className="foot2-brand">
           <b>Paperlit</b>
-          <span>{zh ? '把论文讲明白的短视频。' : 'Papers explained in short videos.'}</span>
+          <span>{lang === 'zh' ? '把论文讲明白的短视频。' : lang === 'vi' ? 'Bài báo được giải thích bằng video ngắn.' : lang === 'id' ? 'Makalah dijelaskan lewat video singkat.' : 'Papers explained in short videos.'}</span>
         </div>
         <nav aria-label={zh ? '页面' : 'Product'}>
           <a href="#make" onClick={go('make')}>{t('navMake')}</a>
