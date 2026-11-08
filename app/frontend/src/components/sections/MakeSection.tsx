@@ -354,7 +354,7 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
           {tab === 'link' && (
             <label className="field" htmlFor="arxiv" style={{ marginTop: 14 }}>
               <span className="small muted">{pick(uiLang, SRC.linkHelp)}</span>
-              <input id="arxiv" type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder="https://arxiv.org/abs/1706.03762   ·   https://…/article" autoComplete="off" spellCheck={false} />
+              <input id="arxiv" type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder="https://arxiv.org/abs/1706.03762" autoComplete="off" spellCheck={false} />
             </label>
           )}
           {tab === 'text' && (

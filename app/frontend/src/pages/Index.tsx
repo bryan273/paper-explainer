@@ -130,9 +130,9 @@ export default function Index() {
       <Tour />
 
       <SuiteCta
-        title={lang === 'zh' ? '把一篇论文变成 40 秒视频' : 'Turn a paper into a 40 second video'}
-        body={lang === 'zh' ? '粘贴 arXiv 链接，无需注册即可试用。' : 'Paste an arXiv link. Free to try with no sign-up.'}
-        label={lang === 'zh' ? '制作视频' : 'Make a video'}
+        title={pick(lang, { en: 'Turn a paper into a 40 second video', zh: '把一篇论文变成 40 秒视频', vi: 'Biến một bài báo thành video 40 giây', id: 'Ubah makalah menjadi video 40 detik' })}
+        body={pick(lang, { en: 'Paste a link or some text. Free to try with no sign-up.', zh: '粘贴链接或文字，无需注册即可试用。', vi: 'Dán một liên kết hoặc văn bản. Dùng thử miễn phí, không cần đăng ký.', id: 'Tempel tautan atau teks. Gratis dicoba tanpa mendaftar.' })}
+        label={pick(lang, { en: 'Make a video', zh: '制作视频', vi: 'Tạo video', id: 'Buat video' })}
         href="#make"
         onClick={() => scrollToSection('make')}
       />
