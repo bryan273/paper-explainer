@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import Shell from '@/components/Shell';
 import StudentTrial from '@/components/StudentTrial';
 import PayPanel from '@/components/PayPanel';
-import { accountApi, accountGet, track, useAccount, useAcctText, type Pack } from '@/lib/account';
+import { accountApi, accountSwr, track, useAccount, useAcctText, type Pack } from '@/lib/account';
 import { usePrefs } from '@/lib/prefs';
 
 type MySection = { poster?: string | null };
@@ -44,8 +44,7 @@ export default function Account() {
   const load = useCallback(async () => {
     if (!user) return;
     try {
-      setJobs(await accountGet('jobs=1'));
-      setLedger(await accountGet('ledger=1'));
+      await Promise.all([accountSwr<MyJob[]>('jobs=1', setJobs), accountSwr<Ledger[]>('ledger=1', setLedger)]);
     } catch (e) {
       setErr((e as Error).message);
     }

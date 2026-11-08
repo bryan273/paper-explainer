@@ -55,6 +55,8 @@ export function srcLabel(job: Job): string {
   return `arXiv:${job.arxiv}`;
 }
 
+const ACTIVE_JOB = 'pe-active-job';
+
 export default function MakeSection({ prefill, autoOpen }: { prefill?: string | null; autoOpen?: boolean }) {
   const { t, lang: uiLang } = usePrefs();
   const { refresh: refreshAccount, user: acctUser } = useAccount();
@@ -178,12 +180,30 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wantJob]);
 
+  // The video is made on the server, so closing the tab never stops it. Coming back, pick the running video up again where it is.
+  useEffect(() => {
+    if (wantJob) return;
+    let id: string | null = null;
+    try { id = localStorage.getItem(ACTIVE_JOB); } catch { /* private mode */ }
+    if (!id || !/^[0-9a-f-]{36}$/.test(id)) return;
+    let alive = true;
+    getJob(id).then((j) => {
+      if (!alive) return;
+      if (j.status === 'done' || j.status === 'failed') { try { localStorage.removeItem(ACTIVE_JOB); } catch { /* private mode */ } return; }
+      startedAt.current = j.created_at ? Date.parse(j.created_at) || Date.now() : Date.now();
+      setJob(j);
+      poll(j.id);
+    }).catch(() => { /* leave it for next time */ });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const poll = (id: string, fails = 0) => {
     getJob(id)
       .then((next) => {
         setSlow(false);
         setJob(next);
-        if (next.status === 'done' || next.status === 'failed') return;
+        if (next.status === 'done' || next.status === 'failed') { try { localStorage.removeItem(ACTIVE_JOB); } catch { /* private mode */ } return; }
         timer.current = window.setTimeout(() => poll(id), POLL_MS);
       })
       .catch(() => {
@@ -243,6 +263,7 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
       refreshAccount();
       setCached(!!created.cached || created.status === 'done');
       if (created.status !== 'done' && created.status !== 'failed') {
+        try { localStorage.setItem(ACTIVE_JOB, created.id); } catch { /* private mode */ }
         timer.current = window.setTimeout(() => poll(created.id), POLL_MS);
       }
     }

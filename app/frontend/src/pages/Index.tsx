@@ -13,7 +13,7 @@ import ContactModal, { FaqSection } from '@/components/sections/ContactSection';
 import { Link } from 'react-router-dom';
 import { SuiteCta } from '@/components/SuiteFooter';
 import SiteFooter from '@/components/SiteFooter';
-import { accountGet, getToken, useAccount } from '@/lib/account';
+import { accountSwr, getToken, useAccount } from '@/lib/account';
 import { useState } from 'react';
 import { parseArxivId, useRecent } from '@/lib/explainer';
 import { usePrefs } from '@/lib/prefs';
@@ -29,7 +29,7 @@ function MemberRecent() {
   const [jobs, setJobs] = useState<Mine[] | null>(null);
   useEffect(() => {
     let alive = true;
-    accountGet('jobs=1').then((j) => alive && setJobs((j as Mine[]).slice(0, 4))).catch(() => alive && setJobs([]));
+    accountSwr<Mine[]>('jobs=1', (j) => alive && setJobs(j.slice(0, 4))).catch(() => alive && setJobs((x) => x ?? []));
     return () => { alive = false; };
   }, []);
   if (!jobs || jobs.length === 0) return null;
