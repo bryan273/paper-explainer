@@ -309,10 +309,16 @@ export async function getChat(job: string): Promise<ChatMsg[]> {
 }
 
 
-export type Quiz = { question: string; options: string[]; answer: number; why: string };
+export type Quiz = { question: string; options: string[]; answer: number; why: string; section?: number };
 
 /** One check-yourself question about a section of the video (the interactive mode). */
 export async function quizPart(p: { job: string; section: number; lang: Lang }): Promise<Quiz> {
   const out = await askRequest({ method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ ...p, q: '', intent: 'quiz', mode: 'paper', history: [], visitor: visitorId() }) });
   return out.quiz as Quiz;
+}
+
+/** Every question of a video at once: one per part (written once and then shared), or a final test over the whole video. */
+export async function quizAll(p: { job: string; lang: Lang; final?: boolean }): Promise<Quiz[]> {
+  const out = await askRequest({ method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ ...p, q: '', intent: 'quizall', mode: 'paper', history: [], visitor: visitorId() }) });
+  return (out.quizzes as Quiz[]) ?? [];
 }

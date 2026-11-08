@@ -23,9 +23,10 @@ const L = {
     free: 'Free', plus: 'Plus', pro: 'Pro', popular: 'Most chosen', founding: 'billed monthly, cancel any time',
     perMonth: '/ month', perYear: '/ year', billedYear: 'billed once a year, about ¥{m} a month',
     freeL: ['1 free video a day, plus 3 welcome videos', 'Try the smart features: 3 quiz questions inside the video a day, 10 careful answers for each video', 'English, 中文, Tiếng Việt, Bahasa Indonesia', 'Videos kept for 14 days, with a link to share'],
-    plusL: ['30 videos a month, up to 5 minutes each', 'Interactive mode: answer questions inside the video, unlimited', '30 careful answers (stronger AI) for each video', 'Answers pitched to your level and field', 'Videos kept for 90 days', 'Failed video: refunded automatically'],
-    proL: ['150 videos a month, up to 10 minutes each', 'Everything in Plus', 'Careful answers: unlimited, always the strongest AI', 'Videos kept for a full year', 'New features first'],
+    plusL: ['99 videos a month, up to 5 minutes each', 'Interactive mode: answer questions inside the video, unlimited', '30 careful answers (stronger AI) for each video', 'Answers pitched to your level and field', 'Videos kept for 90 days', 'Failed video: refunded automatically'],
+    proL: ['200 videos a month, up to 10 minutes each', 'Everything in Plus', 'Careful answers: unlimited, always the strongest AI', 'Videos kept for a full year', 'New features first'],
     soon: 'in development, Pro members get it first',
+    custom: 'Custom', customSub: 'Need more, or something different?', customL: ['More videos than Pro', 'A plan for a class, a lab or a team', 'Your own subjects, sources and languages', 'Invoice and a person to talk to'], customCta: 'Contact us', customPrice: "Let's talk",
     cta: 'Buy {p}', ctaSent: 'Order created. Pay below.', yours: 'Your plan', ctaFree: 'Sign up free', ctaMine: 'My papers',
     packs: 'Only need a few videos? Buy them one by one', packsLine: 'Credits never expire.', each: 'videos', buy: 'Buy credits', note: 'Pay with WeChat Pay or Alipay, then tap "I have paid". We confirm by hand, usually within a day, and your videos and plan switch on then. Cancel any time by not renewing.',
   },
@@ -35,9 +36,10 @@ const L = {
     free: '免费', plus: 'Plus', pro: 'Pro', popular: '最多人选', founding: '按月付费，随时取消',
     perMonth: '/ 月', perYear: '/ 年', billedYear: '一次付一年，约 ¥{m} / 月',
     freeL: ['每天 1 个免费视频，另送 3 个欢迎视频', '试用智能功能：每天 3 道视频内答题，每个视频 10 次仔细回答', '英文、中文、越南语、印尼语', '视频保留 14 天，可生成分享链接'],
-    plusL: ['每月 30 个视频，每个最长 5 分钟', '互动模式：在视频里直接答题，不限次数', '每个视频 30 次仔细回答（更强的 AI）', '回答会按你的水平和领域调整', '视频保留 90 天', '失败自动退还'],
-    proL: ['每月 150 个视频，每个最长 10 分钟', '包含 Plus 的全部功能', '仔细回答：不限次数，始终使用最强的 AI', '视频保留整整一年', '新功能优先体验'],
+    plusL: ['每月 99 个视频，每个最长 5 分钟', '互动模式：在视频里直接答题，不限次数', '每个视频 30 次仔细回答（更强的 AI）', '回答会按你的水平和领域调整', '视频保留 90 天', '失败自动退还'],
+    proL: ['每月 200 个视频，每个最长 10 分钟', '包含 Plus 的全部功能', '仔细回答：不限次数，始终使用最强的 AI', '视频保留整整一年', '新功能优先体验'],
     soon: '开发中，Pro 会员优先使用',
+    custom: '定制', customSub: '需要更多，或者想要不一样的？', customL: ['比 Pro 更多的视频', '适合一个班级、实验室或团队的方案', '你自己的学科、资料和语言', '发票和专人对接'], customCta: '联系我们', customPrice: '来聊聊',
     cta: '购买 {p}', ctaSent: '订单已创建，请在下方付款。', yours: '你的套餐', ctaFree: '免费注册', ctaMine: '我的论文',
     packs: '只需要几个视频？单独购买', packsLine: '额度永不过期。', each: '个视频', buy: '购买额度', note: '用微信或支付宝付款，然后点“我已付款”。我们人工确认，通常一天内，确认后视频额度和套餐立即生效。不续费即取消。',
   },
@@ -127,6 +129,13 @@ export default function PricingSection() {
         {card('free')}
         {card('plus')}
         {card('pro')}
+        <div className="card price-card custom">
+          <b style={{ font: '700 17px var(--display)' }}>{l.custom}</b>
+          <div className="price" style={{ fontSize: 28 }}>{l.customPrice}</div>
+          <p className="small muted" style={{ margin: '-6px 0 0' }}>{l.customSub}</p>
+          <ul className="tick">{l.customL.map((it) => (<li key={it}>{it}</li>))}</ul>
+          <button type="button" className="btn ghost" onClick={() => window.dispatchEvent(new Event('pe-open-contact'))}>{l.customCta}</button>
+        </div>
       </div>
       {err && <p className="err" role="alert">{err}</p>}
       <StudentTrial />

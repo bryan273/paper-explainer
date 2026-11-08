@@ -133,7 +133,7 @@ export default function Account() {
                 ) : (
                   <>
                     <div><span className="small muted">{lang === 'zh' ? '当前套餐' : 'Your plan'}</span><b>{lang === 'zh' ? '免费' : 'Free'}</b></div>
-                    <div><span className="small muted">{lang === 'zh' ? 'Plus 每月 ¥33，含 30 个视频；Pro 每月 ¥59，含 150 个视频' : 'Plus: 30 videos for ¥33 a month. Pro: 150 videos for ¥59'}</span></div>
+                    <div><span className="small muted">{lang === 'zh' ? 'Plus 每月 ¥33，含 99 个视频；Pro 每月 ¥59，含 200 个视频' : 'Plus: 99 videos for ¥33 a month. Pro: 200 videos for ¥59'}</span></div>
                     <Link className="btn primary small" to="/#pricing">{lang === 'zh' ? '升级' : 'Upgrade'}</Link>
                   </>
                 );
