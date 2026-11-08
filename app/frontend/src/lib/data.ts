@@ -13,7 +13,7 @@ export type FeedbackData = { rating: number; use_case: string; comment: string; 
 export const saveFeedback = (data: FeedbackData, id?: string | null) => post({ type: 'feedback', id: id ?? undefined, data });
 export const saveOrder = (data: { email: string; arxiv: string; language: string; notes: string }) => post({ type: 'order', data });
 
-export const markOrderPaid = (id: string, method: 'wechat' | 'alipay') => post({ type: 'order_paid', id, method });
+export const markOrderPaid = (id: string, method: 'wechat' | 'alipay' | 'techcombank' | 'bidv') => post({ type: 'order_paid', id, method });
 
 export async function feedbackTotal(): Promise<number> {
   const res = await fetch(`${URL}?count=1`);
