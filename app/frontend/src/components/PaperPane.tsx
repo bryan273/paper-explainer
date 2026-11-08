@@ -1,4 +1,4 @@
-import type { Lang } from '@/lib/prefs';
+import { usePrefs, type Lang } from '@/lib/prefs';
 import { parseArxivId, type Job } from '@/lib/explainer';
 
 const T = {
@@ -10,11 +10,20 @@ const T = {
     title: '原文', page: '当前第 {p} 页', open: '在新标签页打开 PDF', none: '这里无法显示原文。', upload: '这是你上传的 PDF，我们不保存你的文件。重新选择该文件即可在此对照阅读。',
     link: '打开原文', hint: '点击答案里的“第 N 页”可跳到对应页。', local: '你的文件',
   },
+  vi: {
+    title: 'Bài gốc', page: 'Đang xem trang {p}', open: 'Mở PDF trong tab mới', none: 'Bản gốc không hiển thị ở đây.', upload: 'Bạn đã tải lên PDF này và chúng tôi không lưu tệp của bạn. Hãy chọn lại tệp ở đây để đọc song song.',
+    link: 'Mở bản gốc', hint: 'Bấm "tr. N" trong câu trả lời để nhảy tới trang đó.', local: 'Tệp của bạn',
+  },
+  id: {
+    title: 'Makalah', page: 'Menampilkan halaman {p}', open: 'Buka PDF di tab baru', none: 'Aslinya tidak ditampilkan di sini.', upload: 'Anda mengunggah PDF ini dan kami tidak menyimpan berkas Anda. Pilih lagi berkasnya di sini untuk membaca bersama.',
+    link: 'Buka aslinya', hint: 'Klik "hal. N" di jawaban untuk loncat ke halaman itu.', local: 'Berkas Anda',
+  },
 } as const;
 
 /** The original paper beside the video and the answers. An answer's "p. 5" opens the PDF on that page. */
 export default function PaperPane({ job, lang, page, pageKey, localPdf }: { job: Job; lang: Lang; page: number | null; pageKey: number; localPdf?: string | null }) {
-  const t = T[lang === 'zh' ? 'zh' : 'en'];
+  const { lang: ui } = usePrefs();
+  const t = T[ui];
   const isUpload = (job.source_url ?? '').startsWith('upload:');
   const arxiv = !job.source_url ? parseArxivId(job.arxiv) : null;
   const base = localPdf || (arxiv ? `https://arxiv.org/pdf/${arxiv}` : null);

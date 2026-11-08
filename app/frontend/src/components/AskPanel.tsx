@@ -11,9 +11,10 @@ import { secText } from '@/lib/explainer';
 import { scrollToSection } from '@/components/Shell';
 
 const D = {
-  fast: { en: 'Quick', zh: '快速', vi: 'Nhanh', id: 'Cepat' }, deep: { en: 'Thorough', zh: '详细', vi: 'Kỹ lưỡng', id: 'Cermat' },
-  deepHint: { en: 'Thorough answers use a stronger AI and think longer, good for hard questions. {n} free for each video, 30 with Plus, unlimited with Pro.', zh: '详细回答使用更强的 AI，思考更久，适合难题。每个视频 {n} 次免费，Plus 30 次，Pro 不限次数。', vi: 'Câu trả lời kỹ lưỡng dùng AI mạnh hơn và suy nghĩ lâu hơn, hợp cho câu hỏi khó. Mỗi video {n} lần miễn phí, 30 lần với Plus, không giới hạn với Pro.', id: 'Jawaban cermat memakai AI yang lebih kuat dan berpikir lebih lama, cocok untuk pertanyaan sulit. {n} gratis untuk setiap video, 30 dengan Plus, tanpa batas dengan Pro.' },
-  signup: { en: 'Sign up free to try thorough answers', zh: '免费注册，试用详细回答', vi: 'Đăng ký miễn phí để thử câu trả lời kỹ lưỡng', id: 'Daftar gratis untuk mencoba jawaban cermat' },
+  fast: { en: 'Quick', zh: '快速', vi: 'Nhanh', id: 'Cepat' }, deep: { en: 'In-depth', zh: '深入', vi: 'Chuyên sâu', id: 'Mendalam' },
+  deepHint: { en: 'In-depth mode uses a stronger AI that thinks longer, good for hard questions. {n} free answers for each video, 30 with Plus, unlimited with Pro.', zh: '深入模式使用更强、思考更久的 AI，适合难题。每个视频 {n} 次免费，Plus 30 次，Pro 不限次数。', vi: 'Chế độ chuyên sâu dùng AI mạnh hơn và suy nghĩ lâu hơn, hợp cho câu hỏi khó. Mỗi video {n} lần miễn phí, 30 lần với Plus, không giới hạn với Pro.', id: 'Mode mendalam memakai AI yang lebih kuat dan berpikir lebih lama, cocok untuk pertanyaan sulit. {n} gratis untuk setiap video, 30 dengan Plus, tanpa batas dengan Pro.' },
+  signup: { en: 'Sign up free to try in-depth answers', zh: '免费注册，试用深入回答', vi: 'Đăng ký miễn phí để thử câu trả lời chuyên sâu', id: 'Daftar gratis untuk mencoba jawaban mendalam' },
+  signupAsk: { en: 'Sign up free to ask', zh: '免费注册后提问', vi: 'Đăng ký miễn phí để đặt câu hỏi', id: 'Daftar gratis untuk bertanya' },
   seePlus: { en: 'See plans', zh: '查看套餐', vi: 'Xem các gói', id: 'Lihat paket' },
   useFast: { en: 'Answer quickly instead', zh: '改用快速回答', vi: 'Trả lời nhanh thay thế', id: 'Jawab cepat saja' },
 } as const;
@@ -58,7 +59,7 @@ function Block({ b, onCite }: { b: AskBlock; onCite?: (c: { page?: number; t?: n
 
 /** A tutor chat about the paper behind a finished video. Answers are labelled: from the paper (with a checked quote) or background knowledge. */
 export default function AskPanel({ job, lang, seed, onCite }: { job: Job; lang: Lang; seed: { i: number; n: number } | null; onCite?: (c: { page?: number; t?: number }) => void }) {
-  const { t } = usePrefs();
+  const { t, lang: ui } = usePrefs();
   const { openAuth } = useAccount();
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
@@ -184,9 +185,9 @@ export default function AskPanel({ job, lang, seed, onCite }: { job: Job; lang: 
           <h3 className="sec" style={{ fontSize: 22, margin: 0 }}>{t('askTitle')}</h3>
           <p className="small muted" style={{ margin: '4px 0 0', maxWidth: 560 }}>{t('askSub')}</p>
         </div>
-        <div className="askseg ask-model" role="radiogroup" aria-label="AI model" title={pick(lang, D.deepHint).replace('{n}', '10')}>
-          <button type="button" role="radio" aria-checked={model === 'fast'} onClick={() => pickModel('fast')}>{pick(lang, D.fast)}</button>
-          <button type="button" role="radio" aria-checked={model === 'deep'} onClick={() => pickModel('deep')}>{pick(lang, D.deep)} <em className="spark">✦</em></button>
+        <div className="askseg ask-model" role="radiogroup" aria-label="AI model" title={pick(ui, D.deepHint).replace('{n}', '10')}>
+          <button type="button" role="radio" aria-checked={model === 'fast'} onClick={() => pickModel('fast')}>{pick(ui, D.fast)}</button>
+          <button type="button" role="radio" aria-checked={model === 'deep'} onClick={() => pickModel('deep')}>{pick(ui, D.deep)} <em className="spark">✦</em></button>
         </div>
         <div className="askseg" role="radiogroup" aria-label={t('askModeLabel')}>
           <button type="button" role="radio" aria-checked={mode === 'plus'} onClick={() => pickMode('plus')}>{t('askModePlus')}</button>
@@ -194,7 +195,7 @@ export default function AskPanel({ job, lang, seed, onCite }: { job: Job; lang: 
         </div>
       </div>
 
-      {model === 'deep' && <p className="small muted ask-deep-hint" style={{ margin: 0 }}>✦ {pick(lang, D.deepHint).replace('{n}', '10')}</p>}
+      {model === 'deep' && <p className="small muted ask-deep-hint" style={{ margin: 0 }}>✦ {pick(ui, D.deepHint).replace('{n}', '10')}</p>}
 
       {msgs.length === 0 && !busy && (
         <div className="chips" role="group" aria-label={t('askNext')}>
@@ -248,16 +249,21 @@ export default function AskPanel({ job, lang, seed, onCite }: { job: Job; lang: 
       {error && (
         <div className="note" role="alert">
           <p style={{ margin: 0 }}>{error.text}</p>
+          {error.code === 'login_to_ask' && (
+            <div className="row" style={{ gap: 8, marginTop: 10 }}>
+              <button type="button" className="btn primary small" onClick={() => openAuth('register')}>{pick(ui, D.signupAsk)}</button>
+            </div>
+          )}
           {error.code === 'deep_signup' && (
             <div className="row" style={{ gap: 8, marginTop: 10 }}>
-              <button type="button" className="btn primary small" onClick={() => openAuth('register')}>{pick(lang, D.signup)}</button>
-              <button type="button" className="btn ghost small" onClick={() => { setError(null); if (lastQ.current) ask(lastQ.current.q, lastQ.current.opt, 'fast'); }}>{pick(lang, D.useFast)}</button>
+              <button type="button" className="btn primary small" onClick={() => openAuth('register')}>{pick(ui, D.signup)}</button>
+              <button type="button" className="btn ghost small" onClick={() => { setError(null); if (lastQ.current) ask(lastQ.current.q, lastQ.current.opt, 'fast'); }}>{pick(ui, D.useFast)}</button>
             </div>
           )}
           {error.code === 'deep_premium' && (
             <div className="row" style={{ gap: 8, marginTop: 10 }}>
-              <button type="button" className="btn primary small" onClick={() => scrollToSection('pricing')}>{pick(lang, D.seePlus)}</button>
-              <button type="button" className="btn ghost small" onClick={() => { setError(null); if (lastQ.current) ask(lastQ.current.q, lastQ.current.opt, 'fast'); }}>{pick(lang, D.useFast)}</button>
+              <button type="button" className="btn primary small" onClick={() => scrollToSection('pricing')}>{pick(ui, D.seePlus)}</button>
+              <button type="button" className="btn ghost small" onClick={() => { setError(null); if (lastQ.current) ask(lastQ.current.q, lastQ.current.opt, 'fast'); }}>{pick(ui, D.useFast)}</button>
             </div>
           )}
           {error.code === 'ask_guest' && (

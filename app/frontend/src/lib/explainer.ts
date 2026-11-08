@@ -171,12 +171,19 @@ export async function lookupPaper(input: string): Promise<Job[]> {
   return Array.isArray(body) ? (body as Job[]) : [];
 }
 
+const MINE_KEY = 'pe-my-jobs';
+/** Videos this browser made itself: a guest may ask about those; a video opened from a shared link can only be watched. */
+export const isMine = (id: string): boolean => { try { return (JSON.parse(localStorage.getItem(MINE_KEY) ?? '[]') as string[]).includes(id); } catch { return false; } };
+const rememberMine = (id: string) => { try { const a = (JSON.parse(localStorage.getItem(MINE_KEY) ?? '[]') as string[]).filter((x) => x !== id); a.unshift(id); localStorage.setItem(MINE_KEY, JSON.stringify(a.slice(0, 60))); } catch { /* private mode */ } };
+
 export async function createJob(arxiv: string, opts?: MakeOpts): Promise<Job> {
-  return (await request({
+  const job = (await request({
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify({ arxiv, visitor: visitorId(), ...opts }),
   })) as Job;
+  if (!job.cached) rememberMine(job.id);
+  return job;
 }
 
 export async function getJob(id: string): Promise<Job> {
@@ -309,7 +316,7 @@ export async function getChat(job: string): Promise<ChatMsg[]> {
 }
 
 
-export type Quiz = { question: string; options: string[]; answer: number; why: string; section?: number };
+export type Quiz = { question: string; options: string[]; answer: number; why: string; more?: string; section?: number };
 
 /** One check-yourself question about a section of the video (the interactive mode). */
 export async function quizPart(p: { job: string; section: number; lang: Lang }): Promise<Quiz> {

@@ -4,7 +4,7 @@ import { scrollToSection } from '@/components/Shell';
 import { ApiError, quizAll, type Job, type Quiz } from '@/lib/explainer';
 import { secText } from '@/lib/explainer';
 import { pick } from '@/lib/i18n_extra';
-import type { Lang } from '@/lib/prefs';
+import { usePrefs, type Lang } from '@/lib/prefs';
 
 export type QItem = { q: Quiz; picked: number };
 export type QLog = { parts: Record<number, QItem>; finals: { at: string; score: number; total: number; items: QItem[] }[] };
@@ -50,12 +50,13 @@ const S = {
 };
 
 function ItemReview({ it, lang }: { it: QItem; lang: Lang }) {
+  const { lang: ui } = usePrefs();
   const ok = it.picked === it.q.answer;
   return (
     <div className="qp-rev">
       <p className="qp-q">{it.q.question}</p>
-      <p className={`qp-a ${ok ? 'ok' : 'bad'}`}>{pick(lang, S.yours)}: {it.q.options[it.picked]}</p>
-      {!ok && <p className="qp-a ok">{pick(lang, S.right)}: {it.q.options[it.q.answer]}</p>}
+      <p className={`qp-a ${ok ? 'ok' : 'bad'}`}>{pick(ui, S.yours)}: {it.q.options[it.picked]}</p>
+      {!ok && <p className="qp-a ok">{pick(ui, S.right)}: {it.q.options[it.q.answer]}</p>}
       <p className="small muted" style={{ margin: 0 }}>{it.q.why}</p>
     </div>
   );
@@ -66,6 +67,7 @@ export default function QuizPanel({ job, lang, log, onLog, onReset }: { job: Job
   const [open, setOpen] = useState<string | null>(null);
   const [run, setRun] = useState<null | { status: 'loading' | 'play' | 'done' | 'error'; items: Quiz[]; picks: number[]; idx: number; err?: string; signup?: boolean }>(null);
   const { me } = useAccount();
+  const { lang: ui } = usePrefs();
   const hasPlan = !!(me as unknown as { plan?: string | null } | null)?.plan;
   const [packBusy, setPackBusy] = useState<'' | 'notes' | 'cards'>('');
   const secs = job.sections ?? [];
@@ -113,14 +115,14 @@ export default function QuizPanel({ job, lang, log, onLog, onReset }: { job: Job
 
   return (
     <div className="qp">
-      <h3 className="qp-h">{pick(lang, S.title)}</h3>
+      <h3 className="qp-h">{pick(ui, S.title)}</h3>
 
       <section className="qp-sec">
         <div className="row between" style={{ alignItems: 'baseline' }}>
-          <b>{pick(lang, S.parts)}</b>
-          {answered.length > 0 && <span className="qp-score">{good}/{answered.length} {pick(lang, S.score)}</span>}
+          <b>{pick(ui, S.parts)}</b>
+          {answered.length > 0 && <span className="qp-score">{good}/{answered.length} {pick(ui, S.score)}</span>}
         </div>
-        {answered.length === 0 ? <p className="small muted" style={{ margin: '6px 0 0' }}>{pick(lang, S.none)}</p> : (
+        {answered.length === 0 ? <p className="small muted" style={{ margin: '6px 0 0' }}>{pick(ui, S.none)}</p> : (
           <>
             <ul className="qp-list">
               {answered.map(({ i, it }) => {
@@ -131,7 +133,7 @@ export default function QuizPanel({ job, lang, log, onLog, onReset }: { job: Job
                     <button type="button" className="qp-row" onClick={() => setOpen(open === key ? null : key)} aria-expanded={open === key}>
                       <span className={`qp-mark ${ok ? 'ok' : 'bad'}`} aria-hidden>{ok ? '✓' : '✗'}</span>
                       <span className="qp-t">{secs[i] ? secText(secs[i], 'title', lang) : `${i + 1}`}</span>
-                      <em>{open === key ? pick(lang, S.hide) : pick(lang, S.review)}</em>
+                      <em>{open === key ? pick(ui, S.hide) : pick(ui, S.review)}</em>
                     </button>
                     {open === key && <ItemReview it={it} lang={lang} />}
                   </li>
@@ -139,26 +141,26 @@ export default function QuizPanel({ job, lang, log, onLog, onReset }: { job: Job
               })}
             </ul>
             <div className="row" style={{ gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-              <button type="button" className="btn ghost small" onClick={() => { onReset(); setOpen(null); }}>{pick(lang, S.reset)}</button>
-              <span className="small muted">{pick(lang, S.resetHint)}</span>
+              <button type="button" className="btn ghost small" onClick={() => { onReset(); setOpen(null); }}>{pick(ui, S.reset)}</button>
+              <span className="small muted">{pick(ui, S.resetHint)}</span>
             </div>
           </>
         )}
       </section>
 
       <section className="qp-sec">
-        <b>{pick(lang, S.finalH)}</b>
-        {!run && <><p className="small muted" style={{ margin: '4px 0 10px' }}>{pick(lang, S.finalP)}</p><button type="button" className="btn primary small" onClick={start}>{pick(lang, S.start)}</button></>}
-        {run?.status === 'loading' && <p className="small muted" role="status"><span className="spin" aria-hidden /> {pick(lang, S.loading)}</p>}
+        <b>{pick(ui, S.finalH)}</b>
+        {!run && <><p className="small muted" style={{ margin: '4px 0 10px' }}>{pick(ui, S.finalP)}</p><button type="button" className="btn primary small" onClick={start}>{pick(ui, S.start)}</button></>}
+        {run?.status === 'loading' && <p className="small muted" role="status"><span className="spin" aria-hidden /> {pick(ui, S.loading)}</p>}
         {run?.status === 'error' && (
           <div>
-            <p className="small" style={{ margin: '6px 0 10px' }}>{run.signup ? pick(lang, S.signup) : run.err}</p>
+            <p className="small" style={{ margin: '6px 0 10px' }}>{run.signup ? pick(ui, S.signup) : run.err}</p>
             <button type="button" className="btn ghost small" onClick={() => setRun(null)}>OK</button>
           </div>
         )}
         {cur && run && (
           <div className="qp-play">
-            <p className="small muted" style={{ margin: '6px 0 0' }}>{pick(lang, S.q)} {run.idx + 1} / {run.items.length}</p>
+            <p className="small muted" style={{ margin: '6px 0 0' }}>{pick(ui, S.q)} {run.idx + 1} / {run.items.length}</p>
             <p className="qp-q">{cur.question}</p>
             <div className="inter-opts">
               {cur.options.map((o, k) => {
@@ -169,8 +171,8 @@ export default function QuizPanel({ job, lang, log, onLog, onReset }: { job: Job
             </div>
             {picked !== undefined && (
               <div className="inter-why">
-                <p><b>{picked === cur.answer ? pick(lang, S.correct) : pick(lang, S.wrong)}.</b> {cur.why}</p>
-                <button type="button" className="btn primary small" onClick={next}>{run.idx + 1 < run.items.length ? pick(lang, S.next) : pick(lang, S.finish)}</button>
+                <p><b>{picked === cur.answer ? pick(ui, S.correct) : pick(ui, S.wrong)}.</b> {cur.why}</p>
+                <button type="button" className="btn primary small" onClick={next}>{run.idx + 1 < run.items.length ? pick(ui, S.next) : pick(ui, S.finish)}</button>
               </div>
             )}
           </div>
@@ -181,27 +183,27 @@ export default function QuizPanel({ job, lang, log, onLog, onReset }: { job: Job
             <div className="qp-done" role="status">
               <div className="qp-big">{f ? `${f.score} / ${f.total}` : ''}</div>
               <div className="qp-pct">{f ? Math.round((f.score / f.total) * 100) : 0}%</div>
-              <button type="button" className="btn primary small" onClick={start}>{pick(lang, S.again)}</button>{' '}
-              <button type="button" className="btn ghost small" onClick={() => setRun(null)}>{pick(lang, S.hide)}</button>
+              <button type="button" className="btn primary small" onClick={start}>{pick(ui, S.again)}</button>{' '}
+              <button type="button" className="btn ghost small" onClick={() => setRun(null)}>{pick(ui, S.hide)}</button>
             </div>
           );
         })()}
       </section>
 
       <section className="qp-sec">
-        <b>{pick(lang, SP.h)}</b>
-        <p className="small muted" style={{ margin: '2px 0 8px' }}>{pick(lang, SP.p)}</p>
+        <b>{pick(ui, SP.h)}</b>
+        <p className="small muted" style={{ margin: '2px 0 8px' }}>{pick(ui, SP.p)}</p>
         {hasPlan ? (
           <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-            <button type="button" className="btn ghost small" disabled={!!packBusy} onClick={() => pack('notes')}>{packBusy === 'notes' ? pick(lang, SP.busy) : pick(lang, SP.notes)}</button>
-            <button type="button" className="btn ghost small" disabled={!!packBusy} onClick={() => pack('cards')}>{packBusy === 'cards' ? pick(lang, SP.busy) : pick(lang, SP.cards)}</button>
+            <button type="button" className="btn ghost small" disabled={!!packBusy} onClick={() => pack('notes')}>{packBusy === 'notes' ? pick(ui, SP.busy) : pick(ui, SP.notes)}</button>
+            <button type="button" className="btn ghost small" disabled={!!packBusy} onClick={() => pack('cards')}>{packBusy === 'cards' ? pick(ui, SP.busy) : pick(ui, SP.cards)}</button>
           </div>
-        ) : <button type="button" className="btn primary small" onClick={() => scrollToSection('pricing')}>{pick(lang, SP.lock)}</button>}
+        ) : <button type="button" className="btn primary small" onClick={() => scrollToSection('pricing')}>{pick(ui, SP.lock)}</button>}
       </section>
 
       {log.finals.length > 0 && (
         <section className="qp-sec">
-          <b>{pick(lang, S.history)}</b>
+          <b>{pick(ui, S.history)}</b>
           <ul className="qp-list">
             {log.finals.map((f, n) => {
               const key = `f${n}`;
@@ -210,7 +212,7 @@ export default function QuizPanel({ job, lang, log, onLog, onReset }: { job: Job
                   <button type="button" className="qp-row" onClick={() => setOpen(open === key ? null : key)} aria-expanded={open === key}>
                     <span className="qp-pill">{f.score}/{f.total}</span>
                     <span className="qp-t">{new Date(f.at).toLocaleString()}</span>
-                    <em>{open === key ? pick(lang, S.hide) : pick(lang, S.review)}</em>
+                    <em>{open === key ? pick(ui, S.hide) : pick(ui, S.review)}</em>
                   </button>
                   {open === key && f.items.map((it, k) => <ItemReview key={k} it={it} lang={lang} />)}
                 </li>

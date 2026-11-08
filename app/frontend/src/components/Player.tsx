@@ -13,10 +13,12 @@ const SPEEDS = [0.75, 1, 1.25, 1.5];
 const T = {
   en: { play: 'Play', pause: 'Pause', mute: 'Mute', unmute: 'Unmute', speed: 'Speed', full: 'Full screen', seek: 'Seek', chapter: 'Chapter' },
   zh: { play: '播放', pause: '暂停', mute: '静音', unmute: '取消静音', speed: '倍速', full: '全屏', seek: '进度', chapter: '章节' },
+  vi: { play: 'Phát', pause: 'Tạm dừng', mute: 'Tắt tiếng', unmute: 'Bật tiếng', speed: 'Tốc độ', full: 'Toàn màn hình', seek: 'Tiến độ', chapter: 'Phần' },
+  id: { play: 'Putar', pause: 'Jeda', mute: 'Bisukan', unmute: 'Nyalakan suara', speed: 'Kecepatan', full: 'Layar penuh', seek: 'Kemajuan', chapter: 'Bagian' },
 } as const;
 
 /** A video player whose timeline is cut into the chapters of the script, like a YouTube chapter bar: click a piece to jump to that section. */
-const Player = forwardRef<PlayerHandle, { src: string; poster?: string; chapters: Chapter[]; lang: 'en' | 'zh'; title?: string; onTime?: (t: number) => void; onPlay?: () => void; overlay?: ReactNode }>(function Player(
+const Player = forwardRef<PlayerHandle, { src: string; poster?: string; chapters: Chapter[]; lang: 'en' | 'zh' | 'vi' | 'id'; title?: string; onTime?: (t: number) => void; onPlay?: () => void; overlay?: ReactNode }>(function Player(
   { src, poster, chapters, lang, title, onTime, onPlay, overlay },
   ref,
 ) {
