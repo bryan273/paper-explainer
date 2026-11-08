@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { accountApi, useAccount } from '@/lib/account';
+import { uploadProof } from '@/lib/proof';
 import { usePrefs } from '@/lib/prefs';
 import { pick } from '@/lib/i18n_extra';
 
@@ -23,39 +24,6 @@ const S = {
   bad: { en: 'Choose a photo or a PDF under 6 MB.', zh: '请选择小于 6 MB 的照片或 PDF。', vi: 'Chọn ảnh hoặc PDF dưới 6 MB.', id: 'Pilih foto atau PDF di bawah 6 MB.' } as L4,
 };
 
-/** A photo wrapped in a one-page PDF, because the private bucket takes PDFs only. */
-async function imageToPdf(file: File): Promise<Blob> {
-  const bmp = await createImageBitmap(file);
-  const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
-  const w = Math.round(bmp.width * k), h = Math.round(bmp.height * k);
-  const cv = document.createElement('canvas');
-  cv.width = w; cv.height = h;
-  const ctx = cv.getContext('2d')!;
-  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); ctx.drawImage(bmp, 0, 0, w, h);
-  const jpg = new Uint8Array(await (await new Promise<Blob>((ok, no) => cv.toBlob((b) => (b ? ok(b) : no(new Error('image')), 'image/jpeg', 0.85)))).arrayBuffer());
-  const enc = new TextEncoder();
-  const parts: Uint8Array[] = [];
-  const off: number[] = [];
-  let len = 0;
-  const push = (u: Uint8Array) => { parts.push(u); len += u.length; };
-  const text = (t: string) => push(enc.encode(t));
-  text('%PDF-1.4\n');
-  const obj = (n: number, body: string) => { off[n] = len; text(`${n} 0 obj\n${body}\nendobj\n`); };
-  obj(1, '<< /Type /Catalog /Pages 2 0 R >>');
-  obj(2, '<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
-  obj(3, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${w} ${h}] /Contents 4 0 R /Resources << /XObject << /Im0 5 0 R >> >> >>`);
-  const draw = `q ${w} 0 0 ${h} 0 0 cm /Im0 Do Q`;
-  obj(4, `<< /Length ${draw.length} >>\nstream\n${draw}\nendstream`);
-  off[5] = len;
-  text(`5 0 obj\n<< /Type /XObject /Subtype /Image /Width ${w} /Height ${h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpg.length} >>\nstream\n`);
-  push(jpg);
-  text('\nendstream\nendobj\n');
-  const xref = len;
-  text('xref\n0 6\n0000000000 65535 f \n' + [1, 2, 3, 4, 5].map((n) => `${String(off[n]).padStart(10, '0')} 00000 n \n`).join(''));
-  text(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
-  return new Blob(parts as BlobPart[], { type: 'application/pdf' });
-}
-
 /** The student and teacher offer: one free month of Plus, after a person on our side has looked at a proof. */
 export default function StudentTrial() {
   const { lang } = usePrefs();
@@ -75,12 +43,8 @@ export default function StudentTrial() {
     if (!file) { setErr(pick(lang, S.bad)); return; }
     setBusy(true); setErr('');
     try {
-      const pdf = file.type === 'application/pdf' ? file : await imageToPdf(file);
-      if (pdf.size > 6 * 1024 * 1024) throw new Error(pick(lang, S.bad));
-      const addr = (await accountApi('proof_upload_url', { ext: 'pdf', size: pdf.size })) as { path: string; upload_url: string };
-      const put = await fetch(addr.upload_url, { method: 'PUT', headers: { 'Content-Type': 'application/pdf' }, body: pdf });
-      if (!put.ok) throw new Error(pick(lang, S.bad));
-      await accountApi('proof_submit', { role, path: addr.path, school: school.trim() });
+      const path = await uploadProof(file, 'verify');
+      await accountApi('proof_submit', { role, path, school: school.trim() });
       setOpen(false); setFile(null);
       await refresh?.();
     } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }

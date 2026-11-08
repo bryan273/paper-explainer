@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { markOrderPaid } from '@/lib/data';
-import { track } from '@/lib/account';
+import { accountApi, track } from '@/lib/account';
+import { uploadProof } from '@/lib/proof';
+import { pick } from '@/lib/i18n_extra';
 import { usePrefs } from '@/lib/prefs';
 
 /** QR payment step shared by Studio orders and credit packs: pick WeChat Pay or Alipay, scan, then "I have paid". The owner confirms in the admin page. */
@@ -12,6 +14,12 @@ export default function PayPanel({ orderId, price, intro, onClose }: { orderId: 
   const [paid, setPaid] = useState(false);
   const [sending, setSending] = useState(false);
   const [payError, setPayError] = useState(false);
+  const [shot, setShot] = useState<File | null>(null);
+  const shotRef = useRef<HTMLInputElement>(null);
+  const SH = {
+    h: { en: 'Add a screenshot of your payment (optional, we confirm faster)', zh: '附上付款截图（可选，确认更快）', vi: 'Đính kèm ảnh chụp màn hình thanh toán (không bắt buộc, giúp chúng tôi xác nhận nhanh hơn)', id: 'Lampirkan tangkapan layar pembayaran (opsional, konfirmasi lebih cepat)' },
+    pick: { en: 'Choose a photo', zh: '选择图片', vi: 'Chọn ảnh', id: 'Pilih foto' },
+  };
   // Vietnamese visitors pay by bank transfer (VietQR); everyone else by WeChat Pay or Alipay
   const methods = vi
     ? [
@@ -25,7 +33,10 @@ export default function PayPanel({ orderId, price, intro, onClose }: { orderId: 
   const confirm = async () => {
     if (!method) return;
     setSending(true); setPayError(false);
-    try { await markOrderPaid(orderId, method); track('order_paid_claimed'); setPaid(true); } catch { setPayError(true); } finally { setSending(false); }
+    try {
+      if (shot) { try { await accountApi('order_proof', { order: orderId, path: await uploadProof(shot, 'payment') }); } catch { /* the screenshot is optional: the payment claim still goes through */ } }
+      await markOrderPaid(orderId, method); track('order_paid_claimed'); setPaid(true);
+    } catch { setPayError(true); } finally { setSending(false); }
   };
   if (lang === 'id') {   // no Indonesian bank account is set up yet: say so plainly and let the person reach us with the order number
     return (
@@ -71,6 +82,11 @@ export default function PayPanel({ orderId, price, intro, onClose }: { orderId: 
                 </figure>
                 <p className="small muted" style={{ margin: 0 }}>{vi ? `Ghi mã đơn hàng ${orderId.slice(0, 8)} vào nội dung chuyển khoản. Chúng tôi xác nhận và kích hoạt trong vòng một ngày.` : t('payNote')}</p>
                 <p className="small muted" style={{ margin: 0 }}>{t('payOrderNo')}: <span className="mono">{orderId.slice(0, 8)}</span></p>
+                <div className="pay-shot">
+                  <span className="small">{pick(lang, SH.h)}</span>
+                  <input ref={shotRef} type="file" accept="image/*,application/pdf" hidden onChange={(e) => setShot(e.target.files?.[0] ?? null)} />
+                  <button type="button" className="verify-drop" onClick={() => shotRef.current?.click()}>{shot ? `✓ ${shot.name}` : pick(lang, SH.pick)}</button>
+                </div>
                 {payError && <p className="err">{t('payFail')}</p>}
                 <div className="row">
                   <button type="button" className="btn primary" disabled={sending} onClick={confirm}>{sending ? <span className="spin" aria-hidden /> : null}{vi ? 'Tôi đã chuyển khoản' : t('payIPaid')}</button>
