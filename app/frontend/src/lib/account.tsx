@@ -6,7 +6,7 @@ export const ACCOUNT_URL = 'https://wzdkroxbfrlqijbeiwpk.supabase.co/functions/v
 const TOKEN_KEY = 'pe-session';
 
 export type Quota = { tier: 'guest' | 'member'; day_limit: number; day_used: number; day_left: number; credits: number; resets_in_min: number | null };
-export type Member = { id: string; username: string; credits: number; created_at: string };
+export type Member = { id: string; username: string; handle?: string | null; credits: number; created_at: string };
 export type Pack = { credits: number; price: number };
 type Me = { admin?: boolean; user: Member | null; quota: Quota; limits: { guest: number; member: number; welcome: number }; packs: Record<string, Pack> };
 

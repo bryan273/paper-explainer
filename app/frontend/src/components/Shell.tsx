@@ -11,6 +11,7 @@ const SECTIONS: { id: string; key: StringKey }[] = [
 
 function scrollTo(id: string) {
   document.body.classList.remove('menu-open');
+  if (!document.getElementById(id) && id === 'pricing') { window.dispatchEvent(new Event('pe-show-plans')); window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 160); return; }   // a member's home folds the plans away until asked
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   history.replaceState(null, '', `#${id}`);
 }
