@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { pick } from '@/lib/i18n_extra';
 import { openContact } from '@/components/sections/ContactSection';
 import { scrollToSection } from '@/components/Shell';
 import { SUITE_URLS } from '@/lib/explainer';
@@ -34,6 +35,7 @@ export default function SiteFooter() {
           <Link to="/account">{a('account')}</Link>
         </nav>
       </div>
+      <p className="foot2-copy">&copy; {new Date().getFullYear()} Paperlit. {pick(lang, { en: 'All rights reserved.', zh: '版权所有。', vi: 'Bảo lưu mọi quyền.', id: 'Hak cipta dilindungi.' })}</p>
       <p className="foot2-note">{t('footerNote')} {zh ? 'AI 可能出错，重要结论请核对原文。' : 'AI can make mistakes: check important claims in the paper.'}</p>
     </footer>
   );

@@ -75,7 +75,7 @@ export default function Tour() {
             <button type="button" className="tour-x" onClick={mark} aria-label={pick(lang, U.skip)}>×</button>
           </div>
         )}
-        {seen && <button type="button" className="tour-fab" onClick={() => setStep(0)}>? {pick(lang, U.tour)}</button>}
+        {seen && <button type="button" className="tour-fab" onClick={() => setStep(0)} aria-label={pick(lang, U.tour)}><span aria-hidden>?</span><span className="tour-t"> {pick(lang, U.tour)}</span></button>}
       </div>
     );
   }

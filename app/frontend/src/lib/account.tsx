@@ -90,6 +90,12 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === 'visible' && getToken()) refresh(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [refresh]);
+
+  useEffect(() => {
     refresh();
     try {
       if (!sessionStorage.getItem('pe-visit')) { sessionStorage.setItem('pe-visit', '1'); track('visit', { ref: document.referrer.slice(0, 80) }); }
