@@ -43,12 +43,38 @@ const L = {
     cta: '购买 {p}', ctaSent: '订单已创建，请在下方付款。', yours: '你的套餐', ctaFree: '免费注册', ctaMine: '我的论文',
     packs: '只需要几个视频？单独购买', packsLine: '额度永不过期。', each: '个视频', buy: '购买额度', note: '用微信或支付宝付款，然后点“我已付款”。我们人工确认，通常一天内，确认后视频额度和套餐立即生效。不续费即取消。',
   },
+  vi: {
+    title: 'Bảng giá', sub: 'Dùng thử mọi tính năng miễn phí trước. Chỉ trả tiền khi nó thành thói quen học của bạn.',
+    month: 'Theo tháng', year: 'Theo năm', save: 'tặng 2 tháng',
+    free: 'Miễn phí', plus: 'Plus', pro: 'Pro', popular: 'Được chọn nhiều nhất', founding: 'thanh toán theo tháng, hủy bất cứ lúc nào',
+    perMonth: '/ tháng', perYear: '/ năm', billedYear: 'thanh toán một lần mỗi năm, khoảng ¥{m} mỗi tháng',
+    freeL: ['1 video miễn phí mỗi ngày, cộng 3 video chào mừng', 'Dùng thử tính năng thông minh: 3 câu hỏi trong video mỗi ngày, 10 câu trả lời kỹ lưỡng cho mỗi video', 'English, 中文, Tiếng Việt, Bahasa Indonesia', 'Video lưu 14 ngày, kèm liên kết chia sẻ'],
+    plusL: ['99 video mỗi tháng, mỗi video tối đa 5 phút', 'Chế độ tương tác: trả lời câu hỏi ngay trong video, không giới hạn', '30 câu trả lời kỹ lưỡng (AI mạnh hơn) cho mỗi video', 'Câu trả lời phù hợp trình độ và lĩnh vực của bạn', 'Video lưu 90 ngày', 'Video lỗi: tự động hoàn lại'],
+    proL: ['200 video mỗi tháng, mỗi video tối đa 10 phút', 'Gồm mọi thứ của Plus', 'Câu trả lời kỹ lưỡng: không giới hạn, luôn dùng AI mạnh nhất', 'Video lưu trọn một năm', 'Dùng tính năng mới trước'],
+    soon: 'đang phát triển',
+    custom: 'Tùy chỉnh', customSub: 'Cần nhiều hơn, hay cần điều gì khác?', customL: ['Nhiều video hơn Pro', 'Gói cho một lớp, một nhóm nghiên cứu hoặc một đội', 'Chủ đề, nguồn và ngôn ngữ riêng của bạn', 'Hóa đơn và người hỗ trợ riêng'], customCta: 'Liên hệ chúng tôi', customPrice: 'Trao đổi nhé',
+    cta: 'Mua {p}', ctaSent: 'Đã tạo đơn hàng. Hãy thanh toán bên dưới.', yours: 'Gói của bạn', ctaFree: 'Đăng ký miễn phí', ctaMine: 'Bài báo của tôi',
+    packs: 'Chỉ cần vài video? Mua lẻ', packsLine: 'Tín dụng không hết hạn.', each: 'video', buy: 'Mua tín dụng', note: 'Chuyển khoản qua Techcombank hoặc BIDV (VietQR), rồi bấm "Tôi đã chuyển khoản". Chúng tôi xác nhận thủ công, thường trong vòng một ngày, và video cùng gói của bạn sẽ được kích hoạt. Muốn hủy, chỉ cần không gia hạn.',
+  },
+  id: {
+    title: 'Harga', sub: 'Coba semua fitur gratis dulu. Bayar hanya ketika sudah menjadi bagian dari cara belajar Anda.',
+    month: 'Bulanan', year: 'Tahunan', save: 'gratis 2 bulan',
+    free: 'Gratis', plus: 'Plus', pro: 'Pro', popular: 'Paling banyak dipilih', founding: 'ditagih bulanan, bisa berhenti kapan saja',
+    perMonth: '/ bulan', perYear: '/ tahun', billedYear: 'ditagih sekali setahun, sekitar ¥{m} per bulan',
+    freeL: ['1 video gratis per hari, ditambah 3 video selamat datang', 'Coba fitur pintar: 3 pertanyaan di dalam video per hari, 10 jawaban teliti untuk tiap video', 'English, 中文, Tiếng Việt, Bahasa Indonesia', 'Video disimpan 14 hari, dengan tautan untuk dibagikan'],
+    plusL: ['99 video per bulan, masing-masing hingga 5 menit', 'Mode interaktif: jawab pertanyaan di dalam video, tanpa batas', '30 jawaban teliti (AI lebih kuat) untuk tiap video', 'Jawaban disesuaikan dengan tingkat dan bidang Anda', 'Video disimpan 90 hari', 'Video gagal: otomatis dikembalikan'],
+    proL: ['200 video per bulan, masing-masing hingga 10 menit', 'Semua yang ada di Plus', 'Jawaban teliti: tanpa batas, selalu memakai AI terkuat', 'Video disimpan satu tahun penuh', 'Fitur baru lebih dulu'],
+    soon: 'sedang dikembangkan',
+    custom: 'Khusus', customSub: 'Butuh lebih banyak, atau sesuatu yang berbeda?', customL: ['Video lebih banyak dari Pro', 'Paket untuk kelas, lab, atau tim', 'Bidang, sumber, dan bahasa Anda sendiri', 'Faktur dan satu orang untuk diajak bicara'], customCta: 'Hubungi kami', customPrice: 'Mari bicara',
+    cta: 'Beli {p}', ctaSent: 'Pesanan dibuat. Bayar di bawah.', yours: 'Paket Anda', ctaFree: 'Daftar gratis', ctaMine: 'Makalah saya',
+    packs: 'Hanya butuh beberapa video? Beli satuan', packsLine: 'Kredit tidak pernah kedaluwarsa.', each: 'video', buy: 'Beli kredit', note: 'Setelah memesan, hubungi kami lewat tombol Kontak dengan kode pesanan Anda. Kami membalas dengan detail pembayaran dan mengaktifkan paket setelah pembayaran dikonfirmasi, biasanya dalam sehari.',
+  },
 } as const;
 
 export default function PricingSection() {
   const { lang } = usePrefs();
   const { me, user, openAuth } = useAccount();
-  const l = L[lang === 'zh' ? 'zh' : 'en'];
+  const l = L[lang === 'zh' || lang === 'vi' || lang === 'id' ? lang : 'en'];
   const [billing, setBilling] = useState<Billing>('year');
   const [sent, setSent] = useState<PlanId | null>(null);
   const [busy, setBusy] = useState<PlanId | null>(null);

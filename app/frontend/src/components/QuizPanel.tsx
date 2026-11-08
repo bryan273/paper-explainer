@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useAccount } from '@/lib/account';
+import { scrollToSection } from '@/components/Shell';
 import { ApiError, quizAll, type Job, type Quiz } from '@/lib/explainer';
 import { secText } from '@/lib/explainer';
 import { pick } from '@/lib/i18n_extra';
@@ -8,6 +10,20 @@ export type QItem = { q: Quiz; picked: number };
 export type QLog = { parts: Record<number, QItem>; finals: { at: string; score: number; total: number; items: QItem[] }[] };
 
 type L4 = { en: string; zh: string; vi: string; id: string };
+const SP = {
+  h: { en: 'Study pack', zh: '学习包', vi: 'Gói ôn tập', id: 'Paket belajar' } as L4,
+  p: { en: 'Notes for every part and flashcards (Anki CSV) made from this video. Plus and Pro.', zh: '每个部分的笔记和闪卡（Anki CSV）。Plus 和 Pro 可用。', vi: 'Ghi chú cho từng phần và thẻ ghi nhớ (Anki CSV) từ video này. Dành cho Plus và Pro.', id: 'Catatan tiap bagian dan kartu belajar (Anki CSV) dari video ini. Untuk Plus dan Pro.' } as L4,
+  notes: { en: 'Download notes (.md)', zh: '下载笔记 (.md)', vi: 'Tải ghi chú (.md)', id: 'Unduh catatan (.md)' } as L4,
+  cards: { en: 'Download flashcards (.csv)', zh: '下载闪卡 (.csv)', vi: 'Tải thẻ ghi nhớ (.csv)', id: 'Unduh kartu belajar (.csv)' } as L4,
+  lock: { en: 'See plans', zh: '查看套餐', vi: 'Xem các gói', id: 'Lihat paket' } as L4,
+  busy: { en: 'Preparing…', zh: '准备中…', vi: 'Đang chuẩn bị…', id: 'Menyiapkan…' } as L4,
+};
+const save = (name: string, text: string, type: string) => {
+  const url = URL.createObjectURL(new Blob(['\uFEFF' + text], { type: type + ';charset=utf-8' }));
+  const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+};
+const csvCell = (x: string) => '"' + x.replace(/"/g, '""').replace(/\n/g, ' ') + '"';
 const S = {
   title: { en: 'Your quiz', zh: '你的测验', vi: 'Bài kiểm tra của bạn', id: 'Kuis Anda' } as L4,
   parts: { en: 'Questions inside the video', zh: '视频内的题目', vi: 'Câu hỏi trong video', id: 'Pertanyaan di dalam video' } as L4,
@@ -49,6 +65,9 @@ function ItemReview({ it, lang }: { it: QItem; lang: Lang }) {
 export default function QuizPanel({ job, lang, log, onLog, onReset }: { job: Job; lang: Lang; log: QLog; onLog: (l: QLog) => void; onReset: () => void }) {
   const [open, setOpen] = useState<string | null>(null);
   const [run, setRun] = useState<null | { status: 'loading' | 'play' | 'done' | 'error'; items: Quiz[]; picks: number[]; idx: number; err?: string; signup?: boolean }>(null);
+  const { me } = useAccount();
+  const hasPlan = !!(me as unknown as { plan?: string | null } | null)?.plan;
+  const [packBusy, setPackBusy] = useState<'' | 'notes' | 'cards'>('');
   const secs = job.sections ?? [];
   const answered = Object.entries(log.parts).map(([i, it]) => ({ i: Number(i), it })).sort((a, b) => a.i - b.i);
   const good = answered.filter((x) => x.it.picked === x.it.q.answer).length;
@@ -68,6 +87,26 @@ export default function QuizPanel({ job, lang, log, onLog, onReset }: { job: Job
     onLog({ ...log, finals: [{ at: new Date().toISOString(), score, total: items.length, items }, ...log.finals].slice(0, 20) });
     return { ...r, status: 'done' };
   });
+
+  const pack = async (kind: 'notes' | 'cards') => {
+    setPackBusy(kind);
+    try {
+      const qs = await quizAll({ job: job.id, lang }).catch(() => [] as Quiz[]);
+      const slug = (job.title || 'video').replace(/[^\p{L}\p{N}]+/gu, '-').slice(0, 50);
+      if (kind === 'notes') {
+        const md = [`# ${job.title ?? ''}`, '', ...secs.flatMap((x, i) => {
+          const take = secText(x, 'takeaway', lang);
+          const q = qs.find((z) => z.section === i);
+          const quiz = q ? ['*Check yourself:* ' + q.question, ...q.options.map((o, k) => (k === q.answer ? '- [x] ' : '- [ ] ') + o), '', q.why] : [];
+          return ['## ' + (i + 1) + '. ' + secText(x, 'title', lang), '', secText(x, 'text', lang), '', take ? '**Key takeaway:** ' + take : '', '', ...quiz, ''];
+        })].join('\n');
+        save(`${slug}-notes.md`, md, 'text/markdown');
+      } else {
+        const rows = [...qs.map((q) => [`${q.question}`, `${q.options[q.answer]}. ${q.why}`]), ...secs.map((x) => [secText(x, 'title', lang), secText(x, 'takeaway', lang)]).filter((r) => r[1])];
+        save(`${slug}-flashcards.csv`, rows.map((r) => r.map(csvCell).join(',')).join('\n'), 'text/csv');
+      }
+    } finally { setPackBusy(''); }
+  };
 
   const cur = run && run.status === 'play' ? run.items[run.idx] : null;
   const picked = run && run.status === 'play' ? run.picks[run.idx] : undefined;
@@ -147,6 +186,17 @@ export default function QuizPanel({ job, lang, log, onLog, onReset }: { job: Job
             </div>
           );
         })()}
+      </section>
+
+      <section className="qp-sec">
+        <b>{pick(lang, SP.h)}</b>
+        <p className="small muted" style={{ margin: '2px 0 8px' }}>{pick(lang, SP.p)}</p>
+        {hasPlan ? (
+          <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+            <button type="button" className="btn ghost small" disabled={!!packBusy} onClick={() => pack('notes')}>{packBusy === 'notes' ? pick(lang, SP.busy) : pick(lang, SP.notes)}</button>
+            <button type="button" className="btn ghost small" disabled={!!packBusy} onClick={() => pack('cards')}>{packBusy === 'cards' ? pick(lang, SP.busy) : pick(lang, SP.cards)}</button>
+          </div>
+        ) : <button type="button" className="btn primary small" onClick={() => scrollToSection('pricing')}>{pick(lang, SP.lock)}</button>}
       </section>
 
       {log.finals.length > 0 && (

@@ -1602,3 +1602,6 @@ html[lang='vi'] .mono, html[lang='vi'] code { font-family: 'JetBrains Mono', ui-
 .qp-done { text-align: center; padding: 8px 0; display: grid; gap: 6px; justify-items: center; }
 .qp-big { font: 800 40px var(--display); letter-spacing: -0.03em; }
 .qp-pct { color: var(--muted); font-weight: 700; }
+
+.tour-fab-wrap { left: auto; right: 16px; justify-items: end; }
+@media (max-width: 700px) { .tour-fab-wrap { bottom: 12px; right: 12px; } .tour-offer { max-width: calc(100vw - 24px); } }

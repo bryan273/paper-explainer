@@ -574,7 +574,7 @@ function readTheme(): Theme {
 
 function readLang(): Lang {
   try {
-    const v = localStorage.getItem(LANG_KEY);
+    const v = localStorage.getItem('suite-lang') || localStorage.getItem(LANG_KEY);   // one language for every Paperlit app
     if (v === 'en' || v === 'zh' || v === 'vi' || v === 'id') return v;
   } catch {
     /* storage unavailable */
@@ -610,6 +610,7 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
     }
     try {
       localStorage.setItem(LANG_KEY, lang);
+      localStorage.setItem('suite-lang', lang);
     } catch {
       /* storage unavailable */
     }
