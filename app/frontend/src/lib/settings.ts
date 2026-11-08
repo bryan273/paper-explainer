@@ -25,9 +25,9 @@ apply(read());
 
 /** What each mode changes: the tone and length the make form starts on, whether the video asks questions as it plays, and which Ask model is selected. */
 export const PURPOSE: Record<Purpose, { tone: (typeof TONES)[number]; seconds: number; interactive: boolean; askModel: 'fast' | 'deep' }> = {
-  study: { tone: 'teacher', seconds: 180, interactive: true, askModel: 'fast' },
+  study: { tone: 'teacher', seconds: 180, interactive: false, askModel: 'fast' },
   research: { tone: 'academic', seconds: 300, interactive: false, askModel: 'deep' },
-  teach: { tone: 'teacher', seconds: 300, interactive: true, askModel: 'fast' },
+  teach: { tone: 'teacher', seconds: 300, interactive: false, askModel: 'fast' },
   share: { tone: 'story', seconds: 60, interactive: false, askModel: 'fast' },
   curious: { tone: 'eli5', seconds: 120, interactive: false, askModel: 'fast' },
 };

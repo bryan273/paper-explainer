@@ -14,7 +14,7 @@ const T = {
 
 /** The original paper beside the video and the answers. An answer's "p. 5" opens the PDF on that page. */
 export default function PaperPane({ job, lang, page, pageKey, localPdf }: { job: Job; lang: Lang; page: number | null; pageKey: number; localPdf?: string | null }) {
-  const t = T[lang];
+  const t = T[lang === 'zh' ? 'zh' : 'en'];
   const isUpload = (job.source_url ?? '').startsWith('upload:');
   const arxiv = !job.source_url ? parseArxivId(job.arxiv) : null;
   const base = localPdf || (arxiv ? `https://arxiv.org/pdf/${arxiv}` : null);
