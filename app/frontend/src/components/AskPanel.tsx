@@ -12,7 +12,7 @@ import { scrollToSection } from '@/components/Shell';
 
 const D = {
   fast: { en: 'Fast', zh: '快速', vi: 'Nhanh', id: 'Cepat' }, deep: { en: 'Deep', zh: '深入', vi: 'Sâu', id: 'Mendalam' },
-  deepHint: { en: 'Deep uses a stronger AI model for harder questions. Free to try: {n} a day.', zh: '深入模式使用更强的 AI 模型回答更难的问题。可免费试用，每天 {n} 次。', vi: 'Chế độ Sâu dùng mô hình AI mạnh hơn cho câu hỏi khó. Dùng thử miễn phí: {n} lần mỗi ngày.', id: 'Mode Mendalam memakai model AI yang lebih kuat untuk pertanyaan sulit. Gratis dicoba: {n} kali sehari.' },
+  deepHint: { en: 'Deep uses a stronger AI model for harder questions. {n} free Deep questions for each video, unlimited with Plus.', zh: '深入模式使用更强的 AI 模型回答更难的问题。每个视频可免费问 {n} 个，Plus 不限次数。', vi: 'Chế độ Sâu dùng mô hình AI mạnh hơn cho câu hỏi khó. {n} câu hỏi Sâu miễn phí cho mỗi video, không giới hạn với Plus.', id: 'Mode Mendalam memakai model AI yang lebih kuat untuk pertanyaan sulit. {n} pertanyaan Mendalam gratis untuk setiap video, tanpa batas dengan Plus.' },
   signup: { en: 'Sign up free to try Deep', zh: '免费注册，试用深入模式', vi: 'Đăng ký miễn phí để thử chế độ Sâu', id: 'Daftar gratis untuk mencoba mode Mendalam' },
   seePlus: { en: 'See Plus', zh: '查看 Plus', vi: 'Xem gói Plus', id: 'Lihat Plus' },
   useFast: { en: 'Answer with Fast instead', zh: '改用快速模式回答', vi: 'Trả lời bằng chế độ Nhanh', id: 'Jawab dengan mode Cepat' },
@@ -184,7 +184,7 @@ export default function AskPanel({ job, lang, seed, onCite }: { job: Job; lang: 
           <h3 className="sec" style={{ fontSize: 22, margin: 0 }}>{t('askTitle')}</h3>
           <p className="small muted" style={{ margin: '4px 0 0', maxWidth: 560 }}>{t('askSub')}</p>
         </div>
-        <div className="askseg ask-model" role="radiogroup" aria-label="AI model" title={pick(lang, D.deepHint).replace('{n}', '2')}>
+        <div className="askseg ask-model" role="radiogroup" aria-label="AI model" title={pick(lang, D.deepHint).replace('{n}', '10')}>
           <button type="button" role="radio" aria-checked={model === 'fast'} onClick={() => pickModel('fast')}>{pick(lang, D.fast)}</button>
           <button type="button" role="radio" aria-checked={model === 'deep'} onClick={() => pickModel('deep')}>{pick(lang, D.deep)} <em className="spark">✦</em></button>
         </div>
@@ -194,7 +194,7 @@ export default function AskPanel({ job, lang, seed, onCite }: { job: Job; lang: 
         </div>
       </div>
 
-      {model === 'deep' && <p className="small muted ask-deep-hint" style={{ margin: 0 }}>✦ {pick(lang, D.deepHint).replace('{n}', '2')}</p>}
+      {model === 'deep' && <p className="small muted ask-deep-hint" style={{ margin: 0 }}>✦ {pick(lang, D.deepHint).replace('{n}', '10')}</p>}
 
       {msgs.length === 0 && !busy && (
         <div className="chips" role="group" aria-label={t('askNext')}>

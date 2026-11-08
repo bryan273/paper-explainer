@@ -5,6 +5,7 @@ import { usePrefs, type StringKey } from '@/lib/prefs';
 
 const SECTIONS: { id: string; key: StringKey }[] = [
   { id: 'make', key: 'navMake' },
+  { id: 'features', key: 'navFeatures' },
   { id: 'examples', key: 'navExamples' },
   { id: 'how', key: 'navHow' },
   { id: 'pricing', key: 'navPricing' },
@@ -46,7 +47,7 @@ export default function Shell({ children }: { children: ReactNode }) {
 
   return (
     <div className="shell">
-      <SuiteTopBar appId="explainer" brand="Paper Explainer" letter="E" homeTo="/" nav={nav} dark={theme === 'dark'} onToggleDark={toggleTheme} lang={lang} onLang={setLang} languages={['en', 'zh', 'vi', 'id']} onSettings={() => window.dispatchEvent(new Event('pe-open-settings'))} />
+      <SuiteTopBar appId="explainer" brand="Paperlit" letter="E" homeTo="/" nav={nav} dark={theme === 'dark'} onToggleDark={toggleTheme} lang={lang} onLang={setLang} languages={['en', 'zh', 'vi', 'id']} onSettings={() => window.dispatchEvent(new Event('pe-open-settings'))} />
       <SettingsDialog />
       <OpenSettingsFromUrl />
       <div className="mainwrap">

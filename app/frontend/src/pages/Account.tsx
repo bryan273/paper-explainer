@@ -13,7 +13,7 @@ const L = {
   en: {
     title: 'Dashboard', videos: 'Your videos', hello: 'Signed in as', free: 'Free videos today', credits: 'Credits', made: 'Papers explained', left: '{n} left of {m}', empty: 'No papers yet.', first: 'Explain your first paper',
     open: 'Open', ask: 'Ask', ready: 'Ready', making: 'Making', failed: 'Failed', expired: 'Expired', min: '{n} min', more: 'Need more videos?', moreSub: 'From ¥2.6 a video. Credits never expire, and a failed video is refunded. A plan is cheaper: 100 videos for ¥33 a month.',
-    history: 'Credit history', show: 'Show', hide: 'Hide', security: 'Password', admin: 'Admin console', make: 'Explain a paper', soon: 'Videos are kept for 14 days, then removed.', makeAgain: 'Make it again',
+    history: 'Credit history', show: 'Show', hide: 'Hide', security: 'Password', admin: 'Admin console', make: 'Explain a paper', soon: 'Videos are kept for 14 days (90 days on Plus, a year on Pro). Until then you can reopen them and keep asking.', makeAgain: 'Make it again',
   },
   zh: {
     title: '我的看板', videos: '你的视频', hello: '当前账户', free: '今日免费视频', credits: '额度', made: '已解读论文', left: '剩余 {n} / {m}', empty: '还没有论文。', first: '解读你的第一篇论文',

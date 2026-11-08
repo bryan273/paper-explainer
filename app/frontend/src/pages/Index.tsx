@@ -4,6 +4,8 @@ import Shell, { scrollToSection } from '@/components/Shell';
 import Hero from '@/components/sections/Hero';
 import MakeSection from '@/components/sections/MakeSection';
 import ExamplesSection from '@/components/sections/ExamplesSection';
+import CapabilitiesSection from '@/components/sections/CapabilitiesSection';
+import Tour from '@/components/Tour';
 import HowSection from '@/components/sections/HowSection';
 import PricingSection from '@/components/sections/PricingSection';
 import FeedbackSection from '@/components/sections/FeedbackSection';
@@ -118,12 +120,14 @@ export default function Index() {
       {pending ? <div className="member-head skeleton" aria-hidden /> : user ? <MemberHead /> : <Hero items={items} error={error} />}
       <MakeSection prefill={paper ?? shared} autoOpen={!!paper} />
       {user && <MemberRecent />}
+      <CapabilitiesSection />
       <ExamplesSection items={items} error={error} openArxiv={shared} />
       {!user && !pending && <HowSection />}
       <PricingSection />
       <FeedbackSection />
       <FaqSection />
       <ContactModal />
+      <Tour />
 
       <SuiteCta
         title={lang === 'zh' ? '把一篇论文变成 40 秒视频' : 'Turn a paper into a 40 second video'}

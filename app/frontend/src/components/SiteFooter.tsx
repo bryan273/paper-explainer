@@ -15,7 +15,7 @@ export default function SiteFooter() {
     <footer className="foot2">
       <div className="foot2-in">
         <div className="foot2-brand">
-          <b>Paper Explainer</b>
+          <b>Paperlit</b>
           <span>{zh ? '把论文讲明白的短视频。' : 'Papers explained in short videos.'}</span>
         </div>
         <nav aria-label={zh ? '页面' : 'Product'}>
@@ -28,7 +28,7 @@ export default function SiteFooter() {
           <Link to="/terms">{a('terms')}</Link>
           <Link to="/privacy">{a('privacy')}</Link>
         </nav>
-        <nav aria-label="Repro Suite">
+        <nav aria-label="Paperlit">
           <a href={SUITE_URLS.repro}>{t('appRepro')}</a>
           <a href={SUITE_URLS.all}>{t('appAll')}</a>
           <Link to="/account">{a('account')}</Link>
