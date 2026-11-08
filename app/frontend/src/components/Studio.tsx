@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Lang } from '@/lib/prefs';
-import { ApiError, copyText, quizPart, secText, storageKind, videoUrl, type Job, type Quiz } from '@/lib/explainer';
+import { ApiError, askPaper, copyText, quizAll, quizPart, secText, storageKind, videoUrl, type Job, type Quiz } from '@/lib/explainer';
 import { useAccount } from '@/lib/account';
 import { pick } from '@/lib/i18n_extra';
 import { scrollToSection } from '@/components/Shell';
 import { track } from '@/lib/account';
 import Player, { type Chapter, type PlayerHandle } from '@/components/Player';
+import QuizPanel, { type QLog } from '@/components/QuizPanel';
 import AskPanel from '@/components/AskPanel';
 import PaperPane from '@/components/PaperPane';
 
@@ -21,7 +22,7 @@ const T = {
 } as const;
 
 const SH = {"btn": {"en": "Share this video", "zh": "分享这个视频", "vi": "Chia sẻ video này", "id": "Bagikan video ini"}, "done": {"en": "Link copied", "zh": "链接已复制", "vi": "Đã sao chép liên kết", "id": "Tautan disalin"}, "hint": {"en": "Anyone with the link can watch it and ask questions, for as long as the video is kept.", "zh": "任何拿到链接的人都可以观看并提问，在视频保留期内有效。", "vi": "Ai có liên kết đều xem và đặt câu hỏi được, chừng nào video còn được lưu.", "id": "Siapa pun yang punya tautan bisa menonton dan bertanya, selama video masih disimpan."}} as const;
-const IA = {"introH": {"en": "New: Interactive mode", "zh": "新功能：互动模式", "vi": "Mới: Chế độ tương tác", "id": "Baru: Mode interaktif"}, "introP": {"en": "Want to be sure you got it? Turn it on and the video pauses after each part with one question. It is off unless you choose it. Free to try. Students and teachers get a free month of Plus.", "zh": "想确认自己真的懂了吗？打开后，每段结束视频会暂停并问你一个问题。默认关闭，由你决定。可免费试用。学生和教师可免费用 1 个月 Plus。", "vi": "Muốn chắc là mình hiểu? Bật lên và video sẽ dừng sau mỗi phần với một câu hỏi. Mặc định tắt, do bạn chọn. Dùng thử miễn phí. Sinh viên và giảng viên được tặng 1 tháng Plus.", "id": "Ingin memastikan Anda paham? Nyalakan dan video berhenti setiap bagian dengan satu pertanyaan. Mati kecuali Anda memilihnya. Gratis dicoba. Mahasiswa dan pengajar dapat 1 bulan Plus gratis."}, "introOn": {"en": "Turn it on", "zh": "打开", "vi": "Bật lên", "id": "Nyalakan"}, "introNo": {"en": "Not now", "zh": "暂不需要", "vi": "Để sau", "id": "Nanti saja"}, "mode": {"en": "Interactive mode", "zh": "互动模式", "vi": "Chế độ tương tác", "id": "Mode interaktif"}, "free": {"en": "Free to try", "zh": "免费试用", "vi": "Dùng thử miễn phí", "id": "Gratis dicoba"}, "hint": {"en": "The video stops after each part and asks you one question.", "zh": "每段结束后视频会暂停，并问你一个问题。", "vi": "Video dừng sau mỗi phần và hỏi bạn một câu.", "id": "Video berhenti setiap bagian dan menanyakan satu pertanyaan."}, "q": {"en": "Check yourself", "zh": "自测一下", "vi": "Tự kiểm tra", "id": "Uji diri Anda"}, "right": {"en": "Correct", "zh": "答对了", "vi": "Chính xác", "id": "Benar"}, "wrong": {"en": "Not quite", "zh": "不太对", "vi": "Chưa đúng", "id": "Belum tepat"}, "cont": {"en": "Continue the video", "zh": "继续播放", "vi": "Xem tiếp", "id": "Lanjutkan video"}, "more": {"en": "Explain this more", "zh": "再讲深一点", "vi": "Giải thích sâu hơn", "id": "Jelaskan lebih dalam"}, "replay": {"en": "Replay this part", "zh": "重看这一段", "vi": "Xem lại phần này", "id": "Putar ulang bagian ini"}, "loading": {"en": "Writing a question about this part…", "zh": "正在为这一段出题…", "vi": "Đang viết câu hỏi cho phần này…", "id": "Menulis pertanyaan untuk bagian ini…"}, "skip": {"en": "Skip", "zh": "跳过", "vi": "Bỏ qua", "id": "Lewati"}, "signup": {"en": "Sign up free", "zh": "免费注册", "vi": "Đăng ký miễn phí", "id": "Daftar gratis"}, "plus": {"en": "See Plus", "zh": "查看 Plus", "vi": "Xem gói Plus", "id": "Lihat Plus"}, "next": {"en": "Go further with this paper", "zh": "继续深入这篇论文", "vi": "Đi sâu hơn với bài báo này", "id": "Telusuri makalah ini lebih jauh"}, "nextRead": {"en": "Read it with cited answers", "zh": "带引用地阅读原文", "vi": "Đọc kèm câu trả lời có trích dẫn", "id": "Baca dengan jawaban bersitasi"}, "nextCheck": {"en": "Re-run it: does the number hold?", "zh": "重新运行：结果成立吗？", "vi": "Chạy lại: con số có đúng không?", "id": "Jalankan ulang: apakah angkanya benar?"}} as const;
+const IA = {"quizTab": {"en": "Quiz", "zh": "测验", "vi": "Kiểm tra", "id": "Kuis"}, "exLoading": {"en": "Writing a simpler explanation…", "zh": "正在写更通俗的讲解…", "vi": "Đang viết lời giải thích dễ hiểu hơn…", "id": "Menulis penjelasan yang lebih sederhana…"}, "exErr": {"en": "Could not explain this right now.", "zh": "暂时无法讲解。", "vi": "Hiện chưa giải thích được.", "id": "Belum bisa menjelaskan sekarang."}, "prep": {"en": "Questions ready", "zh": "题目已准备", "vi": "Câu hỏi đã sẵn sàng", "id": "Pertanyaan siap"}, "introH": {"en": "New: Interactive mode", "zh": "新功能：互动模式", "vi": "Mới: Chế độ tương tác", "id": "Baru: Mode interaktif"}, "introP": {"en": "Want to be sure you got it? Turn it on and the video pauses after each part with one question. It is off unless you choose it. Free to try. Students and teachers get a free month of Plus.", "zh": "想确认自己真的懂了吗？打开后，每段结束视频会暂停并问你一个问题。默认关闭，由你决定。可免费试用。学生和教师可免费用 1 个月 Plus。", "vi": "Muốn chắc là mình hiểu? Bật lên và video sẽ dừng sau mỗi phần với một câu hỏi. Mặc định tắt, do bạn chọn. Dùng thử miễn phí. Sinh viên và giảng viên được tặng 1 tháng Plus.", "id": "Ingin memastikan Anda paham? Nyalakan dan video berhenti setiap bagian dengan satu pertanyaan. Mati kecuali Anda memilihnya. Gratis dicoba. Mahasiswa dan pengajar dapat 1 bulan Plus gratis."}, "introOn": {"en": "Turn it on", "zh": "打开", "vi": "Bật lên", "id": "Nyalakan"}, "introNo": {"en": "Not now", "zh": "暂不需要", "vi": "Để sau", "id": "Nanti saja"}, "mode": {"en": "Interactive mode", "zh": "互动模式", "vi": "Chế độ tương tác", "id": "Mode interaktif"}, "free": {"en": "Free to try", "zh": "免费试用", "vi": "Dùng thử miễn phí", "id": "Gratis dicoba"}, "hint": {"en": "The video stops after each part and asks you one question.", "zh": "每段结束后视频会暂停，并问你一个问题。", "vi": "Video dừng sau mỗi phần và hỏi bạn một câu.", "id": "Video berhenti setiap bagian dan menanyakan satu pertanyaan."}, "q": {"en": "Check yourself", "zh": "自测一下", "vi": "Tự kiểm tra", "id": "Uji diri Anda"}, "right": {"en": "Correct", "zh": "答对了", "vi": "Chính xác", "id": "Benar"}, "wrong": {"en": "Not quite", "zh": "不太对", "vi": "Chưa đúng", "id": "Belum tepat"}, "cont": {"en": "Continue the video", "zh": "继续播放", "vi": "Xem tiếp", "id": "Lanjutkan video"}, "more": {"en": "Explain this more", "zh": "再讲深一点", "vi": "Giải thích sâu hơn", "id": "Jelaskan lebih dalam"}, "replay": {"en": "Replay this part", "zh": "重看这一段", "vi": "Xem lại phần này", "id": "Putar ulang bagian ini"}, "loading": {"en": "Writing a question about this part…", "zh": "正在为这一段出题…", "vi": "Đang viết câu hỏi cho phần này…", "id": "Menulis pertanyaan untuk bagian ini…"}, "skip": {"en": "Skip", "zh": "跳过", "vi": "Bỏ qua", "id": "Lewati"}, "signup": {"en": "Sign up free", "zh": "免费注册", "vi": "Đăng ký miễn phí", "id": "Daftar gratis"}, "plus": {"en": "See Plus", "zh": "查看 Plus", "vi": "Xem gói Plus", "id": "Lihat Plus"}, "next": {"en": "Go further with this paper", "zh": "继续深入这篇论文", "vi": "Đi sâu hơn với bài báo này", "id": "Telusuri makalah ini lebih jauh"}, "nextRead": {"en": "Read it with cited answers", "zh": "带引用地阅读原文", "vi": "Đọc kèm câu trả lời có trích dẫn", "id": "Baca dengan jawaban bersitasi"}, "nextCheck": {"en": "Re-run it: does the number hold?", "zh": "重新运行：结果成立吗？", "vi": "Chạy lại: con số có đúng không?", "id": "Jalankan ulang: apakah angkanya benar?"}} as const;
 
 /** The finished video as one workspace: the player with a chaptered timeline, the chapters with their explanations, and beside them the questions and the paper. */
 export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; localPdf?: string | null }) {
@@ -29,13 +30,20 @@ export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; 
   const { user, openAuth } = useAccount();
   const src = videoUrl(job, lang);
   const player = useRef<PlayerHandle>(null);
-  const [tab, setTab] = useState<'ask' | 'paper'>('ask');
+  const [tab, setTab] = useState<'ask' | 'paper' | 'quiz'>('ask');
   const [page, setPage] = useState<number | null>(null);
   const [pageKey, setPageKey] = useState(0);
   const [seed, setSeed] = useState<{ i: number; n: number } | null>(null);
   const [now, setNow] = useState(0);
   const [interactive, setInteractive] = useState(() => { try { return localStorage.getItem('pe-interactive') === '1'; } catch { return false; } });
-  const [check, setCheck] = useState<{ i: number; status: 'loading' | 'ready' | 'error'; quiz?: Quiz; picked?: number; err?: string; code?: string } | null>(null);
+  const [check, setCheck] = useState<{ i: number; status: 'loading' | 'ready' | 'error'; quiz?: Quiz; picked?: number; err?: string; code?: string; explain?: { status: 'loading' | 'ready' | 'error'; text?: string; err?: string } } | null>(null);
+  const quizCache = useRef<Map<number, Promise<Quiz>>>(new Map());
+  const allRef = useRef<Promise<Quiz[]> | null>(null);
+  const logKey = `pe-qlog:${job.id}:${lang}`;
+  const readLog = (): QLog => { try { const v = JSON.parse(localStorage.getItem(logKey) ?? 'null') as QLog | null; return v && v.parts && v.finals ? v : { parts: {}, finals: [] }; } catch { return { parts: {}, finals: [] }; } };
+  const [qlog, setQlogState] = useState<QLog>(readLog);
+  const setQlog = (l: QLog) => { setQlogState(l); try { localStorage.setItem(logKey, JSON.stringify(l)); } catch { /* full */ } };
+  const [prepared, setPrepared] = useState(0);
   const checked = useRef<Set<number>>(new Set());
   const [intro, setIntro] = useState(() => { try { return localStorage.getItem('pe-inter-intro') !== '1'; } catch { return false; } });
   const closeIntro = () => { setIntro(false); try { localStorage.setItem('pe-inter-intro', '1'); } catch { /* private mode */ } };
@@ -61,11 +69,44 @@ export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; 
   const poster = secs.find((s) => s.poster)?.poster ?? undefined;
 
 
+  // questions are written as soon as interactive mode is on, so they are ready when the video reaches the end of each part
+  const getAll = (): Promise<Quiz[]> => {
+    if (!allRef.current) {
+      const p = quizAll({ job: job.id, lang }).then((list) => { const by: Quiz[] = []; list.forEach((q) => { if (q.section !== undefined && by[q.section] === undefined) by[q.section] = q; }); return by; });
+      allRef.current = p;
+      p.then((by) => setPrepared(by.filter(Boolean).length)).catch(() => { allRef.current = null; });
+    }
+    return allRef.current;
+  };
+  const getQuiz = (i: number): Promise<Quiz> => {
+    let pr = quizCache.current.get(i);
+    if (!pr) {
+      const key = `pe-quiz:${job.id}:${lang}:${i}`;
+      let saved: Quiz | null = null;
+      try { saved = JSON.parse(localStorage.getItem(key) ?? 'null') as Quiz | null; } catch { /* no cache */ }
+      // the whole set is written in one go; a single question is only asked for when that did not work
+      pr = saved ? Promise.resolve(saved) : getAll().then((by) => by[i] ?? quizPart({ job: job.id, section: i, lang })).catch(() => quizPart({ job: job.id, section: i, lang }));
+      quizCache.current.set(i, pr);
+      pr.then((q) => { try { localStorage.setItem(key, JSON.stringify(q)); } catch { /* full */ } }).catch(() => { quizCache.current.delete(i); });
+    }
+    return pr;
+  };
   const openCheck = (i: number) => {
     setCheck({ i, status: 'loading' });
-    quizPart({ job: job.id, section: i, lang })
+    getQuiz(i)
       .then((quiz) => setCheck((c) => (c && c.i === i ? { ...c, status: 'ready', quiz } : c)))
       .catch((e) => setCheck((c) => (c && c.i === i ? { ...c, status: 'error', err: e instanceof ApiError ? e.message : 'Could not load the question.', code: e instanceof ApiError ? e.code : undefined } : c)));
+  };
+  useEffect(() => {
+    if (!interactive || chapters.length === 0) return;
+    chapters.forEach((_, i) => { void getQuiz(i).catch(() => undefined); });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [interactive, job.id, lang, chapters.length]);
+  const explainMore = (i: number) => {
+    setCheck((c) => (c ? { ...c, explain: { status: 'loading' } } : c));
+    askPaper({ job: job.id, q: '', mode: 'plus', intent: 'simpler', model: 'fast', section: i, history: [], lang })
+      .then((r) => setCheck((c) => (c && c.i === i ? { ...c, explain: { status: 'ready', text: r.blocks.map((x) => x.text).join('\n\n') } } : c)))
+      .catch((e) => setCheck((c) => (c && c.i === i ? { ...c, explain: { status: 'error', err: e instanceof ApiError ? e.message : pick(lang, IA.exErr) } } : c)));
   };
   const toggleInteractive = () => {
     const next = !interactive;
@@ -85,7 +126,7 @@ export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; 
     openCheck(i);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [now, interactive, check]);
-  useEffect(() => { checked.current = new Set(); setCheck(null); }, [job.id, lang]);
+  useEffect(() => { checked.current = new Set(); quizCache.current = new Map(); allRef.current = null; setPrepared(0); setCheck(null); setQlogState(readLog()); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [job.id, lang]);
 
   const goVideo = (time: number) => {
     player.current?.seek(time, true);
@@ -122,15 +163,22 @@ export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; 
                   {check.quiz.options.map((o, k) => {
                     const done = check.picked !== undefined;
                     const cls = done ? (k === check.quiz!.answer ? 'ok' : k === check.picked ? 'bad' : '') : '';
-                    return <button key={k} type="button" className={cls} disabled={done} onClick={() => setCheck({ ...check, picked: k })}><span>{String.fromCharCode(65 + k)}</span>{o}</button>;
+                    return <button key={k} type="button" className={cls} disabled={done} onClick={() => { setCheck({ ...check, picked: k }); setQlog({ ...qlog, parts: { ...qlog.parts, [check.i]: { q: check.quiz!, picked: k } } }); }}><span>{String.fromCharCode(65 + k)}</span>{o}</button>;
                   })}
                 </div>
                 {check.picked !== undefined && (
                   <div className="inter-why">
                     <p><b>{check.picked === check.quiz.answer ? pick(lang, IA.right) : pick(lang, IA.wrong)}.</b> {check.quiz.why}</p>
+                    {check.explain && (
+                      <div className="inter-explain" role="status">
+                        {check.explain.status === 'loading' && <p className="small muted"><span className="spin" aria-hidden /> {pick(lang, IA.exLoading)}</p>}
+                        {check.explain.status === 'error' && <p className="small">{check.explain.err}</p>}
+                        {check.explain.status === 'ready' && check.explain.text?.split('\n\n').map((t, k) => <p key={k}>{t}</p>)}
+                      </div>
+                    )}
                     <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
                       <button type="button" className="btn primary small" onClick={() => { setCheck(null); player.current?.play(); }}>{pick(lang, IA.cont)} →</button>
-                      <button type="button" className="btn ghost small" onClick={() => { const i = check.i; setCheck(null); setSeed({ i, n: Date.now() }); setTab('ask'); }}>{pick(lang, IA.more)}</button>
+                      <button type="button" className="btn ghost small" disabled={check.explain?.status === 'loading'} onClick={() => explainMore(check.i)}>{pick(lang, IA.more)}</button>
                       <button type="button" className="btn ghost small" onClick={() => { const c = chapters[check.i]; setCheck(null); if (c) goVideo(c.start); }}>{pick(lang, IA.replay)}</button>
                     </div>
                   </div>
@@ -179,6 +227,7 @@ export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; 
             <b>{pick(lang, IA.mode)}</b>
           </button>
           <span className="inter-free">{pick(lang, IA.free)}</span>
+          {interactive && chapters.length > 0 && <span className="small muted" role="status">{prepared >= chapters.length ? '✓ ' : <span className="spin" aria-hidden />} {pick(lang, IA.prep)} {Math.min(prepared, chapters.length)}/{chapters.length}</span>}
           <span className="small muted">{pick(lang, IA.hint)}</span>
         </div>
         {secs.length > 0 && (() => {
@@ -233,9 +282,13 @@ export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; 
         <div className="tabs2" role="tablist">
           <button type="button" role="tab" aria-selected={tab === 'ask'} onClick={() => setTab('ask')}>{t.ask}</button>
           <button type="button" role="tab" aria-selected={tab === 'paper'} onClick={() => setTab('paper')}>{t.paper}</button>
+          {(interactive || Object.keys(qlog.parts).length > 0 || qlog.finals.length > 0) && <button type="button" role="tab" aria-selected={tab === 'quiz'} onClick={() => setTab('quiz')}>{pick(lang, IA.quizTab)}</button>}
         </div>
         <div hidden={tab !== 'ask'}>
           <AskPanel job={job} lang={lang} seed={seed} onCite={cite} />
+        </div>
+        <div hidden={tab !== 'quiz'}>
+          <QuizPanel job={job} lang={lang} log={qlog} onLog={setQlog} onReset={() => { setQlog({ ...qlog, parts: {} }); checked.current = new Set(); setCheck(null); }} />
         </div>
         <div hidden={tab !== 'paper'}>
           <PaperPane job={job} lang={lang} page={page} pageKey={pageKey} localPdf={localPdf} />

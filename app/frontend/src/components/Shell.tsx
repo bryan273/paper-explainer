@@ -5,9 +5,7 @@ import { usePrefs, type StringKey } from '@/lib/prefs';
 
 const SECTIONS: { id: string; key: StringKey }[] = [
   { id: 'make', key: 'navMake' },
-  { id: 'features', key: 'navFeatures' },
   { id: 'examples', key: 'navExamples' },
-  { id: 'how', key: 'navHow' },
   { id: 'pricing', key: 'navPricing' },
 ];
 
@@ -43,7 +41,6 @@ export default function Shell({ children }: { children: ReactNode }) {
   }, []);
 
   const nav: NavLinkT[] = SECTIONS.map((s) => ({ label: t(s.key), href: `#${s.id}`, onClick: () => scrollTo(s.id), active: active === s.id }));
-  nav.push({ label: t('navContact'), href: '#contact', onClick: () => window.dispatchEvent(new Event('pe-open-contact')) });
 
   return (
     <div className="shell">

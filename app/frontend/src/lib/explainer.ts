@@ -148,15 +148,16 @@ export const MAX_PDF_BYTES = 20 * 1024 * 1024;
 export const MAX_PDF_FILES = 5;
 
 /** Sends one PDF to the private upload bucket and returns its path, to be passed to createJob as `upload`. */
-export async function uploadPaper(file: File): Promise<string> {
+export async function uploadPaper(file: File | Blob, name?: string): Promise<string> {
+  const text = !(file instanceof File && (file.type === 'application/pdf' || /\.pdf$/i.test(file.name))) && !(file.type === 'application/pdf');
   const addr = (await request({
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
-    body: JSON.stringify({ op: 'upload_url', name: file.name, size: file.size, visitor: visitorId() }),
+    body: JSON.stringify({ op: 'upload_url', name: name ?? (file instanceof File ? file.name : 'text'), size: file.size, visitor: visitorId(), kind: text ? 'text' : 'pdf' }),
   })) as { path: string; upload_url: string };
   let res: Response;
   try {
-    res = await fetch(addr.upload_url, { method: 'PUT', headers: { 'Content-Type': 'application/pdf' }, body: file });
+    res = await fetch(addr.upload_url, { method: 'PUT', headers: { 'Content-Type': text ? 'text/plain' : 'application/pdf' }, body: file });
   } catch {
     throw new ApiError('upload failed', 0, 'upload_failed');
   }
@@ -308,10 +309,16 @@ export async function getChat(job: string): Promise<ChatMsg[]> {
 }
 
 
-export type Quiz = { question: string; options: string[]; answer: number; why: string };
+export type Quiz = { question: string; options: string[]; answer: number; why: string; section?: number };
 
 /** One check-yourself question about a section of the video (the interactive mode). */
 export async function quizPart(p: { job: string; section: number; lang: Lang }): Promise<Quiz> {
   const out = await askRequest({ method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ ...p, q: '', intent: 'quiz', mode: 'paper', history: [], visitor: visitorId() }) });
   return out.quiz as Quiz;
+}
+
+/** Every question of a video at once: one per part (written once and then shared), or a final test over the whole video. */
+export async function quizAll(p: { job: string; lang: Lang; final?: boolean }): Promise<Quiz[]> {
+  const out = await askRequest({ method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ ...p, q: '', intent: 'quizall', mode: 'paper', history: [], visitor: visitorId() }) });
+  return (out.quizzes as Quiz[]) ?? [];
 }

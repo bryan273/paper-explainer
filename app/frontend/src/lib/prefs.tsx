@@ -48,7 +48,7 @@ const EN = {
   statTimeValue: '~4 min',
   statTime: 'about 4 minutes per video',
 
-  makeTitle: 'Drop in your paper',
+  makeTitle: 'Drop in what you want to learn',
   makeSub: 'Paste a paper link or upload PDFs from your computer. Free to try with no sign-up; a free account gets a video every day.',
   uploadBtn: 'Upload PDFs',
   uploadOr: 'or drop PDF files here. Up to {n} files, {mb} MB each. One video per file.',
@@ -318,7 +318,7 @@ const ZH: Record<StringKey, string> = {
   statTimeValue: '约 4 分钟',
   statTime: '每个视频约 4 分钟',
 
-  makeTitle: '丢进你的论文',
+  makeTitle: '丢进你想学的内容',
   makeSub: '粘贴论文链接或上传电脑里的 PDF。无需注册即可试用；免费账号每天可做一个视频。',
   uploadBtn: '上传 PDF',
   uploadOr: '或把 PDF 文件拖到这里。最多 {n} 个文件，每个不超过 {mb} MB，每个文件生成一个视频。',

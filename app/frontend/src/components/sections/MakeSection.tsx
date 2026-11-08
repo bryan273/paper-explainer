@@ -58,6 +58,19 @@ export function srcLabel(job: Job): string {
 
 const ACTIVE_JOB = 'pe-active-job';
 
+const SRC = {
+  label: { en: 'What to explain', zh: '要讲解什么', vi: 'Nội dung cần giải thích', id: 'Apa yang dijelaskan' },
+  link: { en: 'Link', zh: '链接', vi: 'Liên kết', id: 'Tautan' },
+  text: { en: 'Paste text', zh: '粘贴文字', vi: 'Dán văn bản', id: 'Tempel teks' },
+  file: { en: 'Upload file', zh: '上传文件', vi: 'Tải tệp lên', id: 'Unggah berkas' },
+  linkHelp: { en: 'An arXiv link, a PDF link, a DOI, or any web page with the text in it: an article, a lesson, a report.', zh: 'arXiv 链接、PDF 链接、DOI，或任何有正文的网页：文章、课程、报告。', vi: 'Liên kết arXiv, liên kết PDF, DOI hoặc bất kỳ trang web nào có nội dung: bài viết, bài học, báo cáo.', id: 'Tautan arXiv, tautan PDF, DOI, atau halaman web apa pun yang berisi teks: artikel, pelajaran, laporan.' },
+  textHelp: { en: 'Paste an article, lecture notes, a chapter, a report. At least 300 characters.', zh: '粘贴文章、讲义、章节或报告。至少 300 个字符。', vi: 'Dán bài viết, ghi chú bài giảng, một chương hay báo cáo. Ít nhất 300 ký tự.', id: 'Tempel artikel, catatan kuliah, bab, atau laporan. Minimal 300 karakter.' },
+  textPh: { en: 'Paste your text here…', zh: '在这里粘贴文字…', vi: 'Dán văn bản vào đây…', id: 'Tempel teks Anda di sini…' },
+  tooShort: { en: 'a bit more text please', zh: '请再多一点文字', vi: 'cần thêm chút văn bản', id: 'tambah sedikit teks' },
+  choose: { en: 'Choose files', zh: '选择文件', vi: 'Chọn tệp', id: 'Pilih berkas' },
+  fileHelp: { en: 'or drop them here. PDF, TXT or Markdown, up to {n} files, {mb} MB each. One video per file.', zh: '或拖到这里。PDF、TXT 或 Markdown，最多 {n} 个文件，每个 {mb} MB。每个文件生成一个视频。', vi: 'hoặc kéo thả vào đây. PDF, TXT hoặc Markdown, tối đa {n} tệp, mỗi tệp {mb} MB. Mỗi tệp một video.', id: 'atau seret ke sini. PDF, TXT, atau Markdown, hingga {n} berkas, masing-masing {mb} MB. Satu video per berkas.' },
+} as const;
+
 export default function MakeSection({ prefill, autoOpen }: { prefill?: string | null; autoOpen?: boolean }) {
   const { t, lang: uiLang } = usePrefs();
   const { refresh: refreshAccount, user: acctUser } = useAccount();
@@ -73,7 +86,8 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
   const [style] = useState<MakeOpts['style']>('animated');
   const [pset] = useSettings();
   const [tone, setTone] = useState<MakeOpts['tone']>(() => (pset.purpose ? PURPOSE[pset.purpose].tone : 'teacher'));
-  const [optsOpen, setOptsOpen] = useState(false);
+  const [tab, setTab] = useState<'link' | 'text' | 'file'>('link');
+  const [pasted, setPasted] = useState('');
   const [seconds, setSeconds] = useState<number>(() => (pset.purpose ? PURPOSE[pset.purpose].seconds : 180));
   const [custom, setCustom] = useState('');
   const [existing, setExisting] = useState<Job[]>([]);
@@ -133,7 +147,7 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
     const next = [...files];
     let err: string | null = null;
     for (const f of Array.from(list)) {
-      if (f.type !== 'application/pdf' && !/\.pdf$/i.test(f.name)) { err = t('uploadNotPdf'); continue; }
+      if (f.type !== 'application/pdf' && !/\.(pdf|txt|md)$/i.test(f.name)) { err = t('uploadNotPdf'); continue; }
       if (f.size > MAX_PDF_BYTES) { err = t('uploadTooBig').replace('{name}', f.name).replace('{mb}', String(MB)); continue; }
       if (next.some((x) => x.name === f.name && x.size === f.size)) continue;
       if (next.length >= MAX_PDF_FILES) { err = t('uploadTooMany').replace('{n}', String(MAX_PDF_FILES)); break; }
@@ -222,7 +236,8 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!input.trim() && files.length === 0) {
+    const useFiles = tab === 'file' && files.length > 0;
+    if ((tab === 'link' && !input.trim()) || (tab === 'file' && files.length === 0) || (tab === 'text' && pasted.trim().length < 300)) {
       setError(t('makeEmpty'));
       return;
     }
@@ -237,7 +252,11 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
     const made: Job[] = [];
     try {
       const opts = { voice, style, tone, seconds, custom: custom.trim(), langs: vlang };
-      if (files.length > 0) {
+      if (tab === 'text') {
+        setSending({ i: 1, n: 1 });
+        const path = await uploadPaper(new Blob([pasted.trim()], { type: 'text/plain' }), pasted.trim().split('\n')[0].slice(0, 80));
+        made.push(await createJob('', { ...opts, force_new: true, upload: path, name: pasted.trim().split('\n')[0].slice(0, 80) }));
+      } else if (useFiles) {
         for (let i = 0; i < files.length; i++) {
           setSending({ i: i + 1, n: files.length });
           const path = await uploadPaper(files[i]);
@@ -263,7 +282,8 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
       stageAt.current = { step: -2, at: Date.now() };
       setJob(created);
       setBatch(made.length > 1 ? made : []);
-      if (files.length) { setFiles((f) => f.slice(made.length)); setFileError(null); }
+      if (useFiles) { setFiles((f) => f.slice(made.length)); setFileError(null); }
+      if (tab === 'text') setPasted('');
       refreshAccount();
       setCached(!!created.cached || created.status === 'done');
       if (created.status !== 'done' && created.status !== 'failed') {
@@ -305,101 +325,73 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
       <div style={{ marginTop: 22 }}><AccountStrip /></div>
       <div className="card">
         <form onSubmit={submit} noValidate>
-          <div className="inline-form">
-            <label className="field" htmlFor="arxiv">
-              {t('makeLabel')}
-              <input
-                id="arxiv"
-                type="text"
-                value={input}
-                onChange={(e) => { setInput(e.target.value); if (e.target.value && files.length) { setFiles([]); setFileError(null); } }}
-                placeholder="https://arxiv.org/abs/1706.03762  ·  https://…/paper.pdf  ·  10.1145/…"
-                autoComplete="off"
-                spellCheck={false}
-              />
+          <div className="src-tabs" role="tablist" aria-label={pick(uiLang, SRC.label)}>
+            {(['link', 'text', 'file'] as const).map((k) => (
+              <button key={k} type="button" role="tab" aria-selected={tab === k} disabled={submitting || running} onClick={() => setTab(k)}>{pick(uiLang, SRC[k])}</button>
+            ))}
+          </div>
+
+          {tab === 'link' && (
+            <label className="field" htmlFor="arxiv" style={{ marginTop: 14 }}>
+              <span className="small muted">{pick(uiLang, SRC.linkHelp)}</span>
+              <input id="arxiv" type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder="https://arxiv.org/abs/1706.03762   ·   https://…/article" autoComplete="off" spellCheck={false} />
             </label>
-            <button type="submit" className="btn primary" disabled={submitting || running}>
-              {submitting ? <span className="spin" aria-hidden /> : null}
-              {sending ? t('uploadingN').replace('{i}', String(sending.i)).replace('{n}', String(sending.n)) : submitting ? t('makeSending') : files.length > 1 ? t('makeNBtn').replace('{n}', String(files.length)) : existing.length > 0 && !files.length ? t('makeNewBtn') : t('makeBtn')}
-            </button>
-          </div>
-          <div
-            className={`upload${dragging ? ' over' : ''}`}
-            onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={(e) => { e.preventDefault(); setDragging(false); if (!submitting && !running) addFiles(e.dataTransfer.files); }}
-          >
-            <input ref={fileRef} type="file" accept="application/pdf,.pdf" multiple hidden onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ''; }} />
-            <button type="button" className="btn ghost small" disabled={submitting || running} onClick={() => fileRef.current?.click()}>
-              {t('uploadBtn')}
-            </button>
-            <span className="small muted">{t('uploadOr').replace('{n}', String(MAX_PDF_FILES)).replace('{mb}', String(MB))}</span>
-          </div>
-          {fileError && <p className="small" role="alert" style={{ margin: '8px 0 0', color: 'var(--bad)' }}>{fileError}</p>}
-          {files.length > 0 && (
+          )}
+          {tab === 'text' && (
+            <label className="field" style={{ marginTop: 14 }}>
+              <span className="small muted">{pick(uiLang, SRC.textHelp)}</span>
+              <textarea rows={7} value={pasted} maxLength={60000} onChange={(e) => setPasted(e.target.value)} placeholder={pick(uiLang, SRC.textPh)} disabled={submitting || running} />
+              <span className="small muted" style={{ justifySelf: 'end' }}>{pasted.trim().length} / 60000{pasted.trim().length > 0 && pasted.trim().length < 300 ? ` · ${pick(uiLang, SRC.tooShort)}` : ''}</span>
+            </label>
+          )}
+          {tab === 'file' && (
             <>
-              <ul className="filelist">
-                {files.map((f) => (
-                  <li key={f.name + f.size}>
-                    <span className="nm" title={f.name}>{f.name}</span>
-                    <span className="sz">{f.size < 1024 * 1024 ? `${Math.max(1, Math.round(f.size / 1024))} KB` : `${(f.size / 1024 / 1024).toFixed(1)} MB`}</span>
-                    <button type="button" aria-label={t('uploadRemove').replace('{name}', f.name)} disabled={submitting} onClick={() => setFiles(files.filter((x) => x !== f))}>×</button>
-                  </li>
-                ))}
-              </ul>
-              <p className="small muted" style={{ margin: '8px 0 0' }}>{t('uploadPrivate')}</p>
+              <div
+                className={`upload${dragging ? ' over' : ''}`}
+                style={{ marginTop: 14 }}
+                onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={(e) => { e.preventDefault(); setDragging(false); if (!submitting && !running) addFiles(e.dataTransfer.files); }}
+              >
+                <input ref={fileRef} type="file" accept="application/pdf,.pdf,.txt,.md,text/plain" multiple hidden onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ''; }} />
+                <button type="button" className="btn ghost small" disabled={submitting || running} onClick={() => fileRef.current?.click()}>{pick(uiLang, SRC.choose)}</button>
+                <span className="small muted">{pick(uiLang, SRC.fileHelp).replace('{n}', String(MAX_PDF_FILES)).replace('{mb}', String(MB))}</span>
+              </div>
+              {fileError && <p className="small" role="alert" style={{ margin: '8px 0 0', color: 'var(--bad)' }}>{fileError}</p>}
+              {files.length > 0 && (
+                <ul className="filelist">
+                  {files.map((f) => (
+                    <li key={f.name + f.size}>
+                      <span className="nm" title={f.name}>{f.name}</span>
+                      <span className="sz">{f.size < 1024 * 1024 ? `${Math.max(1, Math.round(f.size / 1024))} KB` : `${(f.size / 1024 / 1024).toFixed(1)} MB`}</span>
+                      <button type="button" aria-label={t('uploadRemove').replace('{name}', f.name)} disabled={submitting} onClick={() => setFiles(files.filter((x) => x !== f))}>×</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </>
           )}
-          <div className="lang-pick">
-            <span className="lang-pick-l">{t('optLangs')}</span>
-            <div className="lang-slider" role="radiogroup" aria-label={t('optLangs')} style={{ ['--n' as string]: 5, ['--i' as string]: ['en', 'zh', 'vi', 'id', 'both'].indexOf(vlang) }}>
-              <span className="lang-thumb" aria-hidden />
-              {([['en', 'English'], ['zh', '中文'], ['vi', 'Tiếng Việt'], ['id', 'Indonesia'], ['both', 'EN + 中文']] as [VLang, string][]).map(([k, n]) => (
-                <button key={k} type="button" role="radio" aria-checked={vlang === k} disabled={submitting || running} onClick={() => setVlang(k)}>{n}</button>
-              ))}
-            </div>
-          </div>
-          <div className="inter-pick">
-            <button type="button" className="inter-switch" role="switch" aria-checked={inter} onClick={() => setInterOn(!inter)}>
-              <span className="inter-knob" aria-hidden />
-              <b>{pick(uiLang, { en: 'Interactive video', zh: '互动视频', vi: 'Video tương tác', id: 'Video interaktif' })}</b>
-            </button>
-            <span className="inter-free">{pick(uiLang, { en: 'Free to try', zh: '免费试用', vi: 'Dùng thử miễn phí', id: 'Gratis dicoba' })}</span>
-            <span className="small muted">{pick(uiLang, { en: 'Optional. The video stops after each part and you answer a question inside the video. You can also switch it on after the video is made.', zh: '可选。每段结束后视频暂停，你直接在视频里答题。视频做好之后也可以再打开。', vi: 'Tùy chọn. Video dừng sau mỗi phần và bạn trả lời câu hỏi ngay trong video. Bạn cũng có thể bật sau khi video đã tạo xong.', id: 'Opsional. Video berhenti setiap bagian dan Anda menjawab pertanyaan langsung di dalam video. Bisa juga dinyalakan setelah video selesai dibuat.' })}</span>
-          </div>
-          <button type="button" className="opt-toggle" aria-expanded={optsOpen} onClick={() => setOptsOpen((v) => !v)}>
-            <span className="opt-sum">
-              <i>{t('min').replace('{n}', String(seconds / 60))}</i>
-              <i>{t(TONE_KEYS[tone])}</i>
-              <i>{vlang === 'both' ? t('langBoth') : vlang === 'zh' ? t('langZh') : vlang === 'vi' ? t('langVi') : vlang === 'id' ? t('langId') : t('langEn')}</i>
-              <i>{voice === 'male' ? t('voiceMale') : t('voiceFemale')}</i>
-            </span>
-            <span className="opt-edit">{optsOpen ? '▴' : t('optMore')}</span>
-          </button>
-          {optsOpen && (
-            <div className="opt-panel">
-          <div className="row" style={{ gap: 14, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-            <label className="field" style={{ minWidth: 130 }}>
+
+          <div className="make-opts">
+            <label className="field">
+              {t('optLangs')}
+              <select value={vlang === 'both' ? 'en' : vlang} onChange={(e) => setVlang(e.target.value as VLang)} disabled={submitting || running}>
+                <option value="en">English</option><option value="zh">中文</option><option value="vi">Tiếng Việt</option><option value="id">Bahasa Indonesia</option>
+              </select>
+            </label>
+            <label className="field">
               {t('optLength')}
               <select value={seconds} onChange={(e) => setSeconds(Number(e.target.value))} disabled={submitting || running}>
-                {LENGTHS.map((n) => (
-                  <option key={n} value={n}>
-                    {t('min').replace('{n}', String(n / 60))}
-                  </option>
-                ))}
+                {LENGTHS.map((n) => (<option key={n} value={n}>{t('min').replace('{n}', String(n / 60))}</option>))}
               </select>
             </label>
-            <label className="field" style={{ minWidth: 170 }}>
+            <label className="field">
               {t('optTone')}
               <select value={tone} onChange={(e) => setTone(e.target.value as MakeOpts['tone'])} disabled={submitting || running}>
-                {TONES.map((k) => (
-                  <option key={k} value={k}>
-                    {t(TONE_KEYS[k])}
-                  </option>
-                ))}
+                {TONES.map((k) => (<option key={k} value={k}>{t(TONE_KEYS[k])}</option>))}
               </select>
             </label>
-            <label className="field" style={{ minWidth: 150 }}>
+            <label className="field">
               {t('optVoice')}
               <select value={voice} onChange={(e) => setVoice(e.target.value as MakeOpts['voice'])} disabled={submitting || running}>
                 <option value="female">{t('voiceFemale')}</option>
@@ -407,17 +399,29 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
               </select>
             </label>
           </div>
-          <label className="field" style={{ marginTop: 14 }}>
+          <label className="field" style={{ marginTop: 12 }}>
             {t('optCustom')}
             <input type="text" value={custom} maxLength={300} onChange={(e) => setCustom(e.target.value)} placeholder={t('optCustomPh')} disabled={submitting || running} />
           </label>
-            </div>
-          )}
+
+          <div className="inter-pick">
+            <button type="button" className="inter-switch" role="switch" aria-checked={inter} onClick={() => setInterOn(!inter)}>
+              <span className="inter-knob" aria-hidden />
+              <b>{pick(uiLang, { en: 'Interactive video', zh: '互动视频', vi: 'Video tương tác', id: 'Video interaktif' })}</b>
+            </button>
+            <span className="inter-free">{pick(uiLang, { en: 'Free to try', zh: '免费试用', vi: 'Dùng thử miễn phí', id: 'Gratis dicoba' })}</span>
+            <span className="small muted">{pick(uiLang, { en: 'Answer a question inside the video after each part. Optional, you can also switch it on later.', zh: '每段结束后在视频里答题。可选，之后也可以再打开。', vi: 'Trả lời một câu hỏi ngay trong video sau mỗi phần. Tùy chọn, bật sau cũng được.', id: 'Jawab satu pertanyaan di dalam video setelah tiap bagian. Opsional, bisa dinyalakan nanti.' })}</span>
+          </div>
+
           {seconds > 180 && (
             <p className="small muted" style={{ margin: '10px 0 0' }}>
               {t('longNote').replace('{m}', String(Math.round(stepSecs(seconds).reduce((x, y) => x + y, 0) / 60)))}
             </p>
           )}
+          <button type="submit" className="btn primary make-go" disabled={submitting || running}>
+            {submitting ? <span className="spin" aria-hidden /> : null}
+            {sending ? t('uploadingN').replace('{i}', String(sending.i)).replace('{n}', String(sending.n)) : submitting ? t('makeSending') : tab === 'file' && files.length > 1 ? t('makeNBtn').replace('{n}', String(files.length)) : existing.length > 0 && tab === 'link' ? t('makeNewBtn') : t('makeBtn')}
+          </button>
         </form>
 
         {batch.length > 1 && (
