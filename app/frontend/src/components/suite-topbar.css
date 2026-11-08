@@ -237,3 +237,5 @@ a.card:hover { transform: translateY(-2px); box-shadow: 0 16px 34px -16px rgba(6
 .stb-chips a:hover { border-color: var(--stb-primary, hsl(var(--primary))); color: var(--stb-primary, hsl(var(--primary))); }
 @media (max-width: 900px) { .stb-apps-wrap { display: block; } .stb-apps span { display: none; } .stb-apps { padding: 0; width: 38px; justify-content: center; } }
 @media (max-width: 520px) { .stb-act > .stb-apps-wrap { display: block; } }
+
+html[lang='vi'] .stb, html[lang='vi'] .stb *, html[lang='vi'] .stb-menu *, html[lang='vi'] .stb-sheet * { font-family: 'Be Vietnam Pro', 'Segoe UI', 'Noto Sans', Roboto, Arial, system-ui, sans-serif !important; }

@@ -1447,3 +1447,20 @@ html[data-motion='off'] *, html[data-motion='off'] *::before, html[data-motion='
 /* the guest page: headline, then the form right under it (no wide gap, no second title) */
 .hero ~ #make { padding-top: 8px; }
 .hero ~ #make > h2.sec, .hero ~ #make > .sec-sub { display: none; }
+
+/* dashboard */
+.acct-plan { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px; padding: 16px 20px; border-radius: 18px; border: 1px solid color-mix(in srgb, var(--acc) 35%, var(--line)); background: color-mix(in srgb, var(--acc) 6%, var(--surface)); }
+.acct-plan > div { display: grid; gap: 2px; }
+.acct-plan b { font: 700 22px/1.1 var(--display); }
+.acct-plan b.warn { color: #c0392b; }
+.acct-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.acct-tools a, .acct-tools button { display: grid; gap: 3px; text-align: left; padding: 14px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); text-decoration: none; cursor: pointer; font: inherit; }
+.acct-tools a:hover, .acct-tools button:hover { border-color: var(--acc); }
+.acct-tools b { font: 700 15px var(--display); }
+.acct-tools span { font-size: 13px; color: var(--muted); }
+.acct.section { padding-top: 4px; }
+
+/* Vietnamese: the bundled Inter / Space Grotesk files are Latin subsets without the Vietnamese tone marks, so Vietnamese uses fonts that carry them */
+html[lang='vi'] { --body: 'Be Vietnam Pro', 'Segoe UI', 'Noto Sans', Roboto, 'Helvetica Neue', Arial, system-ui, sans-serif; --display: 'Be Vietnam Pro', 'Segoe UI', 'Noto Sans', Roboto, 'Helvetica Neue', Arial, system-ui, sans-serif; }
+html[lang='vi'] body, html[lang='vi'] .stb, html[lang='vi'] .stb *, html[lang='vi'] button, html[lang='vi'] input, html[lang='vi'] select, html[lang='vi'] textarea { font-family: var(--body); }
+html[lang='vi'] .mono, html[lang='vi'] code { font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace; }

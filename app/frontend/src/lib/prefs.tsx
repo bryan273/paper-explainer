@@ -600,6 +600,12 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.lang = HTML_LANG[lang];
+    if (lang === 'vi' && !document.getElementById('vi-font')) {
+      const l = document.createElement('link');
+      l.id = 'vi-font'; l.rel = 'stylesheet';
+      l.href = 'https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap&subset=vietnamese';
+      document.head.appendChild(l);
+    }
     try {
       localStorage.setItem(LANG_KEY, lang);
     } catch {

@@ -41,7 +41,7 @@ function MemberRecent() {
         {jobs.map((j) => {
           const poster = j.sections?.find((x) => x.poster)?.poster ?? null;
           return (
-            <Link key={j.id} className="member-card" to={`/?paper=${encodeURIComponent(j.arxiv)}#make`}>
+            <Link key={j.id} className="member-card" to={`/?job=${j.id}#make`}>
               <span className="member-thumb">{poster ? <img src={poster} alt="" loading="lazy" /> : <b aria-hidden>{(j.title || j.arxiv).slice(0, 1).toUpperCase()}</b>}</span>
               <span className="member-t">{j.title || j.arxiv}</span>
             </Link>

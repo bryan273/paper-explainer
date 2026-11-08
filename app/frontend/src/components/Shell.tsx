@@ -48,6 +48,7 @@ export default function Shell({ children }: { children: ReactNode }) {
     <div className="shell">
       <SuiteTopBar appId="explainer" brand="Paper Explainer" letter="E" homeTo="/" nav={nav} dark={theme === 'dark'} onToggleDark={toggleTheme} lang={lang} onLang={setLang} languages={['en', 'zh', 'vi', 'id']} onSettings={() => window.dispatchEvent(new Event('pe-open-settings'))} />
       <SettingsDialog />
+      <OpenSettingsFromUrl />
       <div className="mainwrap">
         <main className="main" id="top">
           {children}
@@ -55,4 +56,14 @@ export default function Shell({ children }: { children: ReactNode }) {
       </div>
     </div>
   );
+}
+
+/** A link from another app (?settings=1) opens the settings dialog here. */
+function OpenSettingsFromUrl() {
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('settings') !== '1') return;
+    const timer = window.setTimeout(() => window.dispatchEvent(new Event('pe-open-settings')), 500);
+    return () => window.clearTimeout(timer);
+  }, []);
+  return null;
 }

@@ -11,12 +11,12 @@ type Ledger = { created_at: string; delta: number; reason: string };
 
 const L = {
   en: {
-    title: 'My papers', videos: 'Your videos', hello: 'Signed in as', free: 'Free videos today', credits: 'Credits', made: 'Papers explained', left: '{n} left of {m}', empty: 'No papers yet.', first: 'Explain your first paper',
+    title: 'Dashboard', videos: 'Your videos', hello: 'Signed in as', free: 'Free videos today', credits: 'Credits', made: 'Papers explained', left: '{n} left of {m}', empty: 'No papers yet.', first: 'Explain your first paper',
     open: 'Open', ask: 'Ask', ready: 'Ready', making: 'Making', failed: 'Failed', expired: 'Expired', min: '{n} min', more: 'Need more videos?', moreSub: 'From ¥2.6 a video. Credits never expire, and a failed video is refunded. A plan is cheaper: 100 videos for ¥33 a month.',
     history: 'Credit history', show: 'Show', hide: 'Hide', security: 'Password', admin: 'Admin console', make: 'Explain a paper', soon: 'Videos are kept for 14 days, then removed.', makeAgain: 'Make it again',
   },
   zh: {
-    title: '我的论文', videos: '你的视频', hello: '当前账户', free: '今日免费视频', credits: '额度', made: '已解读论文', left: '剩余 {n} / {m}', empty: '还没有论文。', first: '解读你的第一篇论文',
+    title: '我的看板', videos: '你的视频', hello: '当前账户', free: '今日免费视频', credits: '额度', made: '已解读论文', left: '剩余 {n} / {m}', empty: '还没有论文。', first: '解读你的第一篇论文',
     open: '打开', ask: '提问', ready: '已完成', making: '生成中', failed: '失败', expired: '已过期', min: '{n} 分钟', more: '需要更多视频？', moreSub: '每个视频低至 ¥2.6。额度永不过期，失败的视频会自动退还。套餐更划算：每月 ¥33 含 100 个视频。',
     history: '额度记录', show: '展开', hide: '收起', security: '密码', admin: '管理后台', make: '解读一篇论文', soon: '视频保留 14 天，之后删除。', makeAgain: '重新生成',
   },
@@ -93,7 +93,7 @@ export default function Account() {
 
   return (
     <Shell>
-      <section className="section acct" style={{ paddingTop: 36 }}>
+      <section className="section acct" style={{ paddingTop: 4 }}>
         {!user ? (
           <div className="card stack" style={{ maxWidth: 460 }}>
             <h2 className="sec" style={{ margin: 0 }}>{l.title}</h2>
@@ -117,6 +117,32 @@ export default function Account() {
             </div>
 
             {err && <p className="err" role="alert">{err}</p>}
+
+            <div className="acct-plan">
+              {(() => {
+                const m = me as unknown as { plan?: string | null; plan_until?: string | null } | null;
+                const days = m?.plan_until ? Math.ceil((new Date(m.plan_until).getTime() - Date.now()) / 86400000) : 0;
+                return m?.plan && days > 0 ? (
+                  <>
+                    <div><span className="small muted">{lang === 'zh' ? '当前套餐' : 'Your plan'}</span><b>{m.plan === 'pro' ? 'Pro' : 'Plus'}</b></div>
+                    <div><span className="small muted">{lang === 'zh' ? '剩余' : 'Time left'}</span><b className={days <= 7 ? 'warn' : ''}>{days} {lang === 'zh' ? '天' : days === 1 ? 'day' : 'days'}</b><span className="small muted">{lang === 'zh' ? '到期日' : 'due'} {new Date(m.plan_until!).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span></div>
+                    <Link className="btn ghost small" to="/#pricing">{lang === 'zh' ? '续订' : 'Renew'}</Link>
+                  </>
+                ) : (
+                  <>
+                    <div><span className="small muted">{lang === 'zh' ? '当前套餐' : 'Your plan'}</span><b>{lang === 'zh' ? '免费' : 'Free'}</b></div>
+                    <div><span className="small muted">{lang === 'zh' ? 'Plus 每月 ¥33，含 100 个视频' : 'Plus: 100 videos for ¥33 a month'}</span></div>
+                    <Link className="btn primary small" to="/#pricing">{lang === 'zh' ? '升级' : 'Upgrade'}</Link>
+                  </>
+                );
+              })()}
+            </div>
+
+            <div className="acct-tools">
+              <a href="https://bryan273.github.io/repro-suite/repro/index.html"><b>{lang === 'zh' ? '复现' : 'Reproductions'}</b><span>{lang === 'zh' ? '查看你运行过的复现' : 'See the runs you started'}</span></a>
+              <a href="https://bryan273.github.io/repro-suite/reading/"><b>{lang === 'zh' ? '阅读' : 'Reading'}</b><span>{lang === 'zh' ? '继续阅读你的论文' : 'Continue your papers'}</span></a>
+              <button type="button" onClick={() => window.dispatchEvent(new Event('pe-open-settings'))}><b>{lang === 'zh' ? '设置与个性化' : 'Settings and mode'}</b><span>{lang === 'zh' ? '模式、水平、领域' : 'Mode, level, field'}</span></button>
+            </div>
 
             <div className="acct-stats">
               <div className="acct-stat">
@@ -152,7 +178,7 @@ export default function Account() {
                     const poster = j.sections?.find((s) => s.poster)?.poster ?? null;
                     const expired = j.status === 'done' && !!j.expired_at;
                     const state = expired ? 'expired' : j.status === 'done' ? 'ready' : j.status === 'failed' ? 'failed' : 'making';
-                    const href = `/?paper=${encodeURIComponent(j.arxiv)}#make`;
+                    const href = `/?job=${j.id}#make`;
                     return (
                       <article key={j.id} className={`acct-card ${state}`}>
                         <div className="acct-thumb">
