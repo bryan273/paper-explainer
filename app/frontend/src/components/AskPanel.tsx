@@ -11,11 +11,11 @@ import { secText } from '@/lib/explainer';
 import { scrollToSection } from '@/components/Shell';
 
 const D = {
-  fast: { en: 'Fast', zh: '快速', vi: 'Nhanh', id: 'Cepat' }, deep: { en: 'Deep', zh: '深入', vi: 'Sâu', id: 'Mendalam' },
-  deepHint: { en: 'Deep uses a stronger AI model for harder questions. {n} free Deep questions for each video, unlimited with Plus.', zh: '深入模式使用更强的 AI 模型回答更难的问题。每个视频可免费问 {n} 个，Plus 不限次数。', vi: 'Chế độ Sâu dùng mô hình AI mạnh hơn cho câu hỏi khó. {n} câu hỏi Sâu miễn phí cho mỗi video, không giới hạn với Plus.', id: 'Mode Mendalam memakai model AI yang lebih kuat untuk pertanyaan sulit. {n} pertanyaan Mendalam gratis untuk setiap video, tanpa batas dengan Plus.' },
-  signup: { en: 'Sign up free to try Deep', zh: '免费注册，试用深入模式', vi: 'Đăng ký miễn phí để thử chế độ Sâu', id: 'Daftar gratis untuk mencoba mode Mendalam' },
-  seePlus: { en: 'See Plus', zh: '查看 Plus', vi: 'Xem gói Plus', id: 'Lihat Plus' },
-  useFast: { en: 'Answer with Fast instead', zh: '改用快速模式回答', vi: 'Trả lời bằng chế độ Nhanh', id: 'Jawab dengan mode Cepat' },
+  fast: { en: 'Quick', zh: '快速', vi: 'Nhanh', id: 'Cepat' }, deep: { en: 'Thorough', zh: '详细', vi: 'Kỹ lưỡng', id: 'Cermat' },
+  deepHint: { en: 'Thorough answers use a stronger AI and think longer, good for hard questions. {n} free for each video, 30 with Plus, unlimited with Pro.', zh: '详细回答使用更强的 AI，思考更久，适合难题。每个视频 {n} 次免费，Plus 30 次，Pro 不限次数。', vi: 'Câu trả lời kỹ lưỡng dùng AI mạnh hơn và suy nghĩ lâu hơn, hợp cho câu hỏi khó. Mỗi video {n} lần miễn phí, 30 lần với Plus, không giới hạn với Pro.', id: 'Jawaban cermat memakai AI yang lebih kuat dan berpikir lebih lama, cocok untuk pertanyaan sulit. {n} gratis untuk setiap video, 30 dengan Plus, tanpa batas dengan Pro.' },
+  signup: { en: 'Sign up free to try thorough answers', zh: '免费注册，试用详细回答', vi: 'Đăng ký miễn phí để thử câu trả lời kỹ lưỡng', id: 'Daftar gratis untuk mencoba jawaban cermat' },
+  seePlus: { en: 'See plans', zh: '查看套餐', vi: 'Xem các gói', id: 'Lihat paket' },
+  useFast: { en: 'Answer quickly instead', zh: '改用快速回答', vi: 'Trả lời nhanh thay thế', id: 'Jawab cepat saja' },
 } as const;
 
 /** The tutor sometimes writes *emphasis* or **bold** even though it is asked not to: show it as emphasis instead of stray asterisks. */

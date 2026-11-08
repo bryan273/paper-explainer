@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Lang } from '@/lib/prefs';
-import { ApiError, quizPart, secText, storageKind, videoUrl, type Job, type Quiz } from '@/lib/explainer';
+import { ApiError, copyText, quizPart, secText, storageKind, videoUrl, type Job, type Quiz } from '@/lib/explainer';
 import { useAccount } from '@/lib/account';
 import { pick } from '@/lib/i18n_extra';
 import { scrollToSection } from '@/components/Shell';
@@ -20,7 +20,8 @@ const T = {
   },
 } as const;
 
-const IA = {"introH": {"en": "New: Interactive mode", "zh": "新功能：互动模式", "vi": "Mới: Chế độ tương tác", "id": "Baru: Mode interaktif"}, "introP": {"en": "Want to be sure you got it? Turn it on and the video pauses after each part with one question. It is off unless you choose it. Free to try; students get 3 months free.", "zh": "想确认自己真的懂了吗？打开后，每段结束视频会暂停并问你一个问题。默认关闭，由你决定。可免费试用；学生可免费使用 3 个月。", "vi": "Muốn chắc là mình hiểu? Bật lên và video sẽ dừng sau mỗi phần với một câu hỏi. Mặc định tắt, do bạn chọn. Dùng thử miễn phí; sinh viên được dùng miễn phí 3 tháng.", "id": "Ingin memastikan Anda paham? Nyalakan dan video berhenti setiap bagian dengan satu pertanyaan. Mati kecuali Anda memilihnya. Gratis dicoba; mahasiswa gratis 3 bulan."}, "introOn": {"en": "Turn it on", "zh": "打开", "vi": "Bật lên", "id": "Nyalakan"}, "introNo": {"en": "Not now", "zh": "暂不需要", "vi": "Để sau", "id": "Nanti saja"}, "mode": {"en": "Interactive mode", "zh": "互动模式", "vi": "Chế độ tương tác", "id": "Mode interaktif"}, "free": {"en": "Free to try", "zh": "免费试用", "vi": "Dùng thử miễn phí", "id": "Gratis dicoba"}, "hint": {"en": "The video stops after each part and asks you one question.", "zh": "每段结束后视频会暂停，并问你一个问题。", "vi": "Video dừng sau mỗi phần và hỏi bạn một câu.", "id": "Video berhenti setiap bagian dan menanyakan satu pertanyaan."}, "q": {"en": "Check yourself", "zh": "自测一下", "vi": "Tự kiểm tra", "id": "Uji diri Anda"}, "right": {"en": "Correct", "zh": "答对了", "vi": "Chính xác", "id": "Benar"}, "wrong": {"en": "Not quite", "zh": "不太对", "vi": "Chưa đúng", "id": "Belum tepat"}, "cont": {"en": "Continue the video", "zh": "继续播放", "vi": "Xem tiếp", "id": "Lanjutkan video"}, "more": {"en": "Explain this more", "zh": "再讲深一点", "vi": "Giải thích sâu hơn", "id": "Jelaskan lebih dalam"}, "replay": {"en": "Replay this part", "zh": "重看这一段", "vi": "Xem lại phần này", "id": "Putar ulang bagian ini"}, "loading": {"en": "Writing a question about this part…", "zh": "正在为这一段出题…", "vi": "Đang viết câu hỏi cho phần này…", "id": "Menulis pertanyaan untuk bagian ini…"}, "skip": {"en": "Skip", "zh": "跳过", "vi": "Bỏ qua", "id": "Lewati"}, "signup": {"en": "Sign up free", "zh": "免费注册", "vi": "Đăng ký miễn phí", "id": "Daftar gratis"}, "plus": {"en": "See Plus", "zh": "查看 Plus", "vi": "Xem gói Plus", "id": "Lihat Plus"}, "next": {"en": "Go further with this paper", "zh": "继续深入这篇论文", "vi": "Đi sâu hơn với bài báo này", "id": "Telusuri makalah ini lebih jauh"}, "nextRead": {"en": "Read it with cited answers", "zh": "带引用地阅读原文", "vi": "Đọc kèm câu trả lời có trích dẫn", "id": "Baca dengan jawaban bersitasi"}, "nextCheck": {"en": "Re-run it: does the number hold?", "zh": "重新运行：结果成立吗？", "vi": "Chạy lại: con số có đúng không?", "id": "Jalankan ulang: apakah angkanya benar?"}} as const;
+const SH = {"btn": {"en": "Share this video", "zh": "分享这个视频", "vi": "Chia sẻ video này", "id": "Bagikan video ini"}, "done": {"en": "Link copied", "zh": "链接已复制", "vi": "Đã sao chép liên kết", "id": "Tautan disalin"}, "hint": {"en": "Anyone with the link can watch it and ask questions, for as long as the video is kept.", "zh": "任何拿到链接的人都可以观看并提问，在视频保留期内有效。", "vi": "Ai có liên kết đều xem và đặt câu hỏi được, chừng nào video còn được lưu.", "id": "Siapa pun yang punya tautan bisa menonton dan bertanya, selama video masih disimpan."}} as const;
+const IA = {"introH": {"en": "New: Interactive mode", "zh": "新功能：互动模式", "vi": "Mới: Chế độ tương tác", "id": "Baru: Mode interaktif"}, "introP": {"en": "Want to be sure you got it? Turn it on and the video pauses after each part with one question. It is off unless you choose it. Free to try. Students and teachers get a free month of Plus.", "zh": "想确认自己真的懂了吗？打开后，每段结束视频会暂停并问你一个问题。默认关闭，由你决定。可免费试用。学生和教师可免费用 1 个月 Plus。", "vi": "Muốn chắc là mình hiểu? Bật lên và video sẽ dừng sau mỗi phần với một câu hỏi. Mặc định tắt, do bạn chọn. Dùng thử miễn phí. Sinh viên và giảng viên được tặng 1 tháng Plus.", "id": "Ingin memastikan Anda paham? Nyalakan dan video berhenti setiap bagian dengan satu pertanyaan. Mati kecuali Anda memilihnya. Gratis dicoba. Mahasiswa dan pengajar dapat 1 bulan Plus gratis."}, "introOn": {"en": "Turn it on", "zh": "打开", "vi": "Bật lên", "id": "Nyalakan"}, "introNo": {"en": "Not now", "zh": "暂不需要", "vi": "Để sau", "id": "Nanti saja"}, "mode": {"en": "Interactive mode", "zh": "互动模式", "vi": "Chế độ tương tác", "id": "Mode interaktif"}, "free": {"en": "Free to try", "zh": "免费试用", "vi": "Dùng thử miễn phí", "id": "Gratis dicoba"}, "hint": {"en": "The video stops after each part and asks you one question.", "zh": "每段结束后视频会暂停，并问你一个问题。", "vi": "Video dừng sau mỗi phần và hỏi bạn một câu.", "id": "Video berhenti setiap bagian dan menanyakan satu pertanyaan."}, "q": {"en": "Check yourself", "zh": "自测一下", "vi": "Tự kiểm tra", "id": "Uji diri Anda"}, "right": {"en": "Correct", "zh": "答对了", "vi": "Chính xác", "id": "Benar"}, "wrong": {"en": "Not quite", "zh": "不太对", "vi": "Chưa đúng", "id": "Belum tepat"}, "cont": {"en": "Continue the video", "zh": "继续播放", "vi": "Xem tiếp", "id": "Lanjutkan video"}, "more": {"en": "Explain this more", "zh": "再讲深一点", "vi": "Giải thích sâu hơn", "id": "Jelaskan lebih dalam"}, "replay": {"en": "Replay this part", "zh": "重看这一段", "vi": "Xem lại phần này", "id": "Putar ulang bagian ini"}, "loading": {"en": "Writing a question about this part…", "zh": "正在为这一段出题…", "vi": "Đang viết câu hỏi cho phần này…", "id": "Menulis pertanyaan untuk bagian ini…"}, "skip": {"en": "Skip", "zh": "跳过", "vi": "Bỏ qua", "id": "Lewati"}, "signup": {"en": "Sign up free", "zh": "免费注册", "vi": "Đăng ký miễn phí", "id": "Daftar gratis"}, "plus": {"en": "See Plus", "zh": "查看 Plus", "vi": "Xem gói Plus", "id": "Lihat Plus"}, "next": {"en": "Go further with this paper", "zh": "继续深入这篇论文", "vi": "Đi sâu hơn với bài báo này", "id": "Telusuri makalah ini lebih jauh"}, "nextRead": {"en": "Read it with cited answers", "zh": "带引用地阅读原文", "vi": "Đọc kèm câu trả lời có trích dẫn", "id": "Baca dengan jawaban bersitasi"}, "nextCheck": {"en": "Re-run it: does the number hold?", "zh": "重新运行：结果成立吗？", "vi": "Chạy lại: con số có đúng không?", "id": "Jalankan ulang: apakah angkanya benar?"}} as const;
 
 /** The finished video as one workspace: the player with a chaptered timeline, the chapters with their explanations, and beside them the questions and the paper. */
 export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; localPdf?: string | null }) {
@@ -39,6 +40,14 @@ export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; 
   const [intro, setIntro] = useState(() => { try { return localStorage.getItem('pe-inter-intro') !== '1'; } catch { return false; } });
   const closeIntro = () => { setIntro(false); try { localStorage.setItem('pe-inter-intro', '1'); } catch { /* private mode */ } };
   const top = useRef<HTMLDivElement>(null);
+  const [shared, setShared] = useState(false);
+  const share = async () => {
+    const url = `${window.location.origin}${window.location.pathname}?job=${job.id}#make`;
+    track('share_link', {});
+    const nav = navigator as Navigator & { share?: (d: { title?: string; url: string }) => Promise<void> };
+    if (nav.share && /Mobi|Android/i.test(navigator.userAgent)) { try { await nav.share({ title: job.title ?? 'Paperlit', url }); return; } catch { /* cancelled: fall through to copy */ } }
+    if (await copyText(url)) { setShared(true); window.setTimeout(() => setShared(false), 2500); }
+  };
 
   const chapters: Chapter[] = useMemo(
     () =>
@@ -91,44 +100,8 @@ export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; 
     if (c.t !== undefined) goVideo(c.t);
   };
 
-  if (!src) return null;
-  return (
-    <div className="studio">
-      <div className="studio-main" ref={top}>
-        <Player
-          ref={player}
-          src={src}
-          poster={poster}
-          chapters={chapters}
-          lang={lang === 'zh' ? 'zh' : 'en'}
-          title={job.title ?? ''}
-          onTime={setNow}
-          onPlay={() => {
-            const k = storageKind(src);
-            if (k) track('video_play', { k });
-          }}
-        />
-
-
-        {intro && !interactive && (
-          <div className="inter-intro" role="note">
-            <div><b>✦ {pick(lang, IA.introH)}</b><p>{pick(lang, IA.introP)}</p></div>
-            <div className="row" style={{ gap: 8 }}>
-              <button type="button" className="btn primary small" onClick={() => { closeIntro(); toggleInteractive(); }}>{pick(lang, IA.introOn)}</button>
-              <button type="button" className="btn ghost small" onClick={closeIntro}>{pick(lang, IA.introNo)}</button>
-            </div>
-          </div>
-        )}
-        <div className="inter-bar">
-          <button type="button" className="inter-switch" role="switch" aria-checked={interactive} onClick={toggleInteractive}>
-            <span className="inter-knob" aria-hidden />
-            <b>{pick(lang, IA.mode)}</b>
-          </button>
-          <span className="inter-free">{pick(lang, IA.free)}</span>
-          <span className="small muted">{pick(lang, IA.hint)}</span>
-        </div>
-        {check && (
-          <div className="inter-card" role="dialog" aria-label={pick(lang, IA.q)}>
+  const overlay = check ? (
+<div className="inter-card" role="dialog" aria-label={pick(lang, IA.q)}>
             <div className="row between"><b className="inter-h">✦ {pick(lang, IA.q)} · {check.i + 1}/{secs.length}</b>
               <button type="button" className="btn ghost small" onClick={() => { setCheck(null); player.current?.play(); }}>{pick(lang, IA.skip)}</button></div>
             {check.status === 'loading' && <p className="small muted" role="status"><span className="spin" aria-hidden /> {pick(lang, IA.loading)}</p>}
@@ -165,8 +138,49 @@ export default function Studio({ job, lang, localPdf }: { job: Job; lang: Lang; 
               </div>
             )}
           </div>
-        )}
+  ) : null;
 
+  if (!src) return null;
+  return (
+    <div className="studio">
+      <div className="studio-main" ref={top}>
+        <Player
+          ref={player}
+          src={src}
+          poster={poster}
+          chapters={chapters}
+          lang={lang === 'zh' ? 'zh' : 'en'}
+          title={job.title ?? ''}
+          onTime={setNow}
+          overlay={overlay}
+          onPlay={() => {
+            const k = storageKind(src);
+            if (k) track('video_play', { k });
+          }}
+        />
+
+
+        {intro && !interactive && (
+          <div className="inter-intro" role="note">
+            <div><b>✦ {pick(lang, IA.introH)}</b><p>{pick(lang, IA.introP)}</p></div>
+            <div className="row" style={{ gap: 8 }}>
+              <button type="button" className="btn primary small" onClick={() => { closeIntro(); toggleInteractive(); }}>{pick(lang, IA.introOn)}</button>
+              <button type="button" className="btn ghost small" onClick={closeIntro}>{pick(lang, IA.introNo)}</button>
+            </div>
+          </div>
+        )}
+        <div className="share-bar">
+          <button type="button" className="btn primary small" onClick={share}>{shared ? `✓ ${pick(lang, SH.done)}` : `🔗 ${pick(lang, SH.btn)}`}</button>
+          <span className="small muted">{pick(lang, SH.hint)}</span>
+        </div>
+        <div className="inter-bar">
+          <button type="button" className="inter-switch" role="switch" aria-checked={interactive} onClick={toggleInteractive}>
+            <span className="inter-knob" aria-hidden />
+            <b>{pick(lang, IA.mode)}</b>
+          </button>
+          <span className="inter-free">{pick(lang, IA.free)}</span>
+          <span className="small muted">{pick(lang, IA.hint)}</span>
+        </div>
         {secs.length > 0 && (() => {
           const idx = Math.max(0, current);
           const s = secs[idx];

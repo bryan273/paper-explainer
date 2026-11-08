@@ -24,8 +24,12 @@ const setToken = (t: string) => {
 /** Headers that tell the server who is asking: the browser id for guests, plus the session for a signed-in member. */
 export const authHeaders = (): Record<string, string> => ({ 'x-visitor-id': visitorId(), ...(getToken() ? { 'x-session': getToken() } : {}) });
 
+// a friend's invite link (?ref=code) is remembered until the visitor signs up
+try { const r = new URLSearchParams(window.location.search).get('ref'); if (r && /^[0-9a-f]{8}$/i.test(r)) localStorage.setItem('pe-ref', r.toLowerCase()); } catch { /* no storage */ }
+const savedRef = () => { try { return localStorage.getItem('pe-ref') || undefined; } catch { return undefined; } };
+
 export async function accountApi(op: string, body: Record<string, unknown> = {}) {
-  const res = await fetch(ACCOUNT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ op, visitor: visitorId(), ...body }) });
+  const res = await fetch(ACCOUNT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ op, visitor: visitorId(), ...(op === 'register' ? { ref: savedRef() } : {}), ...body }) });
   const out = await res.json().catch(() => ({}));
   if (!res.ok || out.error) throw new Error(out.error || `HTTP ${res.status}`);
   return out;

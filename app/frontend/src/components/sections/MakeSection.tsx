@@ -10,6 +10,7 @@ import { usePrefs, type Lang, type StringKey } from '@/lib/prefs';
 import { scrollToSection } from '@/components/Shell';
 import { AccountStrip, LimitPanel } from '@/components/AccountUI';
 import { track, useAccount } from '@/lib/account';
+import { pick } from '@/lib/i18n_extra';
 
 const STEP_KEYS: StringKey[] = ['stepRead', 'stepScript', 'stepCheck', 'stepEn', 'stepZh'];
 const POLL_MS = 5000;
@@ -82,6 +83,9 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
   const [batch, setBatch] = useState<Job[]>([]);
   const [dragging, setDragging] = useState(false);
   type VLang = 'en' | 'zh' | 'vi' | 'id' | 'both';
+  // interactive video is the viewer's choice, asked here and again under the finished video
+  const [inter, setInter] = useState(() => { try { return localStorage.getItem('pe-interactive') === '1'; } catch { return false; } });
+  const setInterOn = (v: boolean) => { setInter(v); try { localStorage.setItem('pe-interactive', v ? '1' : '0'); localStorage.setItem('pe-inter-intro', '1'); } catch { /* private mode */ } };
   const [vlang, setVlang] = useState<VLang>(uiLang);   // the language the video is made in: one is faster than both
   const fileRef = useRef<HTMLInputElement>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -354,6 +358,14 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
                 <button key={k} type="button" role="radio" aria-checked={vlang === k} disabled={submitting || running} onClick={() => setVlang(k)}>{n}</button>
               ))}
             </div>
+          </div>
+          <div className="inter-pick">
+            <button type="button" className="inter-switch" role="switch" aria-checked={inter} onClick={() => setInterOn(!inter)}>
+              <span className="inter-knob" aria-hidden />
+              <b>{pick(uiLang, { en: 'Interactive video', zh: '互动视频', vi: 'Video tương tác', id: 'Video interaktif' })}</b>
+            </button>
+            <span className="inter-free">{pick(uiLang, { en: 'Free to try', zh: '免费试用', vi: 'Dùng thử miễn phí', id: 'Gratis dicoba' })}</span>
+            <span className="small muted">{pick(uiLang, { en: 'Optional. The video stops after each part and you answer a question inside the video. You can also switch it on after the video is made.', zh: '可选。每段结束后视频暂停，你直接在视频里答题。视频做好之后也可以再打开。', vi: 'Tùy chọn. Video dừng sau mỗi phần và bạn trả lời câu hỏi ngay trong video. Bạn cũng có thể bật sau khi video đã tạo xong.', id: 'Opsional. Video berhenti setiap bagian dan Anda menjawab pertanyaan langsung di dalam video. Bisa juga dinyalakan setelah video selesai dibuat.' })}</span>
           </div>
           <button type="button" className="opt-toggle" aria-expanded={optsOpen} onClick={() => setOptsOpen((v) => !v)}>
             <span className="opt-sum">

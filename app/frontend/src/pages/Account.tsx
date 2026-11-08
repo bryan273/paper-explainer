@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import Shell from '@/components/Shell';
 import StudentTrial from '@/components/StudentTrial';
+import InviteCard from '@/components/InviteCard';
 import PayPanel from '@/components/PayPanel';
 import { accountApi, accountSwr, track, useAccount, useAcctText, type Pack } from '@/lib/account';
 import { usePrefs } from '@/lib/prefs';
@@ -131,13 +132,14 @@ export default function Account() {
                 ) : (
                   <>
                     <div><span className="small muted">{lang === 'zh' ? '当前套餐' : 'Your plan'}</span><b>{lang === 'zh' ? '免费' : 'Free'}</b></div>
-                    <div><span className="small muted">{lang === 'zh' ? 'Plus 每月 ¥33，含 100 个视频' : 'Plus: 100 videos for ¥33 a month'}</span></div>
+                    <div><span className="small muted">{lang === 'zh' ? 'Plus 每月 ¥33，含 30 个视频；Pro 每月 ¥59，含 150 个视频' : 'Plus: 30 videos for ¥33 a month. Pro: 150 videos for ¥59'}</span></div>
                     <Link className="btn primary small" to="/#pricing">{lang === 'zh' ? '升级' : 'Upgrade'}</Link>
                   </>
                 );
               })()}
             </div>
 
+            <InviteCard />
             <StudentTrial />
 
             <div className="acct-tools">
