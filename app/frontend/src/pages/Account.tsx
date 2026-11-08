@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Shell from '@/components/Shell';
 import StudentTrial from '@/components/StudentTrial';
 import InviteCard from '@/components/InviteCard';
+import { curOf, money, type PriceKey } from '@/lib/currency';
 import PayPanel from '@/components/PayPanel';
 import { accountApi, accountSwr, track, useAccount, useAcctText, type Pack } from '@/lib/account';
 import { usePrefs } from '@/lib/prefs';
@@ -39,8 +40,8 @@ export default function Account() {
   const [busy, setBusy] = useState(false);
   const [pw, setPw] = useState({ old: '', next: '' });
   const [pwMsg, setPwMsg] = useState('');
-  const [showLedger, setShowLedger] = useState(false);
-  const [showPw, setShowPw] = useState(false);
+  const showLedger = true;
+  const showPw = true;
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -62,7 +63,7 @@ export default function Account() {
     setErr('');
     try {
       track('click_buy');
-      setOrder(await accountApi('buy', { pack }));
+      setOrder(await accountApi('buy', { pack, currency: curOf(lang) }));
     } catch (e) {
       setErr((e as Error).message);
     } finally {
@@ -212,13 +213,13 @@ export default function Account() {
               <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
                 {packs.map(([k, p]) => (
                   <button key={k} type="button" className="btn primary" disabled={busy} onClick={() => buy(k)}>
-                    {a('pack', { c: p.credits })} · {a('packPrice', { p: p.price })}
+                    {a('pack', { c: p.credits })} · {money(`pack_${p.credits}` as PriceKey, lang)}
                   </button>
                 ))}
               </div>
               {order && (
                 <div className="card" style={{ marginTop: 14, flexBasis: '100%' }}>
-                  <PayPanel orderId={order.id} price={`¥${order.price}`} intro={a('orderMade', { id: order.id.slice(0, 8) })} onClose={() => { setOrder(null); load(); }} />
+                  <PayPanel orderId={order.id} price={money(`pack_${order.credits}` as PriceKey, lang)} intro={a('orderMade', { id: order.id.slice(0, 8) })} onClose={() => { setOrder(null); load(); }} />
                 </div>
               )}
             </div>
@@ -226,7 +227,6 @@ export default function Account() {
             <div>
               <div className="row between">
                 <h3 className="acct-h" style={{ margin: 0 }}>{l.history}</h3>
-                <button type="button" className="linkbtn small" onClick={() => setShowLedger((v) => !v)}>{showLedger ? l.hide : l.show}</button>
               </div>
               {showLedger &&
                 (ledger.length === 0 ? (
@@ -251,7 +251,6 @@ export default function Account() {
             <div>
               <div className="row between">
                 <h3 className="acct-h" style={{ margin: 0 }}>{l.security}</h3>
-                <button type="button" className="linkbtn small" onClick={() => setShowPw((v) => !v)}>{showPw ? l.hide : l.show}</button>
               </div>
               {showPw && (
                 <form className="card stack" onSubmit={changePw} style={{ maxWidth: 400, margin: '10px 0 0' }}>

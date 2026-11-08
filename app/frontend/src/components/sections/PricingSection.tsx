@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { accountApi, track, useAccount } from '@/lib/account';
 import { usePrefs } from '@/lib/prefs';
 import PayPanel from '@/components/PayPanel';
+import { amount, curOf, fmtMoney, money, perMonthOfYear, type PriceKey } from '@/lib/currency';
 import StudentTrial from '@/components/StudentTrial';
 
 type Billing = 'month' | 'year';
@@ -51,15 +52,15 @@ export default function PricingSection() {
   const [busy, setBusy] = useState<PlanId | null>(null);
   const [err, setErr] = useState('');
 
-  const [order, setOrder] = useState<{ id: string; price: number } | null>(null);
+  const [order, setOrder] = useState<{ id: string; price: number; label: string } | null>(null);
   const myPlan = (me as unknown as { plan?: string | null } | null)?.plan ?? null;
   const join = async (plan: PlanId) => {
     if (!user) { openAuth('register'); return; }
     setBusy(plan); setErr('');
     try {
       track('click_plan', { plan, billing });
-      const out = (await accountApi('buy', { plan: `${plan}_${billing}` })) as { id: string; price: number };
-      setOrder(out); setSent(plan);
+      const out = (await accountApi('buy', { plan: `${plan}_${billing}`, currency: curOf(lang) })) as { id: string; price: number };
+      setOrder({ ...out, label: money(`${plan}_${billing}` as PriceKey, lang) }); setSent(plan);
       window.setTimeout(() => document.getElementById('plan-pay')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
     } catch (e) { setErr((e as Error).message); } finally { setBusy(null); }
   };
@@ -69,8 +70,8 @@ export default function PricingSection() {
     setErr('');
     try {
       track('click_pack', { pack });
-      const out = (await accountApi('buy', { pack })) as { id: string; price: number };
-      setOrder(out);
+      const out = (await accountApi('buy', { pack, currency: curOf(lang) })) as { id: string; price: number };
+      setOrder({ ...out, label: money(`pack_${pack}` as PriceKey, lang) });
       window.setTimeout(() => document.getElementById('plan-pay')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
     } catch (e) { setErr((e as Error).message); }
   };
@@ -79,7 +80,7 @@ export default function PricingSection() {
     const featured = id === 'plus';
     const items = id === 'free' ? l.freeL.map((x) => x.replace('{n}', String(me?.limits.member ?? 3))) : id === 'plus' ? l.plusL : l.proL;
     const p = id === 'free' ? null : PLANS[id];
-    const monthly = p ? (billing === 'year' ? Math.round(p.now.year / 12) : p.now.month) : 0;
+    const monthly = p ? (billing === 'year' ? perMonthOfYear(`${id as PlanId}_year`, lang) : amount(`${id as PlanId}_month`, lang)) : 0;
     return (
       <div key={id} className={`card price-card${featured ? ' featured' : ''}${id === 'pro' ? ' pro' : ''}`}>
         <div className="row between">
@@ -89,12 +90,12 @@ export default function PricingSection() {
         {p ? (
           <>
             <div className="price">
-              ¥{monthly} <small>{l.perMonth}</small>{billing === 'year' && <span className="save-pill">{l.save}</span>}
+              {fmtMoney(monthly, lang)} <small>{l.perMonth}</small>{billing === 'year' && <span className="save-pill">{l.save}</span>}
             </div>
-            <p className="small muted" style={{ margin: '-6px 0 0' }}>{billing === 'year' ? l.billedYear.replace('{m}', String(monthly)) : l.founding}</p>
+            <p className="small muted" style={{ margin: '-6px 0 0' }}>{billing === 'year' ? l.billedYear.replace('¥{m}', fmtMoney(monthly, lang)) : l.founding}</p>
           </>
         ) : (
-          <div className="price">¥0</div>
+          <div className="price">{fmtMoney(0, lang)}</div>
         )}
         <ul className="tick">
           {items.map((it) => (<li key={it}>{it}</li>))}
@@ -106,7 +107,7 @@ export default function PricingSection() {
         ) : myPlan === id ? (
           <p className="small" style={{ margin: 0, color: 'var(--ok)' }}>✓ {l.yours}</p>
         ) : (
-          <button type="button" className={`btn ${featured ? 'primary' : 'ghost'}`} disabled={busy === id} onClick={() => join(id)}>{l.cta.replace('{p}', l[id])} · ¥{billing === 'year' ? p!.now.year : p!.now.month}</button>
+          <button type="button" className={`btn ${featured ? 'primary' : 'ghost'}`} disabled={busy === id} onClick={() => join(id)}>{l.cta.replace('{p}', l[id])} · {money(`${id as PlanId}_${billing}` as PriceKey, lang)}</button>
         )}
       </div>
     );
@@ -131,7 +132,7 @@ export default function PricingSection() {
       <StudentTrial />
       {order && (
         <div id="plan-pay" className="card" style={{ marginTop: 16 }}>
-          <PayPanel orderId={order.id} price={`¥${order.price}`} onClose={() => { setOrder(null); setSent(null); }} />
+          <PayPanel orderId={order.id} price={order.label} onClose={() => { setOrder(null); setSent(null); }} />
         </div>
       )}
 
@@ -139,7 +140,7 @@ export default function PricingSection() {
         <span><b>{l.packs}</b> · {l.packsLine}</span>
         <span className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
           {PACKS.map((k) => (
-            <button key={k.k} type="button" className="btn ghost small" disabled={busy === 'plus' || busy === 'pro'} onClick={() => buyPack(k.k)}>{k.n} {l.each} · ¥{k.p}</button>
+            <button key={k.k} type="button" className="btn ghost small" disabled={busy === 'plus' || busy === 'pro'} onClick={() => buyPack(k.k)}>{k.n} {l.each} · {money(`pack_${k.k}` as PriceKey, lang)}</button>
           ))}
         </span>
       </div>

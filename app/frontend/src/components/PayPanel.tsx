@@ -22,13 +22,24 @@ export default function PayPanel({ orderId, price, intro, onClose }: { orderId: 
         { id: 'wechat' as const, src: import.meta.env.BASE_URL + 'pay/wechat.webp', label: t('payWechat') },
         { id: 'alipay' as const, src: import.meta.env.BASE_URL + 'pay/alipay.webp', label: t('payAlipay') },
       ];
-  const cny = Number(price.replace(/[^0-9.]/g, '')) || 0;
-  const vnd = new Intl.NumberFormat('vi-VN').format(Math.round((cny * 3600) / 1000) * 1000);   // a reference rate; the owner confirms the exact amount
   const confirm = async () => {
     if (!method) return;
     setSending(true); setPayError(false);
     try { await markOrderPaid(orderId, method); track('order_paid_claimed'); setPaid(true); } catch { setPayError(true); } finally { setSending(false); }
   };
+  if (lang === 'id') {   // no Indonesian bank account is set up yet: say so plainly and let the person reach us with the order number
+    return (
+      <div className="stack fade" role="status">
+        <div className="done-box">{intro ?? 'Pesanan dibuat.'}</div>
+        <b style={{ font: '700 16px var(--display)' }}>Total: {price}</b>
+        <p className="small" style={{ margin: 0 }}>Kirim kode pesanan <span className="mono">{orderId.slice(0, 8)}</span> kepada kami lewat tombol Kontak. Kami membalas dengan detail pembayaran (transfer bank atau QRIS) dan mengaktifkan paket Anda setelah pembayaran dikonfirmasi, dalam satu hari.</p>
+        <div className="row">
+          <button type="button" className="btn primary" onClick={() => window.dispatchEvent(new Event('pe-open-contact'))}>Hubungi kami</button>
+          <button type="button" className="btn ghost" onClick={onClose}>{t('close')}</button>
+        </div>
+      </div>
+    );
+  }
   if (paid) {
     return (
       <div className="stack fade" role="status">
@@ -54,11 +65,11 @@ export default function PayPanel({ orderId, price, intro, onClose }: { orderId: 
             const m = methods.find((x) => x.id === method)!;
             return (
               <>
-                <b style={{ font: '700 16px var(--display)' }}>{vi ? `Quét mã bằng ứng dụng ngân hàng và chuyển khoảng ${vnd} VND (${price})` : t('payScan').replace('{m}', m.label).replace('{p}', price)}</b>
+                <b style={{ font: '700 16px var(--display)' }}>{vi ? `Quét mã bằng ứng dụng ngân hàng và chuyển đúng ${price}` : t('payScan').replace('{m}', m.label).replace('{p}', price)}</b>
                 <figure style={{ margin: 0, width: vi ? 280 : 220 }}>
                   <img src={m.src} alt={m.label} width={vi ? 280 : 220} style={{ width: vi ? 280 : 220, height: 'auto', borderRadius: 14, border: '1px solid var(--line)', display: 'block' }} />
                 </figure>
-                <p className="small muted" style={{ margin: 0 }}>{vi ? `Ghi mã đơn hàng ${orderId.slice(0, 8)} vào nội dung chuyển khoản để chúng tôi đối chiếu. Số tiền VND chỉ là tỷ giá tham khảo; chúng tôi xác nhận số tiền chính xác và kích hoạt gói trong vòng một ngày.` : t('payNote')}</p>
+                <p className="small muted" style={{ margin: 0 }}>{vi ? `Ghi mã đơn hàng ${orderId.slice(0, 8)} vào nội dung chuyển khoản. Chúng tôi xác nhận và kích hoạt trong vòng một ngày.` : t('payNote')}</p>
                 <p className="small muted" style={{ margin: 0 }}>{t('payOrderNo')}: <span className="mono">{orderId.slice(0, 8)}</span></p>
                 {payError && <p className="err">{t('payFail')}</p>}
                 <div className="row">

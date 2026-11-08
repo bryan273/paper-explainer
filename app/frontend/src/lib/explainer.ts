@@ -148,15 +148,16 @@ export const MAX_PDF_BYTES = 20 * 1024 * 1024;
 export const MAX_PDF_FILES = 5;
 
 /** Sends one PDF to the private upload bucket and returns its path, to be passed to createJob as `upload`. */
-export async function uploadPaper(file: File): Promise<string> {
+export async function uploadPaper(file: File | Blob, name?: string): Promise<string> {
+  const text = !(file instanceof File && (file.type === 'application/pdf' || /\.pdf$/i.test(file.name))) && !(file.type === 'application/pdf');
   const addr = (await request({
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
-    body: JSON.stringify({ op: 'upload_url', name: file.name, size: file.size, visitor: visitorId() }),
+    body: JSON.stringify({ op: 'upload_url', name: name ?? (file instanceof File ? file.name : 'text'), size: file.size, visitor: visitorId(), kind: text ? 'text' : 'pdf' }),
   })) as { path: string; upload_url: string };
   let res: Response;
   try {
-    res = await fetch(addr.upload_url, { method: 'PUT', headers: { 'Content-Type': 'application/pdf' }, body: file });
+    res = await fetch(addr.upload_url, { method: 'PUT', headers: { 'Content-Type': text ? 'text/plain' : 'application/pdf' }, body: file });
   } catch {
     throw new ApiError('upload failed', 0, 'upload_failed');
   }
