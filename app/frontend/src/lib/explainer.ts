@@ -327,5 +327,6 @@ export async function quizPart(p: { job: string; section: number; lang: Lang }):
 /** Every question of a video at once: one per part (written once and then shared), or a final test over the whole video. */
 export async function quizAll(p: { job: string; lang: Lang; final?: boolean }): Promise<Quiz[]> {
   const out = await askRequest({ method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ ...p, q: '', intent: 'quizall', mode: 'paper', history: [], visitor: visitorId() }) });
+  if (out.interactive) window.dispatchEvent(new CustomEvent('pe-interactive-used', { detail: out.interactive }));
   return (out.quizzes as Quiz[]) ?? [];
 }
