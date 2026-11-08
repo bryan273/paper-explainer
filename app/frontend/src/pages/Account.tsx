@@ -111,7 +111,7 @@ export default function Account() {
                 <p className="small muted" style={{ margin: '4px 0 0' }}>{l.hello} {user.username}</p>
               </div>
               <div className="row" style={{ gap: 8 }}>
-                {me?.admin && <Link className="btn ghost small" to="/console">{l.admin}</Link>}
+                {me?.admin && <a className="btn ghost small" href="/repro-suite/hub/console">{l.admin}</a>}
                 <Link className="btn primary small" to="/#make">{l.make}</Link>
               </div>
             </div>
