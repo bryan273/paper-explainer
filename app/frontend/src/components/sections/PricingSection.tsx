@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { accountApi, track, useAccount } from '@/lib/account';
 import { usePrefs } from '@/lib/prefs';
 import PayPanel from '@/components/PayPanel';
+import StudentTrial from '@/components/StudentTrial';
 
 type Billing = 'month' | 'year';
 type PlanId = 'plus' | 'pro';
@@ -127,6 +128,7 @@ export default function PricingSection() {
         {card('pro')}
       </div>
       {err && <p className="err" role="alert">{err}</p>}
+      <StudentTrial />
       {order && (
         <div id="plan-pay" className="card" style={{ marginTop: 16 }}>
           <PayPanel orderId={order.id} price={`¥${order.price}`} onClose={() => { setOrder(null); setSent(null); }} />

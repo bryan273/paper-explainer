@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import Shell from '@/components/Shell';
+import StudentTrial from '@/components/StudentTrial';
 import PayPanel from '@/components/PayPanel';
 import { accountApi, accountGet, track, useAccount, useAcctText, type Pack } from '@/lib/account';
 import { usePrefs } from '@/lib/prefs';
@@ -137,6 +138,8 @@ export default function Account() {
                 );
               })()}
             </div>
+
+            <StudentTrial />
 
             <div className="acct-tools">
               <a href="https://bryan273.github.io/repro-suite/repro/index.html"><b>{lang === 'zh' ? '复现' : 'Reproductions'}</b><span>{lang === 'zh' ? '查看你运行过的复现' : 'See the runs you started'}</span></a>
