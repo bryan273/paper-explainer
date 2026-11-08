@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type KeyboardEvent, type PointerEvent as RPointerEvent } from 'react';
+import { forwardRef, type ReactNode, useCallback, useEffect, useImperativeHandle, useRef, useState, type KeyboardEvent, type PointerEvent as RPointerEvent } from 'react';
 
 export type Chapter = { start: number; end: number; title: string };
 export type PlayerHandle = { seek: (t: number, play?: boolean) => void; pause: () => void; play: () => void };
@@ -16,8 +16,8 @@ const T = {
 } as const;
 
 /** A video player whose timeline is cut into the chapters of the script, like a YouTube chapter bar: click a piece to jump to that section. */
-const Player = forwardRef<PlayerHandle, { src: string; poster?: string; chapters: Chapter[]; lang: 'en' | 'zh'; title?: string; onTime?: (t: number) => void; onPlay?: () => void }>(function Player(
-  { src, poster, chapters, lang, title, onTime, onPlay },
+const Player = forwardRef<PlayerHandle, { src: string; poster?: string; chapters: Chapter[]; lang: 'en' | 'zh'; title?: string; onTime?: (t: number) => void; onPlay?: () => void; overlay?: ReactNode }>(function Player(
+  { src, poster, chapters, lang, title, onTime, onPlay, overlay },
   ref,
 ) {
   const t = T[lang];
@@ -114,12 +114,13 @@ const Player = forwardRef<PlayerHandle, { src: string; poster?: string; chapters
         onPause={() => setPlaying(false)}
         onEnded={() => setPlaying(false)}
       />
-      {!playing && (
+      {!playing && !overlay && (
         <button type="button" className="pl-big" onClick={toggle} aria-label={t.play}>
           <svg viewBox="0 0 24 24" aria-hidden><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
         </button>
       )}
       </div>
+      {overlay && <div className="pl-overlay">{overlay}</div>}
       <div className="pl-ctl">
         {now?.title && <div className="pl-now">{now.title}</div>}
         <div
