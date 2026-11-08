@@ -15,7 +15,7 @@ function inline(text: string) {
 }
 
 /** Pieces an answer appears in: a word at a time for spaced scripts, a character at a time for Chinese. */
-const units = (text: string) => text.split(/(?<=\s)|(?<=[㐀-鿿＀-￯　-〿])/u).filter(Boolean);
+const units = (text: string) => text.split(new RegExp('(?<=\\s)|(?<=[\\u3400-\\u9fff\\uff00-\\uffef])', 'u')).filter(Boolean);
 
 /** One part of an answer. The badge says in words where it comes from; a quote is shown with whether it was found in the paper text. */
 function Block({ b, onCite }: { b: AskBlock; onCite?: (c: { page?: number; t?: number }) => void }) {
