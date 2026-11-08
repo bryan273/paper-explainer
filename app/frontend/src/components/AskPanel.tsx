@@ -4,6 +4,19 @@ import { ApiError, askPaper, getChat, type AskBlock, type ChatMsg, type Job } fr
 import { useAccount } from '@/lib/account';
 
 const MODE_KEY = 'pe-ask-mode';
+const MODEL_KEY = 'pe-ask-model';
+import { pick } from '@/lib/i18n_extra';
+import { read as readSettings } from '@/lib/settings';
+import { secText } from '@/lib/explainer';
+import { scrollToSection } from '@/components/Shell';
+
+const D = {
+  fast: { en: 'Fast', zh: '快速', vi: 'Nhanh', id: 'Cepat' }, deep: { en: 'Deep', zh: '深入', vi: 'Sâu', id: 'Mendalam' },
+  deepHint: { en: 'Deep uses a stronger AI model for harder questions. Free to try: {n} a day.', zh: '深入模式使用更强的 AI 模型回答更难的问题。可免费试用，每天 {n} 次。', vi: 'Chế độ Sâu dùng mô hình AI mạnh hơn cho câu hỏi khó. Dùng thử miễn phí: {n} lần mỗi ngày.', id: 'Mode Mendalam memakai model AI yang lebih kuat untuk pertanyaan sulit. Gratis dicoba: {n} kali sehari.' },
+  signup: { en: 'Sign up free to try Deep', zh: '免费注册，试用深入模式', vi: 'Đăng ký miễn phí để thử chế độ Sâu', id: 'Daftar gratis untuk mencoba mode Mendalam' },
+  seePlus: { en: 'See Plus', zh: '查看 Plus', vi: 'Xem gói Plus', id: 'Lihat Plus' },
+  useFast: { en: 'Answer with Fast instead', zh: '改用快速模式回答', vi: 'Trả lời bằng chế độ Nhanh', id: 'Jawab dengan mode Cepat' },
+} as const;
 
 /** The tutor sometimes writes *emphasis* or **bold** even though it is asked not to: show it as emphasis instead of stray asterisks. */
 function inline(text: string) {
@@ -56,6 +69,10 @@ export default function AskPanel({ job, lang, seed, onCite }: { job: Job; lang: 
       return 'plus';
     }
   });
+  const [model, setModel] = useState<'fast' | 'deep'>(() => {
+    try { const v = localStorage.getItem(MODEL_KEY); return v === 'deep' || v === 'fast' ? v : readSettings().askModel; } catch { return 'fast'; }
+  });
+  const lastQ = useRef<{ q: string; opt: { intent?: 'ask' | 'simpler'; section?: number } } | null>(null);
   const [busy, setBusy] = useState(false);
   const [slow, setSlow] = useState(false);
   const [error, setError] = useState<{ text: string; code?: string } | null>(null);
@@ -96,13 +113,20 @@ export default function AskPanel({ job, lang, seed, onCite }: { job: Job; lang: 
     }
   };
 
-  const ask = async (q: string, opt: { intent?: 'ask' | 'simpler'; section?: number } = {}) => {
+  const pickModel = (m: 'fast' | 'deep') => {
+    setModel(m);
+    try { localStorage.setItem(MODEL_KEY, m); } catch { /* private mode */ }
+  };
+
+  const ask = async (q: string, opt: { intent?: 'ask' | 'simpler'; section?: number } = {}, force?: 'fast' | 'deep') => {
     if (busy) return;
+    lastQ.current = { q, opt };
+    const useModel = force ?? model;
     const intent = opt.intent ?? 'ask';
     const text = q.trim();
     if (intent === 'ask' && text.length < 2) return;
     const sec = opt.section !== undefined ? job.sections?.[opt.section] : undefined;
-    const secTitle = sec ? (lang === 'zh' ? sec.title_zh || sec.title : sec.title) ?? '' : '';
+    const secTitle = sec ? secText(sec, 'title', lang) : '';
     const shown = intent === 'simpler' ? t('askSimplerSent').replace('{title}', secTitle) : text;
     const history = msgs.slice(-6).map((m) => (m.role === 'user' ? { role: 'user' as const, text: m.text } : { role: 'ai' as const, text: m.blocks.map((b) => b.text).join(' ') }));
     setMsgs((m) => [...m, { role: 'user', text: shown, section: opt.section ?? null }]);
@@ -113,7 +137,7 @@ export default function AskPanel({ job, lang, seed, onCite }: { job: Job; lang: 
     setPhase(0);
     const stepper = window.setInterval(() => setPhase((p) => Math.min(p + 1, 3)), 2200);
     try {
-      const out = await askPaper({ job: job.id, q: text, mode, intent, section: opt.section, history, lang });
+      const out = await askPaper({ job: job.id, q: text, mode, intent, model: useModel, section: opt.section, history, lang });
       setMsgs((m) => { setReveal({ msg: m.length, words: 0 }); return [...m, { role: 'ai', blocks: out.blocks, followups: out.followups }]; });
       setLeft(out.left);
     } catch (e) {
@@ -160,11 +184,17 @@ export default function AskPanel({ job, lang, seed, onCite }: { job: Job; lang: 
           <h3 className="sec" style={{ fontSize: 22, margin: 0 }}>{t('askTitle')}</h3>
           <p className="small muted" style={{ margin: '4px 0 0', maxWidth: 560 }}>{t('askSub')}</p>
         </div>
+        <div className="askseg ask-model" role="radiogroup" aria-label="AI model" title={pick(lang, D.deepHint).replace('{n}', '2')}>
+          <button type="button" role="radio" aria-checked={model === 'fast'} onClick={() => pickModel('fast')}>{pick(lang, D.fast)}</button>
+          <button type="button" role="radio" aria-checked={model === 'deep'} onClick={() => pickModel('deep')}>{pick(lang, D.deep)} <em className="spark">✦</em></button>
+        </div>
         <div className="askseg" role="radiogroup" aria-label={t('askModeLabel')}>
           <button type="button" role="radio" aria-checked={mode === 'plus'} onClick={() => pickMode('plus')}>{t('askModePlus')}</button>
           <button type="button" role="radio" aria-checked={mode === 'paper'} onClick={() => pickMode('paper')}>{t('askModePaper')}</button>
         </div>
       </div>
+
+      {model === 'deep' && <p className="small muted ask-deep-hint" style={{ margin: 0 }}>✦ {pick(lang, D.deepHint).replace('{n}', '2')}</p>}
 
       {msgs.length === 0 && !busy && (
         <div className="chips" role="group" aria-label={t('askNext')}>
@@ -218,6 +248,18 @@ export default function AskPanel({ job, lang, seed, onCite }: { job: Job; lang: 
       {error && (
         <div className="note" role="alert">
           <p style={{ margin: 0 }}>{error.text}</p>
+          {error.code === 'deep_signup' && (
+            <div className="row" style={{ gap: 8, marginTop: 10 }}>
+              <button type="button" className="btn primary small" onClick={() => openAuth('register')}>{pick(lang, D.signup)}</button>
+              <button type="button" className="btn ghost small" onClick={() => { setError(null); if (lastQ.current) ask(lastQ.current.q, lastQ.current.opt, 'fast'); }}>{pick(lang, D.useFast)}</button>
+            </div>
+          )}
+          {error.code === 'deep_premium' && (
+            <div className="row" style={{ gap: 8, marginTop: 10 }}>
+              <button type="button" className="btn primary small" onClick={() => scrollToSection('pricing')}>{pick(lang, D.seePlus)}</button>
+              <button type="button" className="btn ghost small" onClick={() => { setError(null); if (lastQ.current) ask(lastQ.current.q, lastQ.current.opt, 'fast'); }}>{pick(lang, D.useFast)}</button>
+            </div>
+          )}
           {error.code === 'ask_guest' && (
             <div className="row" style={{ gap: 8, marginTop: 10 }}>
               <button type="button" className="btn primary small" onClick={() => openAuth('register')}>{t('askSignUp')}</button>

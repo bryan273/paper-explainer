@@ -46,7 +46,7 @@ export default function Shell({ children }: { children: ReactNode }) {
 
   return (
     <div className="shell">
-      <SuiteTopBar appId="explainer" brand="Paper Explainer" letter="E" homeTo="/" nav={nav} dark={theme === 'dark'} onToggleDark={toggleTheme} lang={lang} onLang={setLang} onSettings={() => window.dispatchEvent(new Event('pe-open-settings'))} />
+      <SuiteTopBar appId="explainer" brand="Paper Explainer" letter="E" homeTo="/" nav={nav} dark={theme === 'dark'} onToggleDark={toggleTheme} lang={lang} onLang={setLang} languages={['en', 'zh', 'vi', 'id']} onSettings={() => window.dispatchEvent(new Event('pe-open-settings'))} />
       <SettingsDialog />
       <div className="mainwrap">
         <main className="main" id="top">

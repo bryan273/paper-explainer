@@ -1,7 +1,7 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type KeyboardEvent, type PointerEvent as RPointerEvent } from 'react';
 
 export type Chapter = { start: number; end: number; title: string };
-export type PlayerHandle = { seek: (t: number, play?: boolean) => void };
+export type PlayerHandle = { seek: (t: number, play?: boolean) => void; pause: () => void; play: () => void };
 
 const fmt = (s: number) => {
   if (!Number.isFinite(s) || s < 0) s = 0;
@@ -43,7 +43,7 @@ const Player = forwardRef<PlayerHandle, { src: string; poster?: string; chapters
     setCur(v.currentTime);
     if (play) void v.play().catch(() => undefined);
   }, []);
-  useImperativeHandle(ref, () => ({ seek }), [seek]);
+  useImperativeHandle(ref, () => ({ seek, pause: () => vid.current?.pause(), play: () => { void vid.current?.play(); } }), [seek]);
 
   useEffect(() => {
     const on = () => setFull(document.fullscreenElement === box.current);

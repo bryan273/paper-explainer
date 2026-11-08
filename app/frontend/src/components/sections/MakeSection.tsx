@@ -56,7 +56,7 @@ export function srcLabel(job: Job): string {
 
 export default function MakeSection({ prefill, autoOpen }: { prefill?: string | null; autoOpen?: boolean }) {
   const { t, lang: uiLang } = usePrefs();
-  const { refresh: refreshAccount } = useAccount();
+  const { refresh: refreshAccount, user: acctUser } = useAccount();
   const [limit, setLimit] = useState<null | 'quota_guest' | 'quota_member'>(null);
   const [input, setInput] = useState(prefill ?? '');
   const [submitting, setSubmitting] = useState(false);
@@ -78,7 +78,8 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
   const [sending, setSending] = useState<{ i: number; n: number } | null>(null);
   const [batch, setBatch] = useState<Job[]>([]);
   const [dragging, setDragging] = useState(false);
-  const [vlang, setVlang] = useState<'en' | 'zh' | 'both'>(uiLang === 'zh' ? 'zh' : 'en');   // the language the video is made in: one is faster than both
+  type VLang = 'en' | 'zh' | 'vi' | 'id' | 'both';
+  const [vlang, setVlang] = useState<VLang>(uiLang);   // the language the video is made in: one is faster than both
   const fileRef = useRef<HTMLInputElement>(null);
   const [now, setNow] = useState(() => Date.now());
   const startedAt = useRef<number>(Date.now());
@@ -228,7 +229,7 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
   };
 
   const running = !!job && job.status !== 'done' && job.status !== 'failed';
-  const stepKeys: StringKey[] = job?.langs === 'zh' ? ['stepRead', 'stepScript', 'stepCheck', 'stepZh'] : job?.langs === 'en' ? ['stepRead', 'stepScript', 'stepCheck', 'stepEn'] : STEP_KEYS;   // one language has one recording step
+  const stepKeys: StringKey[] = job?.langs === 'vi' ? ['stepRead', 'stepScript', 'stepCheck', 'stepVi'] : job?.langs === 'id' ? ['stepRead', 'stepScript', 'stepCheck', 'stepId'] : job?.langs === 'zh' ? ['stepRead', 'stepScript', 'stepCheck', 'stepZh'] : job?.langs === 'en' ? ['stepRead', 'stepScript', 'stepCheck', 'stepEn'] : STEP_KEYS;   // one language has one recording step
   const step = job ? Math.min(stepFromStage(job), stepKeys.length - 1) : -1;
   if (stageAt.current.step !== step) stageAt.current = { step, at: Date.now() };
   // progress: finished steps in full, plus the part of the current step that has probably passed (never past 90% of it)
@@ -254,7 +255,7 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
       <h2 className="sec" id="make-title">
         {t('makeTitle')}
       </h2>
-      <p className="sec-sub">{t('makeSub')}</p>
+      {!acctUser && <p className="sec-sub">{t('makeSub')}</p>}
 
       <div style={{ marginTop: 22 }}><AccountStrip /></div>
       <div className="card">
@@ -304,11 +305,20 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
               <p className="small muted" style={{ margin: '8px 0 0' }}>{t('uploadPrivate')}</p>
             </>
           )}
+          <div className="lang-pick">
+            <span className="lang-pick-l">{t('optLangs')}</span>
+            <div className="lang-slider" role="radiogroup" aria-label={t('optLangs')} style={{ ['--n' as string]: 5, ['--i' as string]: ['en', 'zh', 'vi', 'id', 'both'].indexOf(vlang) }}>
+              <span className="lang-thumb" aria-hidden />
+              {([['en', 'English'], ['zh', '中文'], ['vi', 'Tiếng Việt'], ['id', 'Indonesia'], ['both', 'EN + 中文']] as [VLang, string][]).map(([k, n]) => (
+                <button key={k} type="button" role="radio" aria-checked={vlang === k} disabled={submitting || running} onClick={() => setVlang(k)}>{n}</button>
+              ))}
+            </div>
+          </div>
           <button type="button" className="opt-toggle" aria-expanded={optsOpen} onClick={() => setOptsOpen((v) => !v)}>
             <span className="opt-sum">
               <i>{t('min').replace('{n}', String(seconds / 60))}</i>
               <i>{t(TONE_KEYS[tone])}</i>
-              <i>{vlang === 'both' ? t('langBoth') : vlang === 'zh' ? t('langZh') : t('langEn')}</i>
+              <i>{vlang === 'both' ? t('langBoth') : vlang === 'zh' ? t('langZh') : vlang === 'vi' ? t('langVi') : vlang === 'id' ? t('langId') : t('langEn')}</i>
               <i>{voice === 'male' ? t('voiceMale') : t('voiceFemale')}</i>
             </span>
             <span className="opt-edit">{optsOpen ? '▴' : t('optMore')}</span>
@@ -334,14 +344,6 @@ export default function MakeSection({ prefill, autoOpen }: { prefill?: string | 
                     {t(TONE_KEYS[k])}
                   </option>
                 ))}
-              </select>
-            </label>
-            <label className="field" style={{ minWidth: 150 }}>
-              {t('optLangs')}
-              <select value={vlang} onChange={(e) => setVlang(e.target.value as 'en' | 'zh' | 'both')} disabled={submitting || running}>
-                <option value="en">{t('langEn')}</option>
-                <option value="zh">{t('langZh')}</option>
-                <option value="both">{t('langBoth')}</option>
               </select>
             </label>
             <label className="field" style={{ minWidth: 150 }}>
