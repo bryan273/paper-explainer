@@ -31,14 +31,17 @@ const T = {
 export function PayPanel({ orderId, price, label, onClose }: { orderId: string; price: string; label: string; onClose: () => void }) {
   const { lang, t } = usePrefs();
   const vi = lang === 'vi';
-  const [method, setMethod] = useState<PayMethod | null>(null);
+  const id = lang === 'id';
+  const [method, setMethod] = useState<PayMethod | null>(id ? 'qris' : null);
   const [paid, setPaid] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [shot, setShot] = useState<File | null>(null);
   const ref = useRef<HTMLInputElement>(null);
   const base = import.meta.env.BASE_URL;
-  const methods = vi
+  const methods = id
+    ? [{ id: 'qris' as const, src: `${base}pay/qris.webp`, label: 'QRIS' }]
+    : vi
     ? [{ id: 'techcombank' as const, src: `${base}pay/techcombank.webp`, label: 'Techcombank (VietQR)' }, { id: 'bidv' as const, src: `${base}pay/bidv.webp`, label: 'BIDV (VietQR)' }]
     : [{ id: 'wechat' as const, src: `${base}pay/wechat.webp`, label: t(T.wechat) }, { id: 'alipay' as const, src: `${base}pay/alipay.webp`, label: t(T.alipay) }];
   const code = orderId.slice(0, 8);
@@ -56,14 +59,6 @@ export function PayPanel({ orderId, price, label, onClose }: { orderId: string; 
       <div className="text-right"><p className="text-sm text-muted-foreground">{t(T.total)}</p><p className="font-display text-xl font-bold">{price}</p></div>
     </div>
   );
-  if (lang === 'id') {
-    return (
-      <div className="grid gap-4">{head}
-        <p className="text-sm">{t(T.idText).replace('{o}', code)}</p>
-        <div className="flex gap-2"><Button onClick={() => window.dispatchEvent(new CustomEvent('pl-support', { detail: 'contact' }))}>{t(T.contact)}</Button><Button variant="outline" onClick={onClose}>{t(COMMON.close)}</Button></div>
-      </div>
-    );
-  }
   if (paid) {
     return (
       <div className="grid gap-4">{head}
@@ -97,7 +92,7 @@ export function PayPanel({ orderId, price, label, onClose }: { orderId: string; 
             {err && <p className="text-destructive" role="alert">{err}</p>}
             <div className="flex flex-wrap gap-2">
               <Button onClick={confirm} disabled={busy}>{busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{t(T.paid)}</Button>
-              <Button variant="ghost" onClick={() => setMethod(null)}>{t(T.other)}</Button>
+              {!id && <Button variant="ghost" onClick={() => setMethod(null)}>{t(T.other)}</Button>}
             </div>
           </div>
         </div>
