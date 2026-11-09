@@ -16,6 +16,7 @@ import { dateFmt } from '@/lib/strings';
 import { progressOf, sourceLabel, stageText, stepOf } from '@/lib/jobs';
 import { cn } from '@/lib/utils';
 
+const KIND_IDS: EditKind[] = ['fix', 'add', 'simpler', 'deeper', 'other'];
 const W = {
   notFound: { en: 'This video does not exist or was removed.', zh: '这个视频不存在或已被删除。', vi: 'Video này không tồn tại hoặc đã bị xóa.', id: 'Video ini tidak ada atau sudah dihapus.' },
   making: { en: 'Making your video', zh: '正在制作视频', vi: 'Đang tạo video', id: 'Membuat video Anda' },
@@ -38,7 +39,7 @@ const W = {
   editS: { en: 'Choose a part and say what to change. Only that part is made again; the rest stays as it is. An edit does not use a video credit.' },
   editPart: { en: 'Which part?' },
   editKind: { en: 'What kind of change?' },
-  kinds: { en: [['fix', 'Fix a mistake'], ['add', 'Add detail'], ['simpler', 'Make it simpler'], ['deeper', 'Go deeper'], ['other', 'Something else']] },
+  kinds: { en: ['Fix a mistake', 'Add detail', 'Make it simpler', 'Go deeper', 'Something else'] },
   editNote: { en: 'What should change?' },
   editPh: { en: 'e.g. The formula on screen is wrong: it should be F(x) + x. Also say why the shortcut helps training.' },
   editLeft: { en: '{n} of {c} edits left for this video' },
@@ -432,7 +433,7 @@ function Studio({ job }: { job: Job }) {
               </div>
               <div>
                 <p className="mb-1.5 text-sm font-medium">{t(W.editKind)}</p>
-                <div className="flex flex-wrap gap-1.5">{(pick(ui, W.kinds) as [EditKind, string][]).map(([k, l]) => <button key={k} type="button" aria-pressed={eKind === k} onClick={() => setEKind(k)} className={cn('rounded-full border px-3 py-1 text-sm', eKind === k ? 'border-primary bg-accent text-primary' : 'text-muted-foreground hover:border-foreground/30')}>{l}</button>)}</div>
+                <div className="flex flex-wrap gap-1.5">{(pick(ui, W.kinds) as string[]).map((l, n) => [KIND_IDS[n], l] as [EditKind, string]).map(([k, l]) => <button key={k} type="button" aria-pressed={eKind === k} onClick={() => setEKind(k)} className={cn('rounded-full border px-3 py-1 text-sm', eKind === k ? 'border-primary bg-accent text-primary' : 'text-muted-foreground hover:border-foreground/30')}>{l}</button>)}</div>
               </div>
               <div>
                 <label htmlFor="pl-edit-note" className="mb-1.5 block text-sm font-medium">{t(W.editNote)}</label>

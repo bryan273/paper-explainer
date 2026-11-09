@@ -1,14 +1,19 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUp, BookOpen, Clock, Loader2, Quote, Sparkles, Zap } from 'lucide-react';
+import { ArrowUp, BookOpen, Clock, ImagePlus, Loader2, Quote, Sparkles, X, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ApiError, askPaper, getChat, secText, type AskBlock, type ChatMsg, type Job } from '@/lib/explainer';
+import { ApiError, askPaper, getChat, secText, shrinkImage, type AskBlock, type ChatMsg, type Job } from '@/lib/explainer';
 import { read as readSettings } from '@/lib/settings';
 import { useAccount } from '@/lib/account';
 import { fill, usePrefs, type Lang, pick } from '@/lib/prefs';
 import { cn } from '@/lib/utils';
 
 const A = {
+  picQ: { en: 'What does this picture show, and how does it relate to the video?' },
+  picture: { en: 'picture' },
+  picReady: { en: 'Picture added. Ask about it, or send it as it is.' },
+  picRemove: { en: 'Remove the picture' },
+  picAdd: { en: 'Add a picture (or paste one)' },
   title: { en: 'Ask about this video', zh: '就这个视频提问', vi: 'Hỏi về video này', id: 'Tanya tentang video ini' },
   sub: { en: 'Answers say where they come from: the source itself (with the page) or general background.', zh: '回答会注明来源：原文（附页码）或背景知识。', vi: 'Câu trả lời ghi rõ nguồn: từ chính tài liệu (kèm số trang) hoặc kiến thức nền.', id: 'Jawaban menyebut asalnya: dari sumber itu sendiri (dengan halaman) atau pengetahuan umum.' },
   fast: { en: 'Quick', zh: '快速', vi: 'Nhanh', id: 'Cepat' },
@@ -37,7 +42,7 @@ const A = {
   plans: { en: 'See plans', zh: '查看套餐', vi: 'Xem các gói', id: 'Lihat paket' },
   useFast: { en: 'Answer quickly instead', zh: '改用快速回答', vi: 'Trả lời nhanh thay thế', id: 'Jawab cepat saja' },
   network: { en: 'Could not reach the server. Try again.', zh: '连不上服务器，请重试。', vi: 'Không kết nối được máy chủ. Thử lại nhé.', id: 'Tidak bisa terhubung ke server. Coba lagi.' },
-  leftToday: { en: '{n} questions left today', zh: '今日还可提问 {n} 次', vi: 'Hôm nay còn {n} câu hỏi', id: 'Sisa {n} pertanyaan hari ini' },
+  leftToday: { en: '{n} quick answers left' },
 };
 
 function inline(text: string) {
@@ -84,22 +89,26 @@ export function AskPanel({ job, lang, seed, onCite }: { job: Job; lang: Lang; se
   useEffect(() => { let alive = true; setMsgs([]); setErr(null); getChat(job.id).then((m) => alive && setMsgs(m)).catch(() => undefined); return () => { alive = false; }; }, [job.id]);
   useEffect(() => { const el = box.current; if (el) el.scrollTop = el.scrollHeight; }, [msgs, busy]);
 
+  const [pic, setPic] = useState('');
+  const picRef = useRef<HTMLInputElement>(null);
+  const takePic = async (f: Blob | null | undefined) => { if (!f || !f.type.startsWith('image/')) return; try { setPic(await shrinkImage(f)); } catch { /* not an image */ } };
   const ask = async (q: string, opt: { intent?: 'ask' | 'simpler'; section?: number } = {}, force?: 'fast' | 'deep') => {
     if (busy) return;
     last.current = { q, opt };
     const useModel = force ?? model;
     const intent = opt.intent ?? 'ask';
     const text = q.trim();
-    if (intent === 'ask' && text.length < 2) return;
+    if (intent === 'ask' && text.length < 2 && !pic) return;
+    const image = intent === 'ask' ? pic : '';
     const sec = opt.section !== undefined ? job.sections?.[opt.section] : undefined;
     const shown = intent === 'simpler' ? fill(t(A.simpler), { t: sec ? secText(sec, 'title', lang) : '' }) : text;
     const history = msgs.slice(-6).map((m) => (m.role === 'user' ? { role: 'user' as const, text: m.text } : { role: 'ai' as const, text: m.blocks.map((b) => b.text).join(' ') }));
-    setMsgs((m) => [...m, { role: 'user', text: shown, section: opt.section ?? null }]);
-    setInput(''); setBusy(true); setErr(null); setPhase(0);
+    setMsgs((m) => [...m, { role: 'user', text: image ? `${shown || t(A.picQ)} [${t(A.picture)}]` : shown, section: opt.section ?? null }]);
+    setInput(''); setPic(''); setBusy(true); setErr(null); setPhase(0);
     const slowT = window.setTimeout(() => setSlow(true), 9000);
     const stepper = window.setInterval(() => setPhase((p) => Math.min(p + 1, 3)), 2200);
     try {
-      const out = await askPaper({ job: job.id, q: text, mode, intent, model: useModel, section: opt.section, history, lang }) as { blocks: AskBlock[]; followups?: string[]; left?: number; deep_left?: number };
+      const out = await askPaper({ job: job.id, q: text || t(A.picQ), mode, intent, model: useModel, section: opt.section, history, lang, ...(image ? { image } : {}) }) as { blocks: AskBlock[]; followups?: string[]; left?: number; deep_left?: number };
       setMsgs((m) => [...m, { role: 'ai', blocks: out.blocks, followups: out.followups }]);
       if (typeof out.left === 'number') setLeft(out.left);
       if (typeof out.deep_left === 'number') setDeepLeft(out.deep_left);
@@ -158,10 +167,19 @@ export function AskPanel({ job, lang, seed, onCite }: { job: Job; lang: Lang; se
         )}
       </div>
       <form onSubmit={(e: FormEvent) => { e.preventDefault(); ask(input); }} className="border-t p-3">
+        {pic && (
+          <div className="mb-2 flex items-center gap-2 rounded-lg border bg-muted/50 p-1.5 text-xs text-muted-foreground">
+            <img src={pic} alt="" className="h-12 w-16 rounded object-cover" />
+            <span className="flex-1">{t(A.picReady)}</span>
+            <button type="button" onClick={() => setPic('')} aria-label={t(A.picRemove)} className="rounded p-1 hover:bg-muted"><X className="h-4 w-4" /></button>
+          </div>
+        )}
         <div className="flex items-end gap-2 rounded-xl border bg-background p-1.5 focus-within:ring-2 focus-within:ring-ring">
-          <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ask(input); } }} rows={1} maxLength={600} placeholder={t(A.ph)} aria-label={t(A.ph)} disabled={busy}
+          <input ref={picRef} type="file" accept="image/*" hidden onChange={(e) => { takePic(e.target.files?.[0]); e.target.value = ''; }} />
+          <Button type="button" size="icon" variant="ghost" className="shrink-0 text-muted-foreground" onClick={() => picRef.current?.click()} disabled={busy} aria-label={t(A.picAdd)} title={t(A.picAdd)}><ImagePlus className="h-4 w-4" /></Button>
+          <textarea value={input} onPaste={(e) => { const f = Array.from(e.clipboardData.files).find((x) => x.type.startsWith('image/')); if (f) { e.preventDefault(); takePic(f); } }} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ask(input); } }} rows={1} maxLength={600} placeholder={t(A.ph)} aria-label={t(A.ph)} disabled={busy}
             className="max-h-32 min-h-[38px] flex-1 resize-none bg-transparent px-2 py-2 text-sm outline-none" />
-          <Button type="submit" size="icon" disabled={busy || input.trim().length < 2} aria-label="Send"><ArrowUp className="h-4 w-4" /></Button>
+          <Button type="submit" size="icon" disabled={busy || (input.trim().length < 2 && !pic)} aria-label="Send"><ArrowUp className="h-4 w-4" /></Button>
         </div>
         {left !== null && user && <p className="mt-1.5 text-[11px] text-muted-foreground">{fill(t(A.leftToday), { n: left })}</p>}
       </form>
