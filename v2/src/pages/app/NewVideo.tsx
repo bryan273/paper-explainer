@@ -213,11 +213,11 @@ export default function NewVideo() {
     <div className="mx-auto max-w-6xl pb-24 pt-8">
       <h1 className="font-display text-3xl font-bold">{t(T.h)}</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">{t(T.s)}</p>
-      <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <form onSubmit={submit} className="grid content-start gap-5">
+      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <form onSubmit={submit} className="grid min-w-0 content-start gap-5">
           <section className={card} aria-labelledby="s1">
             <h2 id="s1" className="font-display text-lg font-semibold">{t(T.step1)}</h2>
-            <div className="mt-4 inline-flex rounded-xl bg-muted p-1" role="tablist" data-g="src-tabs">
+            <div className="mt-4 inline-flex max-w-full flex-wrap rounded-xl bg-muted p-1" role="tablist" data-g="src-tabs">
               {tabs.map((x) => (
                 <button key={x.k} data-g={`tab-${x.k}`} type="button" role="tab" aria-selected={tab === x.k} onClick={() => { setTab(x.k); setErr(''); }}
                   className={cn('flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition', tab === x.k ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}>

@@ -37,7 +37,7 @@ export function SiteHeader() {
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-1.5">
-          {!user && <LangMenu />}
+          {!user && <span className="hidden sm:inline-flex"><LangMenu /></span>}
           {!user && <span className="hidden sm:inline-flex"><ThemeButton /></span>}
           {user ? (
             <>
@@ -47,7 +47,7 @@ export function SiteHeader() {
           ) : (
             <>
               <Button variant="ghost" size="sm" className="hidden sm:inline-flex" onClick={() => openAuth('login')}>{t(NAV.login)}</Button>
-              <Button size="sm" data-tour="profile" onClick={() => openAuth('register')}>{t(NAV.start)}</Button>
+              <Button size="sm" data-tour="profile" className="max-sm:px-3" onClick={() => openAuth('register')}><span className="sm:hidden">{t(NAV.signUp)}</span><span className="hidden sm:inline">{t(NAV.start)}</span></Button>
             </>
           )}
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen(!open)} aria-label="Menu" aria-expanded={open}>
@@ -61,6 +61,7 @@ export function SiteHeader() {
             {items.map((i) => <Link key={i.to} to={i.to} onClick={() => setOpen(false)} className={cn(linkCls, 'text-base')}>{i.label}</Link>)}
             {user ? <Link to="/app" onClick={() => setOpen(false)} className={cn(linkCls, 'text-base text-primary')}>{t(NAV.dashboard)}</Link>
               : <button type="button" onClick={() => { setOpen(false); openAuth('login'); }} className={cn(linkCls, 'text-left text-base')}>{t(NAV.login)}</button>}
+            {!user && <div className="flex items-center gap-2 px-3 py-2 text-base text-muted-foreground">{t(NAV.language)}<LangMenu /></div>}
           </div>
         </nav>
       )}
