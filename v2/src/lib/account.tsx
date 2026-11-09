@@ -1,3 +1,4 @@
+import { localizeError } from '@/lib/errors';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { visitorId } from '@/lib/explainer';
 
@@ -36,7 +37,7 @@ export const authHeaders = (): Record<string, string> => ({ 'x-visitor-id': visi
 try { const r = new URLSearchParams(window.location.search).get('ref'); if (r && /^[0-9a-f]{8}$/i.test(r)) localStorage.setItem('pe-ref', r.toLowerCase()); } catch { /* no storage */ }
 export const savedRef = () => { try { return localStorage.getItem('pe-ref') || undefined; } catch { return undefined; } };
 
-export class AccountError extends Error { code?: string; email?: string; constructor(m: string, code?: string, email?: string) { super(m); this.code = code; this.email = email; } }
+export class AccountError extends Error { code?: string; email?: string; constructor(m: string, code?: string, email?: string) { super(localizeError(m)); this.code = code; this.email = email; } }
 export async function accountApi(op: string, body: Record<string, unknown> = {}) {
   let res: Response;
   try { res = await fetch(ACCOUNT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ op, visitor: visitorId(), ...body }) }); }

@@ -1,3 +1,4 @@
+import { localizeError } from '@/lib/errors';
 import { useCallback, useEffect, useState } from 'react';
 import type { Lang } from '@/lib/prefs';
 import { authHeaders, track } from '@/lib/account';
@@ -69,7 +70,7 @@ export class ApiError extends Error {
     public status: number,
     public code?: string,
   ) {
-    super(message);
+    super(localizeError(message));
   }
 }
 

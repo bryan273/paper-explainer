@@ -396,7 +396,7 @@ function StepPic({ i }: { i: number }) {
         <div className="flex flex-wrap gap-1">{['EN', '中文', 'Tiếng Việt', 'Bahasa'].map((x, k) => <span key={x} className={cn('rounded-full border bg-background px-2 py-0.5 text-[10.5px] font-semibold', k === 0 && 'border-primary bg-primary text-primary-foreground')}>{x}</span>)}</div>
         <div className="mt-3 rounded-lg rounded-tl-sm border bg-background p-2.5"><p className="text-[10.5px] font-semibold text-success">{t(S.simple)}</p><p className="text-[12px] leading-snug">{t(S.simpleT)}</p></div>
         <div className="mt-2 rounded-lg rounded-tl-sm border bg-background p-2.5"><p className="text-[10.5px] font-semibold text-primary">{t(S.deeper)}</p><p className="font-mono text-[11.5px] leading-snug">F(x) = H(x) − x, y = F(x) + x</p></div>
-        <p className="mt-2 px-1 text-[11.5px] text-muted-foreground">{lang === 'zh' ? 'Each block only fixes what the previous one missed.' : '每个块只修正上一个块漏掉的部分。'}</p>
+        <p className="mt-2 px-1 text-[11.5px] text-muted-foreground">{lang === 'en' ? '每个块只修正上一个块漏掉的部分。' : 'Each block only fixes what the previous one missed.'}</p>
       </div>
     );
   }
