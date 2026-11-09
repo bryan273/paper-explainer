@@ -27,7 +27,12 @@ const H = {
   interSub: { en: 'resets {d}', zh: '{d} 重置', vi: 'làm mới {d}', id: 'reset {d}' },
   plan: { en: 'Your plan', zh: '当前套餐', vi: 'Gói của bạn', id: 'Paket Anda' },
   planUntil: { en: 'until {d} · {n} days left', zh: '至 {d} · 剩 {n} 天', vi: 'đến {d} · còn {n} ngày', id: 'sampai {d} · sisa {n} hari' },
-  planFree: { en: 'Upgrade for 80 videos a month and interactive mode on 40 of them', zh: '升级可获每月 80 个视频，其中 40 个可开互动模式', vi: 'Nâng cấp để có 80 video mỗi tháng và chế độ tương tác cho 40 video', id: 'Tingkatkan untuk 80 video per bulan dan mode interaktif untuk 40 di antaranya' },
+  uQuick: { en: 'quick answers' },
+  uDeep: { en: 'in-depth answers' },
+  uResearch: { en: 'research questions' },
+  uMonth: { en: 'left this month' },
+  uWeek: { en: 'left this week (in-depth: this month)' },
+  planFree: { en: 'Upgrade for 20 videos a month, edits, and interactive mode on every video' },
   upgrade: { en: 'See plans', zh: '查看套餐', vi: 'Xem các gói', id: 'Lihat paket' },
   making: { en: 'In progress', zh: '正在生成', vi: 'Đang tạo', id: 'Sedang dibuat' },
   recent: { en: 'Recent videos', zh: '最近的视频', vi: 'Video gần đây', id: 'Video terbaru' },
@@ -43,7 +48,7 @@ const H = {
   studentOk: { en: 'Your free month of Plus is on until {d}. Enjoy!', zh: '你的免费 Plus 月已开通，有效期至 {d}。', vi: 'Tháng Plus miễn phí của bạn có hiệu lực đến {d}. Chúc bạn học tốt!', id: 'Bulan Plus gratis Anda aktif sampai {d}. Selamat belajar!' },
   send: { en: 'Send proof', zh: '提交证明', vi: 'Gửi giấy tờ', id: 'Kirim bukti' },
   guestH: { en: 'Make a video without an account', zh: '无需账户也能做视频', vi: 'Tạo video không cần tài khoản', id: 'Buat video tanpa akun' },
-  guestP: { en: 'Guests get 1 video a day. A free account gives 5 videos a week and 3 welcome videos with interactive mode, keeps your videos and lets you ask questions.', zh: '访客每天 1 个视频。免费账户每周 5 个视频，另送 3 个含互动模式的欢迎视频，还能保存视频并提问。', vi: 'Khách được 1 video mỗi ngày. Tài khoản miễn phí có 5 video mỗi tuần, 3 video chào mừng với chế độ tương tác, lưu video và cho phép đặt câu hỏi.', id: 'Tamu mendapat 1 video per hari. Akun gratis memberi 5 video per minggu dan 3 video sambutan dengan mode interaktif, menyimpan video, dan bisa bertanya.' },
+  guestP: { en: 'Guests get 1 video a day. A free account gives 3 videos a week and 3 welcome videos with interactive mode, keeps your videos and lets you ask questions.' },
   signup: { en: 'Sign up free', zh: '免费注册', vi: 'Đăng ký miễn phí', id: 'Daftar gratis' },
 };
 const EX = [
@@ -104,6 +109,15 @@ export default function Home() {
             <p className="mt-2 text-xs text-muted-foreground">{me?.plan ? fill(t(H.planUntil), { d: dateFmt(me.plan_until, lang), n: days }) : t(H.planFree)}</p>
             {!me?.plan && <Link to="/pricing" className="mt-1 inline-block text-xs font-semibold text-primary no-underline hover:underline">{t(H.upgrade)}</Link>}
           </div>
+        </div>
+      )}
+
+      {user && me?.usage && !me?.admin && (
+        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 rounded-xl border px-4 py-2.5 text-[13px] text-muted-foreground">
+          <span><b className="text-foreground">{me.usage.quick.left}</b> / {me.usage.quick.cap} {t(H.uQuick)}</span>
+          <span><b className="text-foreground">{me.usage.deep.left}</b> / {me.usage.deep.cap} {t(H.uDeep)}</span>
+          <span><b className="text-foreground">{me.usage.research.left}</b> / {me.usage.research.cap} {t(H.uResearch)}</span>
+          <span>{t(me.usage.quick.period === 'month' ? H.uMonth : H.uWeek)}</span>
         </div>
       )}
 

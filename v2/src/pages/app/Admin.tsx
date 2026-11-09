@@ -7,13 +7,15 @@ const SB = 'https://wzdkroxbfrlqijbeiwpk.supabase.co/functions/v1';
 const THEME_KEY = 'repro.theme2';
 const LANG_KEY = 'rs-lang';
 
-type Day = { d: string; signups: number; visitors: number; videos: number; failed: number; checks: number; income: number; cost: number; tokens: number; calls: number };
+type Day = { d: string; signups: number; visitors: number; videos: number; failed: number; checks: number; income: number; cost: number; tokens: number; calls: number; asks?: number };
+type FeatureCost = { n: number; total: number; each: number | null; tokens: number | null };
+type Costs = { video_per_minute: number | null; videos: number; video_total: number; quick: FeatureCost; deep: FeatureCost; quiz: FeatureCost; research: { n: number; tokens: number; each: number | null }; edits: number; prices: { fast: { in: number; out: number }; deep: { in: number; out: number } } };
 type Member = { id: string; email: string; handle: string | null; country: string; credits: number; banned: boolean; created_at: string; last_login: string | null; jobs: number; plan: string | null; plan_until: string | null; plan_source: string | null };
 type OrderRow = { id: string; email: string; what: string; status: string; method: string | null; created_at: string; cny: number; cur: string; amt: number; kind: string; shot: boolean };
 type JobRow = { id: string; arxiv: string | null; title: string | null; status: string; stage: string | null; seconds: number | null; langs: string | null; cost_usd: number | null; error: string | null; created_at: string };
 type ReproRow = { id: string; arxiv_id: string | null; title: string | null; status: string; verdict: string | null; agent: string | null; model: string | null; created_at: string };
 type Data = {
-  me: string; generated_at: string; usd_cny: number; days: Day[]; members: Member[]; active_plans: number; orders: OrderRow[]; jobs: JobRow[]; job_langs: { d: string; l: string | null; s: string }[]; repro: ReproRow[];
+  me: string; view?: 'qa' | 'real'; hidden_test_accounts?: number; hours?: Day[]; costs?: Costs; generated_at: string; usd_cny: number; days: Day[]; members: Member[]; active_plans: number; orders: OrderRow[]; jobs: JobRow[]; job_langs: { d: string; l: string | null; s: string }[]; repro: ReproRow[];
   signup_rows: { d: string; c: string; ip: string; l: string; s: string; r: string }[]; visit_country: { d: string; c: string; n: number }[]; llm: { d: string; app: string; calls: number; tokens: number }[];
   feedback: { id: string; rating: number | null; comment: string | null; kind: string | null; arxiv: string | null; created_at: string }[]; asks_7d: number; visits_7d: number; rkapi: Record<string, unknown>;
 };
@@ -92,7 +94,8 @@ function Pager({ p }: { p: { page: number; pages: number; total: number; set: (n
 const pill = (s: string) => <span className={`cs-pill ${['done', 'paid', 'delivered', 'ok', 'approved'].includes(s) ? 'ok' : ['failed', 'cancelled', 'rejected', 'expired'].includes(s) ? 'bad' : ['running', 'waiting', 'new', 'paid_claimed', 'making', 'pending', 'queued'].includes(s) ? 'wait' : ''}`}>{s}</span>;
 
 /** Daily rows grouped by day, week or month for a chart. */
-function bucket(days: Day[], group: 'day' | 'week' | 'month') {
+function bucket(days: Day[], group: 'hour' | 'day' | 'week' | 'month') {
+  if (group === 'hour') return days.map((d) => ({ label: `${d.d.slice(8, 10)}/${d.d.slice(5, 7)} ${d.d.slice(11, 13)}:00`, r: d }));
   const out: { label: string; r: Day }[] = [];
   const key = (d: string) => (group === 'day' ? d : group === 'month' ? d.slice(0, 7) : iso10(new Date(Date.parse(d) - ((new Date(d).getUTCDay() + 6) % 7) * 86400000)));
   const m = new Map<string, Day>();
@@ -120,17 +123,17 @@ export default function Admin() {
   const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState<TabId>(() => { try { return (localStorage.getItem('pe-admin-tab') as TabId) || 'overview'; } catch { return 'overview'; } });
   const setTabKeep = (t: TabId) => { setTab(t); try { localStorage.setItem('pe-admin-tab', t); } catch { /* ignore */ } };
-  const [preset, setPreset] = useState<'1' | '7' | '30' | '90' | '180' | 'custom'>('30');
+  const [preset, setPreset] = useState<'1' | '2' | '7' | '30' | '90' | '180' | 'custom'>('30');
   const [from, setFrom] = useState(iso10(new Date(Date.now() - 29 * 86400000)));
   const [to, setTo] = useState(iso10(new Date()));
-  const [group, setGroup] = useState<'day' | 'week' | 'month'>('day');
+  const [group, setGroup] = useState<'hour' | 'day' | 'week' | 'month'>('day');
   const { suite, prs } = useReleases();
 
   useEffect(() => { document.title = 'Admin · Paperlit'; }, []);
 
   const pick = (p: typeof preset) => {
     setPreset(p);
-    if (p !== 'custom') { const n = Number(p); setFrom(iso10(new Date(Date.now() - (n - 1) * 86400000))); setTo(iso10(new Date())); if (n >= 120) setGroup('week'); else if (n <= 30) setGroup('day'); }
+    if (p !== 'custom') { const n = Number(p); setFrom(iso10(new Date(Date.now() - (n - 1) * 86400000))); setTo(iso10(new Date())); if (n >= 120) setGroup('week'); else if (n <= 2) setGroup('hour'); else if (n <= 30) setGroup('day'); }
   };
 
   const load = useCallback(async () => {
@@ -197,7 +200,8 @@ export default function Admin() {
   };
 
   // ---- numbers inside the range
-  const days = useMemo(() => (data?.days ?? []).filter((d) => d.d >= from && d.d <= to), [data, from, to]);
+  const hourly = group === 'hour' && !!data?.hours?.length;
+  const days = useMemo(() => (hourly ? data!.hours! : data?.days ?? []).filter((d) => d.d.slice(0, 10) >= from && d.d.slice(0, 10) <= to), [data, from, to, hourly]);
   const sum = (f: keyof Day) => days.reduce((a, d) => a + (d[f] as number), 0);
   const buckets = useMemo(() => bucket(days, group), [days, group]);
   const labels = buckets.map((b) => b.label);
@@ -292,6 +296,7 @@ export default function Admin() {
           <div>
             <h1>Admin</h1>
             <p className="sub">{data ? `Signed in as ${data.me}. Numbers read ${fmt(data.generated_at)} (${ago(data.generated_at)}).` : 'Everything about the suite, in one place.'}</p>
+            {data?.view && <p className={`cs-view ${data.view}`}>{data.view === 'qa' ? 'Test view: test accounts and their orders, videos and questions are included.' : `Real members only${data.hidden_test_accounts ? `: ${data.hidden_test_accounts} test accounts are left out` : ''}.`}</p>}
           </div>
           <button type="button" className="cs-btn" onClick={load} disabled={busy}>{busy ? 'Loading…' : 'Refresh'}</button>
         </div>
@@ -317,14 +322,14 @@ export default function Admin() {
             {needsRange && (
               <div className="cs-filterbar">
                 <div className="cs-seg" role="group" aria-label="Period">
-                  {([['1', 'Today'], ['7', '7 days'], ['30', '30 days'], ['90', '90 days'], ['180', '180 days']] as const).map(([k, n]) => <button key={k} type="button" className={preset === k ? 'on' : ''} onClick={() => pick(k)}>{n}</button>)}
+                  {([['1', 'Today'], ['2', '48 hours'], ['7', '7 days'], ['30', '30 days'], ['90', '90 days'], ['180', '180 days']] as const).map(([k, n]) => <button key={k} type="button" className={preset === k ? 'on' : ''} onClick={() => pick(k)}>{n}</button>)}
                 </div>
                 <label>From <input type="date" value={from} max={to} onChange={(e) => { setFrom(e.target.value); setPreset('custom'); }} /></label>
                 <label>To <input type="date" value={to} min={from} onChange={(e) => { setTo(e.target.value); setPreset('custom'); }} /></label>
                 <div className="cs-seg" role="group" aria-label="Group by">
-                  {(['day', 'week', 'month'] as const).map((g) => <button key={g} type="button" className={group === g ? 'on' : ''} onClick={() => setGroup(g)}>{g === 'day' ? 'Daily' : g === 'week' ? 'Weekly' : 'Monthly'}</button>)}
+                  {(['hour', 'day', 'week', 'month'] as const).map((g) => <button key={g} type="button" className={group === g ? 'on' : ''} disabled={g === 'hour' && Date.parse(from) < Date.now() - 7 * 86400000} title={g === 'hour' ? 'Hourly numbers cover the last 7 days' : undefined} onClick={() => setGroup(g)}>{g === 'hour' ? 'Hourly' : g === 'day' ? 'Daily' : g === 'week' ? 'Weekly' : 'Monthly'}</button>)}
                 </div>
-                <span className="cs-dim">{days.length} days shown</span>
+                <span className="cs-dim">{hourly ? `${days.length} hours shown` : `${days.length} days shown`}</span>
               </div>
             )}
 
@@ -462,7 +467,7 @@ export default function Admin() {
                   <Kpi label="Videos made" value={sum('videos')} />
                   <Kpi label="Failed" value={sum('failed')} tone={sum('failed') ? 'warn' : undefined} />
                   <Kpi label="Failure rate" value={sum('videos') + sum('failed') ? `${((sum('failed') / (sum('videos') + sum('failed'))) * 100).toFixed(1)}%` : '-'} />
-                  <Kpi label="Average cost per video" value={sum('videos') ? yuan(cost / sum('videos')) : '-'} />
+                  <Kpi label="Average cost per video (render only)" value={data.costs?.video_per_minute != null && data.costs.videos ? yuan(data.costs.video_total / data.costs.videos) : '-'} />
                   <Kpi label="Questions asked (7d)" value={data.asks_7d} />
                   <Kpi label="Reproductions started" value={sum('checks')} />
                 </div>
@@ -471,6 +476,24 @@ export default function Admin() {
                   <section className="cs-card"><h3>Video language</h3><HBars rows={jobLangs} color="#8a5cff" /></section>
                   <section className="cs-card"><h3>Model tokens by app (30 days max)</h3><HBars rows={llmByApp.map((r) => ({ k: r.k, n: r.n }))} color="#22c3ee" /></section>
                 </div>
+                {data.costs && (
+                  <section className="cs-card">
+                    <h3>What each feature costs us (last 30 days)</h3>
+                    <p className="cs-dim" style={{ fontSize: 13 }}>Videos: the cost the renderer measured for each video. Answers: tokens in the ledger times the model price (quick answers and research ${data.costs.prices.fast.in} / ${data.costs.prices.fast.out} per million tokens in / out, in-depth ${data.costs.prices.deep.in} / ${data.costs.prices.deep.out}).</p>
+                    <div className="cs-wrap" style={{ marginTop: 10 }}><table><thead><tr><th>Feature</th><th>Used</th><th>Cost each</th><th>Tokens each</th><th>Total</th></tr></thead><tbody>
+                      <tr><td>Video, per minute</td><td>{data.costs.videos} videos</td><td>{data.costs.video_per_minute !== null ? yuan(data.costs.video_per_minute) : '-'}</td><td>-</td><td>{yuan(data.costs.video_total)}</td></tr>
+                      <tr><td>Video, average 3 minute video</td><td></td><td>{data.costs.video_per_minute !== null ? yuan(data.costs.video_per_minute * 3) : '-'}</td><td>-</td><td></td></tr>
+                      <tr><td>Quick answer</td><td>{data.costs.quick.n}</td><td>{data.costs.quick.each !== null ? yuan(data.costs.quick.each) : '-'}</td><td>{data.costs.quick.tokens ?? '-'}</td><td>{yuan(data.costs.quick.total)}</td></tr>
+                      <tr><td>In-depth answer</td><td>{data.costs.deep.n}</td><td>{data.costs.deep.each !== null ? yuan(data.costs.deep.each) : '-'}</td><td>{data.costs.deep.tokens ?? '-'}</td><td>{yuan(data.costs.deep.total)}</td></tr>
+                      <tr><td>Interactive mode questions</td><td>{data.costs.quiz.n}</td><td>{data.costs.quiz.each !== null ? yuan(data.costs.quiz.each) : '-'}</td><td>{data.costs.quiz.tokens ?? '-'}</td><td>{yuan(data.costs.quiz.total)}</td></tr>
+                      <tr><td>Research question</td><td>{data.costs.research.n}</td><td>{data.costs.research.each !== null ? yuan(data.costs.research.each) : '-'}</td><td>-</td><td></td></tr>
+                      <tr><td>Video edits</td><td>{data.costs.edits}</td><td>about one video</td><td>-</td><td>in the video cost</td></tr>
+                    </tbody></table></div>
+                  </section>
+                )}
+                {(() => { const why: Record<string, number> = {}; for (const j of data.jobs) if (j.status === 'failed' && inRangeIso(j.created_at)) { const k = (j.error || 'No reason recorded').replace(/[0-9a-f]{8}-[0-9a-f-]{27}/g, '').slice(0, 140); why[k] = (why[k] || 0) + 1; } const rows = Object.entries(why).sort((a, b) => b[1] - a[1]); return rows.length ? (
+                  <section className="cs-card"><h3>Why videos failed</h3><div className="cs-wrap"><table><thead><tr><th>Reason shown to the member</th><th>Videos</th></tr></thead><tbody>{rows.map(([k, n]) => <tr key={k}><td>{k}</td><td>{n}</td></tr>)}</tbody></table></div><p className="cs-dim" style={{ fontSize: 13, marginTop: 8 }}>Failed videos never use a credit. The member sees the same reason on the video page.</p></section>
+                ) : null; })()}
                 <section className="cs-card"><h3>Model calls and tokens per period</h3><LineChart labels={labels} series={[{ name: 'Tokens', color: '#22c3ee', values: col('tokens') }]} /></section>
                 <h2>Videos</h2>
                 <div className="cs-filters">
@@ -526,7 +549,7 @@ export default function Admin() {
               </>
             )}
 
-            {tab === 'pricing' && <div style={{ marginTop: 22 }}><AdminPricing jobs={data.jobs} orders={data.orders} usdCny={data.usd_cny} activePlans={data.active_plans} /></div>}
+            {tab === 'pricing' && <div style={{ marginTop: 22 }}><AdminPricing jobs={data.jobs} orders={data.orders} usdCny={data.usd_cny} activePlans={data.active_plans} costs={data.costs} /></div>}
 
             {tab === 'releases' && (
               <>
@@ -618,7 +641,7 @@ const css = `.cs-root{--accent:hsl(var(--primary));--bg:hsl(var(--background));-
 .cs-btn:hover{border-color:var(--accent);color:var(--accent)}
 .cs-btn:disabled{opacity:.5;cursor:default}
 .cs-btn.sm{padding:4px 10px;font-size:12px}
-.cs-tabs{display:flex;gap:4px;overflow-x:auto;margin:22px 0 0;padding-bottom:2px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30;background:var(--bg)}
+.cs-tabs{display:flex;flex-wrap:wrap;gap:4px;overflow-x:visible;margin:22px 0 0;padding-bottom:2px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30;background:var(--bg)}
 .cs-tabs button{border:0;background:none;color:var(--text2);padding:12px 16px;font:600 14px inherit;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-1px}
 .cs-tabs button:hover{color:var(--text)}
 .cs-tabs button.on{color:var(--accent);border-bottom-color:var(--accent)}
@@ -681,5 +704,8 @@ const css = `.cs-root{--accent:hsl(var(--primary));--bg:hsl(var(--background));-
 .cs-modal-view img{max-width:100%;max-height:68vh;display:block}.cs-modal-view iframe{width:100%;height:68vh;border:0}
 .cs-modal-f{display:flex;gap:10px;flex-wrap:wrap;padding:12px 18px;border-top:1px solid var(--line);align-items:center}
 @media (pointer:coarse){.cs-btn.sm,.cs-seg button,.cs-tabs button{min-height:40px}}
+.cs-view{display:inline-block;margin:8px 0 0;padding:4px 10px;border-radius:999px;font-size:12.5px;font-weight:600}.cs-view.real{background:rgba(26,154,85,.12);color:#1a9a55}.cs-view.qa{background:rgba(201,138,18,.14);color:#a8720c}
+.cs-root{overflow-x:clip}
+@media (max-width:900px){.cs-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.cs-tabs::-webkit-scrollbar{display:none}}
 @media (max-width:640px){.cs{padding:18px 12px 80px}.hbar{grid-template-columns:100px 1fr 38px 34px}.cs-search{min-width:0;width:100%}.kpi b{font-size:24px}}
 `;

@@ -223,7 +223,7 @@ export function Prism() {
   const outs = [
     { icon: PlayCircle, h: t(PRODUCT.video), p: t(PRODUCT.videoP), to: '/app/new' },
     { icon: BookOpen, h: t(PRODUCT.text), p: t(PRODUCT.textP), to: '/app/read' },
-    { icon: Lightbulb, h: t(PRODUCT.deep), p: t(PRODUCT.deepP), to: '/app/new' },
+    { icon: Lightbulb, h: t(PRODUCT.deep), p: t(PRODUCT.deepP), to: '/app/v/6a21030a-b5f8-4c0e-977e-39090d7ebc70?tab=ask' },
     { icon: FlaskConical, h: t(PRODUCT.repro), p: t(PRODUCT.reproP), to: '/app/check' },
   ];
   const labels: Record<Src, string> = { paper: t(L.srcPaper), article: t(L.srcArticle), notes: t(L.srcNotes), lecture: t(L.srcLecture), podcast: t(L.srcPodcast) };

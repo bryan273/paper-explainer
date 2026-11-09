@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Check, ChevronDown, Compass, Globe, LayoutDashboard, LogOut, Moon, Settings, Shield, Sun, UserPlus } from 'lucide-react';
+import { Check, ChevronDown, Globe, LayoutDashboard, LogOut, Moon, Settings, Shield, Sun, UserPlus } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { LANGS, usePrefs } from '@/lib/prefs';
@@ -49,7 +49,7 @@ export function PlanBadge({ plan, className }: { plan?: string | null; className
 /** Everything personal in one place: account, settings, theme, language, other accounts, sign out. */
 export function ProfileMenu() {
   const { me, user, accounts, switchTo, signOut, openAuth } = useAccount();
-  const { theme, setTheme, lang, setLang, t } = usePrefs();
+  const { theme, themeMode, setThemeMode, lang, setLang, t } = usePrefs();
   const nav = useNavigate();
   if (!user) return null;
   const name = displayName(user);
@@ -90,17 +90,19 @@ export function ProfileMenu() {
         <DropdownMenuItem onSelect={() => nav('/app')}><LayoutDashboard className="mr-2 h-4 w-4" />{t(NAV.dashboard)}</DropdownMenuItem>
         <DropdownMenuItem onSelect={() => nav('/app/account')}><Settings className="mr-2 h-4 w-4" />{t(NAV.account)}</DropdownMenuItem>
         {me?.admin && <DropdownMenuItem onSelect={() => nav('/app/admin')}><Shield className="mr-2 h-4 w-4" />{t(NAV.admin)}</DropdownMenuItem>}
-        <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setTheme(theme === 'dark' ? 'light' : 'dark'); }}>
-          {theme === 'dark' ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}{t(NAV.theme)}
-          <span className={cn('ml-auto h-4 w-7 rounded-full p-0.5 transition', theme === 'dark' ? 'bg-primary' : 'bg-muted-foreground/30')}><span className={cn('block h-3 w-3 rounded-full bg-white transition', theme === 'dark' && 'translate-x-3')} /></span>
-        </DropdownMenuItem>
+        <div className="flex items-center gap-2 px-2 py-1.5 text-sm">
+          {theme === 'dark' ? <Moon className="h-4 w-4 text-muted-foreground" /> : <Sun className="h-4 w-4 text-muted-foreground" />}
+          <span>{t(NAV.themeH)}</span>
+          <span className="ml-auto inline-flex rounded-md bg-muted p-0.5" role="radiogroup" aria-label={t(NAV.themeH)}>
+            {(['system', 'light', 'dark'] as const).map((m) => <button key={m} type="button" role="radio" aria-checked={themeMode === m} onClick={() => setThemeMode(m)} className={cn('rounded px-2 py-0.5 text-xs font-medium', themeMode === m ? 'bg-background shadow-sm' : 'text-muted-foreground')}>{t(m === 'system' ? NAV.themeAuto : m === 'light' ? NAV.themeLight : NAV.themeDark)}</button>)}
+          </span>
+        </div>
         <DropdownMenuSub>
           <DropdownMenuSubTrigger><Globe className="mr-2 h-4 w-4" />{t(NAV.language)}<span className="ml-auto pl-3 text-xs text-muted-foreground">{cur?.label}</span></DropdownMenuSubTrigger>
           <DropdownMenuSubContent className="w-48">
             {LANGS.map((l) => <DropdownMenuItem key={l.k} onSelect={() => setLang(l.k)}>{l.label}{lang === l.k && <Check className="ml-auto h-4 w-4 text-primary" />}</DropdownMenuItem>)}
           </DropdownMenuSubContent>
         </DropdownMenuSub>
-        <DropdownMenuItem onSelect={() => window.dispatchEvent(new Event('pl-guide'))}><Compass className="mr-2 h-4 w-4" />{t(NAV.tour)}</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => { signOut(); nav('/'); }} className="text-destructive focus:text-destructive"><LogOut className="mr-2 h-4 w-4" />{t(NAV.signOut)}</DropdownMenuItem>
       </DropdownMenuContent>

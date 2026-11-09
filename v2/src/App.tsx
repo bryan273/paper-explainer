@@ -14,6 +14,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 const Landing = lazy(() => import('@/pages/Landing'));
 const Pricing = lazy(() => import('@/pages/Pricing'));
 const Help = lazy(() => import('@/pages/Help'));
+const WhatsNew = lazy(() => import('@/pages/WhatsNew'));
 const Legal = lazy(() => import('@/pages/Legal'));
 const Home = lazy(() => import('@/pages/app/Home'));
 const NewVideo = lazy(() => import('@/pages/app/NewVideo'));
@@ -64,6 +65,7 @@ export default function App() {
                 <Route index element={<LegacyJob />} />
                 <Route path="pricing" element={<Pricing />} />
                 <Route path="help" element={<Help />} />
+                <Route path="whats-new" element={<WhatsNew />} />
                 <Route path="terms" element={<Legal kind="terms" />} />
                 <Route path="privacy" element={<Legal kind="privacy" />} />
               </Route>

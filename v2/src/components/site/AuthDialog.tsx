@@ -15,7 +15,7 @@ const T = {
   loginT: { en: 'Welcome back', zh: '欢迎回来', vi: 'Chào mừng trở lại', id: 'Selamat datang kembali' },
   loginS: { en: 'Log in to continue learning.', zh: '登录后继续学习。', vi: 'Đăng nhập để học tiếp.', id: 'Masuk untuk melanjutkan belajar.' },
   regT: { en: 'Create your free account', zh: '创建免费账户', vi: 'Tạo tài khoản miễn phí', id: 'Buat akun gratis' },
-  regS: { en: '3 welcome videos with interactive mode, then 5 free videos every week.', zh: '先送 3 个含互动模式的欢迎视频，之后每周 5 个免费视频。', vi: 'Tặng 3 video chào mừng có chế độ tương tác, sau đó mỗi tuần 5 video miễn phí.', id: '3 video sambutan dengan mode interaktif, lalu 5 video gratis setiap minggu.' },
+  regS: { en: '3 welcome videos with interactive mode, then 3 free videos every week.' },
   ident: { en: 'Email or username', zh: '邮箱或用户名', vi: 'Email hoặc tên người dùng', id: 'Email atau nama pengguna' },
   email: { en: 'Email', zh: '邮箱', vi: 'Email', id: 'Email' },
   handle: { en: 'Username', zh: '用户名', vi: 'Tên người dùng', id: 'Nama pengguna' },
