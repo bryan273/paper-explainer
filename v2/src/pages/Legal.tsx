@@ -1,7 +1,7 @@
-import { usePrefs, type Lang } from '@/lib/prefs';
+import { usePrefs, type Lang, type Tr } from '@/lib/prefs';
 
 type B = [string, string];
-const TERMS: Record<Lang, B[]> = {
+const TERMS: Tr<B[]> = {
   en: [
     ['What Paperlit is', 'Paperlit turns a source you give it (a paper, an article, a web page, your notes or a file) into learning material: narrated videos, questions, answers and checks of results. It is made by AI and is a study aid, not a replacement for the original.'],
     ['Your account', 'You can use Paperlit as a guest or with a free account. Keep your password private; you are responsible for what happens in your account. We may close accounts that abuse the service.'],
@@ -24,10 +24,10 @@ const TERMS: Record<Lang, B[]> = {
   ],
   vi: [
     ['Paperlit là gì', 'Paperlit biến nguồn bạn đưa vào (bài báo, bài viết, trang web, ghi chú hoặc tệp) thành tài liệu học: video có lời dẫn, câu hỏi, câu trả lời và kiểm chứng kết quả. Nội dung do AI tạo, là công cụ hỗ trợ học, không thay thế bản gốc.'],
-    ['Tài khoản của bạn', 'Bạn có thể dùng Paperlit với tư cách khách hoặc tài khoản miễn phí. Hãy giữ kín mật khẩu; bạn chịu trách nhiệm về hoạt động trong tài khoản. Chúng tôi có thể khóa tài khoản lạm dụng dịch vụ.'],
+    ['Tài khoản của bạn', 'Bạn có thể dùng Paperlit với tư cách khách hoặc tài khoản miễn phí. Giữ kín mật khẩu của bạn; bạn chịu trách nhiệm về hoạt động trong tài khoản. Chúng tôi có thể khóa tài khoản lạm dụng dịch vụ.'],
     ['Video, tín dụng và các gói', 'Video miễn phí, video của gói, video tương tác và câu trả lời chuyên sâu được tính như trong ứng dụng và trang bảng giá. Tín dụng không hết hạn và được dùng sau video miễn phí trong ngày. Video lỗi được hoàn tín dụng. Gói có hiệu lực trong thời gian đã thanh toán và không tự gia hạn.'],
     ['Thanh toán', 'Thanh toán bằng chuyển khoản (VietQR), WeChat Pay, Alipay hoặc theo thỏa thuận, và được xác nhận thủ công. Nếu đã thanh toán mà chưa được kích hoạt, hãy liên hệ để chúng tôi xử lý hoặc hoàn tiền.'],
-    ['Bạn được gửi gì', 'Tài liệu bạn có quyền sử dụng. Không gửi nội dung trái pháp luật, riêng tư hoặc có hại, và không tìm cách làm quá tải hay tấn công dịch vụ.'],
+    ['Bạn được gửi gì', 'Tài liệu bạn có quyền sử dụng. Không gửi nội dung trái pháp luật, riêng tư hoặc có hại, và không tìm cách làm quá tải hoặc tấn công dịch vụ.'],
     ['Độ chính xác', 'Chúng tôi đối chiếu trích dẫn và số liệu với nguồn, nhưng AI vẫn có thể sai. Hãy kiểm tra lại các nhận định quan trọng trong bản gốc.'],
     ['Chia sẻ', 'Bạn có thể chia sẻ video đã tạo kèm ghi nguồn gốc. Ai có liên kết chia sẻ đều xem được.'],
     ['Thay đổi', 'Chúng tôi có thể cập nhật điều khoản và các giới hạn khi Paperlit phát triển. Có câu hỏi, hãy dùng khung trò chuyện hỗ trợ.'],
@@ -43,7 +43,7 @@ const TERMS: Record<Lang, B[]> = {
     ['Perubahan', 'Kami dapat memperbarui ketentuan dan batasan seiring Paperlit berkembang. Pertanyaan: gunakan obrolan bantuan.'],
   ],
 };
-const PRIVACY: Record<Lang, B[]> = {
+const PRIVACY: Tr<B[]> = {
   en: [
     ['What we keep', 'For an account: your email, username, country, learning language, and a salted hash of your password (we cannot read it). When you use Paperlit: the sources you submit, the videos made, your questions and answers, simple usage events and an anonymous browser id. Uploaded files are deleted after the video is made; their text is kept for 14 days so you can ask questions.'],
     ['What we do not keep', 'No phone number and no card details. Payments happen in your bank or wallet app; we see the order and, if you send one, the payment screenshot. Student and teacher proofs are seen only by our team.'],

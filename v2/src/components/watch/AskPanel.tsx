@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button';
 import { ApiError, askPaper, getChat, secText, type AskBlock, type ChatMsg, type Job } from '@/lib/explainer';
 import { read as readSettings } from '@/lib/settings';
 import { useAccount } from '@/lib/account';
-import { fill, usePrefs, type Lang } from '@/lib/prefs';
+import { fill, usePrefs, type Lang, pick } from '@/lib/prefs';
 import { cn } from '@/lib/utils';
 
 const A = {
   title: { en: 'Ask about this video', zh: '就这个视频提问', vi: 'Hỏi về video này', id: 'Tanya tentang video ini' },
-  sub: { en: 'Answers say where they come from: the source itself (with the page) or general background.', zh: '回答会注明来源：原文（附页码）或背景知识。', vi: 'Câu trả lời ghi rõ nguồn: từ chính tài liệu (kèm trang) hoặc kiến thức nền.', id: 'Jawaban menyebut asalnya: dari sumber itu sendiri (dengan halaman) atau pengetahuan umum.' },
+  sub: { en: 'Answers say where they come from: the source itself (with the page) or general background.', zh: '回答会注明来源：原文（附页码）或背景知识。', vi: 'Câu trả lời ghi rõ nguồn: từ chính tài liệu (kèm số trang) hoặc kiến thức nền.', id: 'Jawaban menyebut asalnya: dari sumber itu sendiri (dengan halaman) atau pengetahuan umum.' },
   fast: { en: 'Quick', zh: '快速', vi: 'Nhanh', id: 'Cepat' },
   deep: { en: 'In-depth', zh: '深入', vi: 'Chuyên sâu', id: 'Mendalam' },
   deepHint: { en: 'A stronger AI that thinks longer. Per video: 3 free, 10 with Plus, 20 with Pro, 30 with Premium.', zh: '更强、思考更久的 AI。每个视频：免费 3 次，Plus 10 次，Pro 20 次，Premium 30 次。', vi: 'AI mạnh hơn, suy nghĩ lâu hơn. Mỗi video: miễn phí 3, Plus 10, Pro 20, Premium 30.', id: 'AI yang lebih kuat dan berpikir lebih lama. Per video: gratis 3, Plus 10, Pro 20, Premium 30.' },
@@ -21,7 +21,7 @@ const A = {
   starters: {
     en: ['What is the main idea, in one minute?', 'What problem does it solve and why does it matter?', 'What should I know before reading it?'],
     zh: ['一分钟讲清核心思想？', '它解决了什么问题，为什么重要？', '读之前我需要知道什么？'],
-    vi: ['Ý chính là gì, trong một phút?', 'Nó giải quyết vấn đề gì và vì sao quan trọng?', 'Tôi cần biết gì trước khi đọc?'],
+    vi: ['Ý chính là gì, trong một phút?', 'Nó giải quyết vấn đề gì và vì sao quan trọng?', 'Tôi nên biết gì trước khi đọc?'],
     id: ['Apa ide utamanya, dalam satu menit?', 'Masalah apa yang diselesaikan dan mengapa penting?', 'Apa yang perlu saya tahu sebelum membacanya?'],
   },
   fromSource: { en: 'From the source', zh: '来自原文', vi: 'Từ nguồn', id: 'Dari sumber' },
@@ -135,13 +135,13 @@ export function AskPanel({ job, lang, seed, onCite }: { job: Job; lang: Lang; se
       <div ref={box} className="flex-1 space-y-4 overflow-y-auto p-4" role="log" aria-live="polite">
         {msgs.length === 0 && !busy && (
           <div className="grid gap-2">
-            {(A.starters[ui] ?? A.starters.en).map((s) => <button key={s} type="button" onClick={() => ask(s)} className="rounded-xl border px-3 py-2.5 text-left text-sm hover:border-primary hover:bg-accent">{s}</button>)}
+            {pick(ui, A.starters).map((s) => <button key={s} type="button" onClick={() => ask(s)} className="rounded-xl border px-3 py-2.5 text-left text-sm hover:border-primary hover:bg-accent">{s}</button>)}
           </div>
         )}
         {msgs.map((m, i) => m.role === 'user'
           ? <div key={i} className="ml-auto w-fit max-w-[88%] rounded-2xl rounded-br-md bg-primary px-3.5 py-2 text-sm text-primary-foreground">{m.text}</div>
           : <div key={i} className="grid gap-4 rounded-2xl border bg-card p-4">{m.blocks.map((b, k) => <Block key={k} b={b} onCite={onCite} />)}</div>)}
-        {busy && <p className="flex items-center gap-2 text-sm text-muted-foreground" role="status"><Loader2 className="h-4 w-4 animate-spin" />{slow ? t(A.still) : (A.steps[ui] ?? A.steps.en)[phase]}</p>}
+        {busy && <p className="flex items-center gap-2 text-sm text-muted-foreground" role="status"><Loader2 className="h-4 w-4 animate-spin" />{slow ? t(A.still) : pick(ui, A.steps)[phase]}</p>}
         {follow.length > 0 && !busy && (
           <div><p className="mb-1.5 text-xs font-medium text-muted-foreground">{t(A.next)}</p>
             <div className="flex flex-wrap gap-1.5">{follow.map((f) => <button key={f} type="button" onClick={() => ask(f)} className="rounded-full border px-3 py-1.5 text-left text-[13px] hover:border-primary hover:text-primary">{f}</button>)}</div></div>

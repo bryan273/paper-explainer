@@ -9,7 +9,7 @@ import { StudentVerify } from '@/components/billing/StudentVerify';
 import { InviteCard } from '@/components/app/InviteCard';
 import { Avatar, PlanBadge } from '@/components/site/menus';
 import { accountApi, accountSwr, displayName, useAccount } from '@/lib/account';
-import { LANGS, fill, usePrefs } from '@/lib/prefs';
+import { LANGS, fill, usePrefs, pick } from '@/lib/prefs';
 import { PURPOSE, useSettings, type Level, type Purpose } from '@/lib/settings';
 import { COMMON, dateFmt } from '@/lib/strings';
 import { cn } from '@/lib/utils';
@@ -36,9 +36,10 @@ const A = {
   change: { en: 'Change plan', zh: '更换套餐', vi: 'Đổi gói', id: 'Ganti paket' },
   balance: { en: 'Videos you can make', zh: '可制作视频', vi: 'Video có thể tạo', id: 'Video yang bisa dibuat' },
   free: { en: 'Free today', zh: '今日免费', vi: 'Miễn phí hôm nay', id: 'Gratis hari ini' },
+  freeWeek: { en: 'Free this week', zh: '本周免费', vi: 'Miễn phí trong tuần', id: 'Gratis minggu ini' },
   credits: { en: 'Credits', zh: '额度', vi: 'Tín dụng', id: 'Kredit' },
   creditsNote: { en: 'Credits never expire. They are used after the free video of the day.', zh: '额度永不过期，在当日免费视频用完后使用。', vi: 'Tín dụng không hết hạn. Được dùng sau video miễn phí trong ngày.', id: 'Kredit tidak kedaluwarsa. Dipakai setelah video gratis hari itu.' },
-  interactive: { en: 'Interactive videos this month', zh: '本月互动视频', vi: 'Video tương tác tháng này', id: 'Video interaktif bulan ini' },
+  interactive: { en: 'Interactive mode left', zh: '剩余互动模式次数', vi: 'Lượt tương tác còn lại', id: 'Sisa mode interaktif' },
   buy: { en: 'Buy more videos', zh: '购买更多视频', vi: 'Mua thêm video', id: 'Beli video lagi' },
   history: { en: 'Credit history', zh: '额度记录', vi: 'Lịch sử tín dụng', id: 'Riwayat kredit' },
   noHistory: { en: 'Nothing yet.', zh: '暂无记录。', vi: 'Chưa có gì.', id: 'Belum ada.' },
@@ -153,7 +154,7 @@ export default function AccountPage() {
                 </div>
                 <div className="mt-6 grid gap-4 sm:grid-cols-3">
                   <div className="rounded-xl bg-muted/60 p-4"><p className="text-xs text-muted-foreground">{t(A.balance)}</p><p className="font-display text-2xl font-bold">{me?.admin ? '∞' : (me?.quota?.day_left ?? 0) + (user.credits ?? 0)}</p></div>
-                  <div className="rounded-xl bg-muted/60 p-4"><p className="text-xs text-muted-foreground">{t(A.free)} · {t(A.credits)}</p><p className="font-display text-2xl font-bold">{me?.quota?.day_left ?? 0} · {user.credits}</p></div>
+                  <div className="rounded-xl bg-muted/60 p-4"><p className="text-xs text-muted-foreground">{t(me?.quota?.period === 'day' ? A.free : A.freeWeek)} · {t(A.credits)}</p><p className="font-display text-2xl font-bold">{me?.quota?.day_left ?? 0} · {user.credits}</p></div>
                   <div className="rounded-xl bg-muted/60 p-4"><p className="text-xs text-muted-foreground">{t(A.interactive)}</p><p className="font-display text-2xl font-bold">{me?.interactive ? `${me.interactive.left} / ${me.interactive.cap}` : '-'}</p></div>
                 </div>
                 <p className="mt-3 text-xs text-muted-foreground">{t(A.creditsNote)} <Link to="/pricing" className="font-semibold text-primary">{t(A.buy)}</Link></p>
@@ -184,8 +185,8 @@ export default function AccountPage() {
                 <div className="grid gap-6">
                   <div><p className="mb-2 text-sm font-medium">{t(A.lang)}</p><div className="grid grid-cols-2 gap-2 sm:grid-cols-4">{LANGS.map((l) => <button key={l.k} type="button" onClick={() => setLang(l.k)} className={seg(lang === l.k)}>{l.label}</button>)}</div></div>
                   <div className="flex items-center justify-between"><p className="text-sm font-medium">{t(A.theme)}</p><Switch checked={theme === 'dark'} onCheckedChange={(v) => setTheme(v ? 'dark' : 'light')} aria-label={t(A.theme)} /></div>
-                  <div><p className="mb-2 text-sm font-medium">{t(A.size)}</p><div className="inline-grid grid-cols-3 gap-2">{(['sm', 'md', 'lg'] as const).map((k, i) => <button key={k} type="button" onClick={() => set({ size: k }, true)} className={seg(s.size === k)}>{(A.sizes[lang] ?? A.sizes.en)[i]}</button>)}</div></div>
-                  <div><p className="mb-2 text-sm font-medium">{t(A.font)}</p><div className="inline-grid grid-cols-3 gap-2">{(['sans', 'serif', 'plain'] as const).map((k, i) => <button key={k} type="button" onClick={() => set({ font: k }, true)} className={seg(s.font === k)}>{(A.fonts[lang] ?? A.fonts.en)[i]}</button>)}</div></div>
+                  <div><p className="mb-2 text-sm font-medium">{t(A.size)}</p><div className="inline-grid grid-cols-3 gap-2">{(['sm', 'md', 'lg'] as const).map((k, i) => <button key={k} type="button" onClick={() => set({ size: k }, true)} className={seg(s.size === k)}>{pick(lang, A.sizes)[i]}</button>)}</div></div>
+                  <div><p className="mb-2 text-sm font-medium">{t(A.font)}</p><div className="inline-grid grid-cols-3 gap-2">{(['sans', 'serif', 'plain'] as const).map((k, i) => <button key={k} type="button" onClick={() => set({ font: k }, true)} className={seg(s.font === k)}>{pick(lang, A.fonts)[i]}</button>)}</div></div>
                   <div className="flex items-center justify-between"><p className="text-sm font-medium">{t(A.motion)}</p><Switch checked={s.motion} onCheckedChange={(v) => set({ motion: v })} aria-label={t(A.motion)} /></div>
                 </div>
               </section>

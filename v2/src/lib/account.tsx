@@ -6,16 +6,16 @@ export const ACCOUNT_URL = 'https://wzdkroxbfrlqijbeiwpk.supabase.co/functions/v
 const TOKEN_KEY = 'pe-session';   // the same session as the older apps on this site
 const ACCTS_KEY = 'pe-accounts';
 
-export type Quota = { tier: 'guest' | 'member'; day_limit: number; day_used: number; day_left: number; credits: number; resets_in_min: number | null };
+export type Quota = { tier: 'guest' | 'member'; period?: 'day' | 'week'; day_limit: number; day_used: number; day_left: number; credits: number; resets_in_min: number | null };
 export type Member = { id: string; username: string; handle?: string | null; credits: number; created_at: string };
 export type Pack = { credits: number; price: number };
-export type Interactive = { used: number; cap: number; left: number; resets: string; jobs?: string[] };
+export type Interactive = { used: number; cap: number; left: number; resets: string; jobs?: string[]; period?: 'week' | 'month' };
 export type Tiers = Record<string, { interactive: number; deep: number }>;
 export type Verify = { status: 'pending' | 'approved' | 'rejected'; role: string; school?: string } | null;
 export type Referral = { code: string; invited: number; reward: number; max: number } | null;
 export type Me = {
   admin?: boolean; user: Member | null; quota: Quota; limits: { guest: number; member: number; welcome: number }; packs: Record<string, Pack>;
-  plan?: string | null; plan_until?: string | null; plan_source?: string | null; interactive?: Interactive; tiers?: Tiers; verify?: Verify; referral?: Referral;
+  country?: string | null; plan?: string | null; plan_until?: string | null; plan_source?: string | null; interactive?: Interactive; tiers?: Tiers; verify?: Verify; referral?: Referral;
 };
 export type SavedAccount = { id: string; token: string; user: { id: string; username: string; handle?: string | null } };
 

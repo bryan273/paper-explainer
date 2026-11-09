@@ -17,16 +17,17 @@ const H = {
   hi: { en: 'Hi, {n}', zh: '你好，{n}', vi: 'Chào {n}', id: 'Halo, {n}' },
   hiGuest: { en: 'Welcome to Paperlit', zh: '欢迎使用 Paperlit', vi: 'Chào mừng đến với Paperlit', id: 'Selamat datang di Paperlit' },
   sub: { en: 'What do you want to understand today?', zh: '今天想弄懂什么？', vi: 'Hôm nay bạn muốn hiểu điều gì?', id: 'Apa yang ingin Anda pahami hari ini?' },
-  quickPh: { en: 'Paste a link to a paper or an article', zh: '粘贴论文或文章链接', vi: 'Dán liên kết bài báo hoặc bài viết', id: 'Tempel tautan makalah atau artikel' },
+  quickPh: { en: 'Paste a link to a paper or an article', zh: '粘贴论文或文章链接', vi: 'Dán liên kết đến bài báo hoặc bài viết', id: 'Tempel tautan makalah atau artikel' },
   go: { en: 'Make video', zh: '制作视频', vi: 'Tạo video', id: 'Buat video' },
   orText: { en: 'or paste text / upload a file', zh: '或粘贴文字 / 上传文件', vi: 'hoặc dán văn bản / tải tệp', id: 'atau tempel teks / unggah berkas' },
   canMake: { en: 'Videos you can make', zh: '可制作视频', vi: 'Video có thể tạo', id: 'Video yang bisa dibuat' },
+  canWeek: { en: '{f} free this week + {c} credits', zh: '本周免费 {f} + 额度 {c}', vi: '{f} miễn phí trong tuần + {c} tín dụng', id: '{f} gratis minggu ini + {c} kredit' },
   canSub: { en: '{f} free today + {c} credits', zh: '今日免费 {f} + 额度 {c}', vi: '{f} miễn phí hôm nay + {c} tín dụng', id: '{f} gratis hari ini + {c} kredit' },
-  inter: { en: 'Interactive videos left', zh: '剩余互动视频', vi: 'Video tương tác còn lại', id: 'Sisa video interaktif' },
-  interSub: { en: 'about {q} questions · resets {d}', zh: '约 {q} 道题 · {d} 重置', vi: 'khoảng {q} câu hỏi · làm mới {d}', id: 'sekitar {q} soal · reset {d}' },
+  inter: { en: 'Interactive mode left', zh: '剩余互动模式次数', vi: 'Lượt tương tác còn lại', id: 'Sisa mode interaktif' },
+  interSub: { en: 'resets {d}', zh: '{d} 重置', vi: 'làm mới {d}', id: 'reset {d}' },
   plan: { en: 'Your plan', zh: '当前套餐', vi: 'Gói của bạn', id: 'Paket Anda' },
   planUntil: { en: 'until {d} · {n} days left', zh: '至 {d} · 剩 {n} 天', vi: 'đến {d} · còn {n} ngày', id: 'sampai {d} · sisa {n} hari' },
-  planFree: { en: 'Upgrade for 50 videos a month and interactive video', zh: '升级可获每月 50 个视频和互动视频', vi: 'Nâng cấp để có 50 video mỗi tháng và video tương tác', id: 'Tingkatkan untuk 50 video per bulan dan video interaktif' },
+  planFree: { en: 'Upgrade for 80 videos a month and interactive mode on 40 of them', zh: '升级可获每月 80 个视频，其中 40 个可开互动模式', vi: 'Nâng cấp để có 80 video mỗi tháng và chế độ tương tác cho 40 video', id: 'Tingkatkan untuk 80 video per bulan dan mode interaktif untuk 40 di antaranya' },
   upgrade: { en: 'See plans', zh: '查看套餐', vi: 'Xem các gói', id: 'Lihat paket' },
   making: { en: 'In progress', zh: '正在生成', vi: 'Đang tạo', id: 'Sedang dibuat' },
   recent: { en: 'Recent videos', zh: '最近的视频', vi: 'Video gần đây', id: 'Video terbaru' },
@@ -35,14 +36,14 @@ const H = {
   examples: { en: 'Examples to try', zh: '可以试试的示例', vi: 'Ví dụ để thử', id: 'Contoh untuk dicoba' },
   more: { en: 'More ways to learn', zh: '更多学习方式', vi: 'Thêm cách học', id: 'Cara belajar lainnya' },
   readP: { en: 'Read a paper with an AI that cites the page.', zh: '与 AI 一起读论文，回答标注页码。', vi: 'Đọc bài báo cùng AI có trích dẫn trang.', id: 'Baca makalah dengan AI yang mengutip halaman.' },
-  checkP: { en: 'See whether a paper\'s results hold when re-run.', zh: '看看论文结果重新运行后是否成立。', vi: 'Xem kết quả của bài báo có đúng khi chạy lại.', id: 'Lihat apakah hasil makalah tetap berlaku saat dijalankan ulang.' },
+  checkP: { en: 'See whether a paper\'s results hold when re-run.', zh: '看看论文结果重新运行后是否成立。', vi: 'Kiểm tra kết quả bài báo có đúng khi chạy lại.', id: 'Lihat apakah hasil makalah tetap berlaku saat dijalankan ulang.' },
   studentH: { en: 'Free month of Plus for students and teachers', zh: '学生和教师免费用 1 个月 Plus', vi: 'Tặng 1 tháng Plus cho sinh viên và giảng viên', id: 'Gratis 1 bulan Plus untuk mahasiswa dan pengajar' },
   studentP: { en: 'Send a photo of your card, we check it within a day.', zh: '上传证件照片，一天内审核。', vi: 'Gửi ảnh thẻ, chúng tôi duyệt trong một ngày.', id: 'Kirim foto kartu Anda, kami cek dalam sehari.' },
   studentPending: { en: 'We are checking your proof. Usually within a day.', zh: '正在审核你的证明，通常一天内完成。', vi: 'Chúng tôi đang duyệt giấy tờ, thường trong một ngày.', id: 'Bukti Anda sedang kami cek, biasanya dalam sehari.' },
   studentOk: { en: 'Your free month of Plus is on until {d}. Enjoy!', zh: '你的免费 Plus 月已开通，有效期至 {d}。', vi: 'Tháng Plus miễn phí của bạn có hiệu lực đến {d}. Chúc bạn học tốt!', id: 'Bulan Plus gratis Anda aktif sampai {d}. Selamat belajar!' },
   send: { en: 'Send proof', zh: '提交证明', vi: 'Gửi giấy tờ', id: 'Kirim bukti' },
   guestH: { en: 'Make a video without an account', zh: '无需账户也能做视频', vi: 'Tạo video không cần tài khoản', id: 'Buat video tanpa akun' },
-  guestP: { en: 'Guests get 1 video a day. A free account adds 3 welcome videos, saves your videos and lets you ask questions.', zh: '访客每天 1 个视频。免费账户再送 3 个，保存视频并可提问。', vi: 'Khách được 1 video mỗi ngày. Tài khoản miễn phí tặng thêm 3 video, lưu video và cho phép đặt câu hỏi.', id: 'Tamu dapat 1 video per hari. Akun gratis menambah 3 video sambutan, menyimpan video, dan bisa bertanya.' },
+  guestP: { en: 'Guests get 1 video a day. A free account gives 5 videos a week and 3 welcome videos with interactive mode, keeps your videos and lets you ask questions.', zh: '访客每天 1 个视频。免费账户每周 5 个视频，另送 3 个含互动模式的欢迎视频，还能保存视频并提问。', vi: 'Khách được 1 video mỗi ngày. Tài khoản miễn phí có 5 video mỗi tuần, 3 video chào mừng với chế độ tương tác, lưu video và cho phép đặt câu hỏi.', id: 'Tamu mendapat 1 video per hari. Akun gratis memberi 5 video per minggu dan 3 video sambutan dengan mode interaktif, menyimpan video, dan bisa bertanya.' },
   signup: { en: 'Sign up free', zh: '免费注册', vi: 'Đăng ký miễn phí', id: 'Daftar gratis' },
 };
 const EX = [
@@ -90,12 +91,12 @@ export default function Home() {
           <div className={kpi}>
             <p className="flex items-center gap-2 text-sm text-muted-foreground"><Video className="h-4 w-4" />{t(H.canMake)}</p>
             <p className="mt-2 font-display text-3xl font-bold">{me?.admin ? '∞' : free + credits}</p>
-            {!me?.admin && <p className="text-xs text-muted-foreground">{fill(t(H.canSub), { f: free, c: credits })}</p>}
+            {!me?.admin && <p className="text-xs text-muted-foreground">{fill(t(me?.quota?.period === 'day' ? H.canSub : H.canWeek), { f: free, c: credits })}</p>}
           </div>
           <div className={kpi}>
             <p className="flex items-center gap-2 text-sm text-muted-foreground"><Zap className="h-4 w-4" />{t(H.inter)}</p>
             <p className="mt-2 font-display text-3xl font-bold">{me?.admin ? '∞' : it ? <>{it.left}<span className="text-lg text-muted-foreground"> / {it.cap}</span></> : '-'}</p>
-            {it && !me?.admin && <p className="text-xs text-muted-foreground">{fill(t(H.interSub), { q: it.left * 4, d: dateFmt(it.resets, lang, { day: 'numeric', month: 'short' }) })}</p>}
+            {it && !me?.admin && <p className="text-xs text-muted-foreground">{fill(t(H.interSub), { d: dateFmt(it.resets, lang, { day: 'numeric', month: 'short' }) })}</p>}
           </div>
           <div className={kpi}>
             <p className="flex items-center gap-2 text-sm text-muted-foreground"><CalendarClock className="h-4 w-4" />{t(H.plan)}</p>

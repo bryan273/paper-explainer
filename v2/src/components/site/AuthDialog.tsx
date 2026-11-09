@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Mark } from '@/components/brand';
 import { AccountError, accountApi, accountGet, displayName, useAccount, type AuthMode } from '@/lib/account';
-import { usePrefs, type Lang } from '@/lib/prefs';
+import { usePrefs, type Lang, pick, type Tr } from '@/lib/prefs';
 import { COMMON } from '@/lib/strings';
 import { Link } from 'react-router-dom';
 
@@ -15,11 +15,11 @@ const T = {
   loginT: { en: 'Welcome back', zh: '欢迎回来', vi: 'Chào mừng trở lại', id: 'Selamat datang kembali' },
   loginS: { en: 'Log in to continue learning.', zh: '登录后继续学习。', vi: 'Đăng nhập để học tiếp.', id: 'Masuk untuk melanjutkan belajar.' },
   regT: { en: 'Create your free account', zh: '创建免费账户', vi: 'Tạo tài khoản miễn phí', id: 'Buat akun gratis' },
-  regS: { en: '3 welcome videos, then 1 free video every day.', zh: '赠送 3 个视频，之后每天 1 个免费视频。', vi: 'Tặng 3 video, sau đó mỗi ngày 1 video miễn phí.', id: '3 video sambutan, lalu 1 video gratis setiap hari.' },
+  regS: { en: '3 welcome videos with interactive mode, then 5 free videos every week.', zh: '先送 3 个含互动模式的欢迎视频，之后每周 5 个免费视频。', vi: 'Tặng 3 video chào mừng có chế độ tương tác, sau đó mỗi tuần 5 video miễn phí.', id: '3 video sambutan dengan mode interaktif, lalu 5 video gratis setiap minggu.' },
   ident: { en: 'Email or username', zh: '邮箱或用户名', vi: 'Email hoặc tên người dùng', id: 'Email atau nama pengguna' },
   email: { en: 'Email', zh: '邮箱', vi: 'Email', id: 'Email' },
   handle: { en: 'Username', zh: '用户名', vi: 'Tên người dùng', id: 'Nama pengguna' },
-  handleHint: { en: 'Letters, numbers and _ . You can log in with it.', zh: '字母、数字、_，可以用它登录。', vi: 'Chữ, số và _ . Có thể dùng để đăng nhập.', id: 'Huruf, angka, dan _ . Bisa dipakai untuk masuk.' },
+  handleHint: { en: 'Letters, numbers and _ . You can log in with it.', zh: '字母、数字、_，可以用它登录。', vi: 'Chữ, số và dấu gạch dưới. Bạn có thể dùng để đăng nhập.', id: 'Huruf, angka, dan _ . Bisa dipakai untuk masuk.' },
   pw: { en: 'Password', zh: '密码', vi: 'Mật khẩu', id: 'Kata sandi' },
   pwHint: { en: '8 characters or more', zh: '至少 8 位', vi: 'Tối thiểu 8 ký tự', id: 'Minimal 8 karakter' },
   country: { en: 'Country', zh: '国家/地区', vi: 'Quốc gia', id: 'Negara' },
@@ -47,7 +47,7 @@ const T = {
   resend: { en: 'Send again', zh: '重新发送', vi: 'Gửi lại', id: 'Kirim ulang' },
   resent: { en: 'Sent again.', zh: '已重新发送。', vi: 'Đã gửi lại.', id: 'Sudah dikirim ulang.' },
   verified: { en: 'Your email is confirmed. Welcome to Paperlit!', zh: '邮箱已确认，欢迎使用 Paperlit！', vi: 'Email đã được xác nhận. Chào mừng đến với Paperlit!', id: 'Email Anda terkonfirmasi. Selamat datang di Paperlit!' },
-  badlink: { en: 'This link does not work any more', zh: '链接已失效', vi: 'Liên kết không còn dùng được', id: 'Tautan ini sudah tidak berlaku' },
+  badlink: { en: 'This link does not work any more', zh: '链接已失效', vi: 'Liên kết không còn hoạt động', id: 'Tautan ini sudah tidak berlaku' },
   ok: { en: 'Continue', zh: '继续', vi: 'Tiếp tục', id: 'Lanjut' },
   agree: { en: 'By continuing you agree to the', zh: '继续即表示同意', vi: 'Tiếp tục nghĩa là bạn đồng ý với', id: 'Dengan melanjutkan Anda menyetujui' },
   and: { en: 'and', zh: '和', vi: 'và', id: 'dan' },
@@ -221,4 +221,4 @@ export function AuthDialog() {
   );
 }
 
-const opts = (lang: Lang, v: Record<Lang, string[]>) => v[lang] ?? v.en;
+const opts = (lang: Lang, v: Tr<string[]>) => pick(lang, v);

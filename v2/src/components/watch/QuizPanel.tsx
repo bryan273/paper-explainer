@@ -13,7 +13,7 @@ export type QLog = { parts: Record<number, QItem>; finals: { at: string; score: 
 
 const S = {
   parts: { en: 'Questions inside the video', zh: '视频内的题目', vi: 'Câu hỏi trong video', id: 'Pertanyaan di dalam video' },
-  none: { en: 'Turn on interactive video and answer as you watch. Your answers appear here.', zh: '打开互动视频，边看边答，答案会显示在这里。', vi: 'Bật video tương tác và trả lời khi xem. Câu trả lời sẽ hiện ở đây.', id: 'Nyalakan video interaktif dan jawab sambil menonton. Jawaban Anda muncul di sini.' },
+  none: { en: 'Turn on interactive mode and answer as you watch. Your answers appear here.', zh: '打开互动模式，边看边答，答案会显示在这里。', vi: 'Bật chế độ tương tác và trả lời trong lúc xem. Câu trả lời của bạn sẽ hiện ở đây.', id: 'Nyalakan mode interaktif dan jawab sambil menonton. Jawaban Anda muncul di sini.' },
   correct: { en: 'correct', zh: '答对', vi: 'đúng', id: 'benar' },
   yours: { en: 'Your answer', zh: '你的答案', vi: 'Bạn chọn', id: 'Jawaban Anda' },
   right: { en: 'Correct answer', zh: '正确答案', vi: 'Đáp án đúng', id: 'Jawaban benar' },
@@ -30,7 +30,7 @@ const S = {
   bad: { en: 'Not quite', zh: '不太对', vi: 'Chưa đúng', id: 'Belum tepat' },
   history: { en: 'Past final quizzes', zh: '历史测验', vi: 'Các lần trước', id: 'Kuis sebelumnya' },
   packH: { en: 'Notes and flashcards', zh: '笔记和闪卡', vi: 'Ghi chú và thẻ ghi nhớ', id: 'Catatan dan kartu hafalan' },
-  packP: { en: 'Notes for every part (.md) and flashcards for Anki (.csv). Included in every plan.', zh: '每部分的笔记（.md）和 Anki 闪卡（.csv）。所有套餐都包含。', vi: 'Ghi chú từng phần (.md) và thẻ ghi nhớ cho Anki (.csv). Có trong mọi gói.', id: 'Catatan tiap bagian (.md) dan kartu hafalan Anki (.csv). Ada di semua paket.' },
+  packP: { en: 'Notes for every part (.md) and flashcards for Anki (.csv). Included in Plus, Pro and Premium.', zh: '每部分的笔记（.md）和 Anki 闪卡（.csv）。Plus、Pro、Premium 均包含。', vi: 'Ghi chú cho từng phần (.md) và thẻ ghi nhớ cho Anki (.csv). Có trong Plus, Pro và Premium.', id: 'Catatan per bagian (.md) dan kartu hafalan untuk Anki (.csv). Termasuk di Plus, Pro, dan Premium.' },
   notes: { en: 'Notes', zh: '笔记', vi: 'Ghi chú', id: 'Catatan' },
   cards: { en: 'Flashcards', zh: '闪卡', vi: 'Thẻ ghi nhớ', id: 'Kartu hafalan' },
   plans: { en: 'See plans', zh: '查看套餐', vi: 'Xem các gói', id: 'Lihat paket' },

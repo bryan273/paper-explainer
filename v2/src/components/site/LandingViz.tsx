@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Check, FileText, FlaskConical, Lightbulb, Mic, Newspaper, Play, PlayCircle, Quote, StickyNote, Video } from 'lucide-react';
-import { usePrefs, type Lang } from '@/lib/prefs';
+import { usePrefs, type Lang, pick, type Tr } from '@/lib/prefs';
 import { COMMON, PRODUCT } from '@/lib/strings';
 import { cn } from '@/lib/utils';
 
-type T4 = Record<Lang, string>;
+type T4 = Tr<string>;
 const ATT = `${import.meta.env.BASE_URL}landing/ex-6a21030a-b5f8-4c0e-977e-39090d7ebc70.jpg`;
 
 const L = {
@@ -29,11 +29,11 @@ const L = {
   quiz: { en: 'Final quiz 8 / 10', zh: '期末测验 8 / 10', vi: 'Bài cuối 8 / 10', id: 'Kuis akhir 8 / 10' },
   cards: { en: '12 flashcards', zh: '12 张闪卡', vi: '12 thẻ ghi nhớ', id: '12 kartu hafalan' },
   verdict: { en: 'Reproduced', zh: '已复现', vi: 'Đã tái lập', id: 'Tereproduksi' },
-  steps: { en: ['Code downloaded and set up', 'Experiment run twice from scratch', 'Numbers compared with the paper'], zh: ['下载并配置代码', '从头运行实验两次', '与论文数字对比'], vi: ['Tải và cài đặt mã', 'Chạy thí nghiệm hai lần từ đầu', 'So sánh với số liệu trong bài'], id: ['Kode diunduh dan disiapkan', 'Eksperimen dijalankan dua kali dari awal', 'Angka dibandingkan dengan makalah'] } as Record<Lang, string[]>,
+  steps: { en: ['Code downloaded and set up', 'Experiment run twice from scratch', 'Numbers compared with the paper'], zh: ['下载并配置代码', '从头运行实验两次', '与论文数字对比'], vi: ['Tải và cài đặt mã', 'Chạy thí nghiệm hai lần từ đầu', 'So sánh với số liệu trong bài'], id: ['Kode diunduh dan disiapkan', 'Eksperimen dijalankan dua kali dari awal', 'Angka dibandingkan dengan makalah'] } as Tr<string[]>,
   notesTitle: { en: 'Week 4: gradient descent', zh: '第 4 周：梯度下降', vi: 'Tuần 4: gradient descent', id: 'Minggu 4: gradient descent' },
-  notesLines: { en: ['learning rate too big: it overshoots', 'too small: it takes forever', 'try 0.1, then halve it'], zh: ['学习率太大：会冲过头', '太小：要等很久', '先试 0.1，再减半'], vi: ['learning rate quá lớn: vượt qua đích', 'quá nhỏ: rất lâu', 'thử 0.1 rồi giảm một nửa'], id: ['learning rate terlalu besar: melewati target', 'terlalu kecil: sangat lama', 'coba 0.1, lalu bagi dua'] } as Record<Lang, string[]>,
+  notesLines: { en: ['learning rate too big: it overshoots', 'too small: it takes forever', 'try 0.1, then halve it'], zh: ['学习率太大：会冲过头', '太小：要等很久', '先试 0.1，再减半'], vi: ['learning rate quá lớn: vượt qua đích', 'quá nhỏ: rất lâu', 'thử 0.1 rồi giảm một nửa'], id: ['learning rate terlalu besar: melewati target', 'terlalu kecil: sangat lama', 'coba 0.1, lalu bagi dua'] } as Tr<string[]>,
   articleHead: { en: 'Why the loss curve goes flat', zh: '为什么损失曲线会变平', vi: 'Vì sao đường loss đi ngang', id: 'Mengapa kurva loss mendatar' },
-  articleBy: { en: 'Blog post, 8 min read', zh: '博客文章，阅读约 8 分钟', vi: 'Bài blog, đọc 8 phút', id: 'Artikel blog, baca 8 menit' },
+  articleBy: { en: 'Blog post, 8 min read', zh: '博客文章，阅读约 8 分钟', vi: 'Bài blog, 8 phút đọc', id: 'Artikel blog, baca 8 menit' },
   pasted: { en: 'Pasted text or .txt', zh: '粘贴文字或 .txt', vi: 'Văn bản dán hoặc .txt', id: 'Teks atau .txt' },
   webLink: { en: 'A web link', zh: '网页链接', vi: 'Liên kết web', id: 'Tautan web' },
   lecture: { en: 'Lecture 7: Backpropagation', zh: '第 7 讲：反向传播', vi: 'Bài 7: Lan truyền ngược', id: 'Kuliah 7: Backpropagation' },
@@ -110,7 +110,7 @@ function SourceMock({ k }: { k: Src }) {
       <div className="pl-pop flex h-full flex-col rounded-xl border bg-[#fff8dc] p-5 text-[#3a3320] shadow-sm dark:bg-[#2a2614] dark:text-[#f1e8c4]" style={{ backgroundImage: 'repeating-linear-gradient(transparent 0 27px, rgba(120,100,40,.16) 27px 28px)' }}>
         <div className="flex items-center justify-between text-[11px]"><span className="font-semibold">ML 101</span><span className="opacity-70">Oct 14</span></div>
         <p className="mt-2 font-display text-[17px] font-bold">{t(L.notesTitle)}</p>
-        <ul className="mt-2 grid gap-[9px] text-[13px]">{(L.notesLines[lang] ?? L.notesLines.en).map((x) => <li key={x}>• {x}</li>)}</ul>
+        <ul className="mt-2 grid gap-[9px] text-[13px]">{pick(lang, L.notesLines).map((x) => <li key={x}>• {x}</li>)}</ul>
         <p className="mt-3 w-fit rounded bg-white/60 px-2 py-1 font-mono text-[13px] dark:bg-black/20">w = w − η · ∇L(w)</p>
         <svg viewBox="0 0 200 80" className="mt-2 h-[86px] w-[75%]" aria-hidden>
           <path d="M10 10 C 50 80, 150 80, 190 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeDasharray="0" />
@@ -120,7 +120,7 @@ function SourceMock({ k }: { k: Src }) {
         </svg>
         <p className="mt-2 text-[13px] font-semibold">{t({ en: 'Still not sure:', zh: '还没弄懂：', vi: 'Chưa rõ:', id: 'Masih bingung:' })}</p>
         <ul className="mt-1 grid gap-[9px] text-[13px]">{(lang === 'zh' ? ['动量为什么有用？', 'Adam 和 SGD 有什么区别？'] : lang === 'vi' ? ['Vì sao momentum có ích?', 'Adam khác SGD ở đâu?'] : lang === 'id' ? ['Mengapa momentum membantu?', 'Apa beda Adam dan SGD?'] : ['why does momentum help?', 'Adam vs SGD: what is the difference?']).map((x) => <li key={x}>? {x}</li>)}</ul>
-        <p className="mt-auto pt-3 w-fit -rotate-2 rounded-full border-2 border-[#d6452f] px-3 py-0.5 text-[12px] font-semibold text-[#d6452f]">{t({ en: 'Quiz on Friday!', zh: '周五小测！', vi: 'Thứ Sáu kiểm tra!', id: 'Kuis hari Jumat!' })}</p>
+        <p className="mt-auto pt-3 w-fit -rotate-2 rounded-full border-2 border-[#d6452f] px-3 py-0.5 text-[12px] font-semibold text-[#d6452f]">{t({ en: 'Quiz on Friday!', zh: '周五小测！', vi: 'Kiểm tra thứ Sáu!', id: 'Kuis hari Jumat!' })}</p>
       </div>
     );
   }
@@ -205,7 +205,7 @@ function OutPreview({ i }: { i: number }) {
     <div className="pl-pop rounded-lg border bg-background p-3">
       <div className="flex items-center gap-2 text-[12.5px] font-semibold text-success"><span className="grid h-5 w-5 place-items-center rounded-full bg-success/15"><Check className="h-3 w-3" /></span>{t(L.verdict)}</div>
       <p className="mt-1 text-[12px] font-medium">Stochastic Voronoi Ensembles for Anomaly Detection</p>
-      <ul className="mt-2 grid gap-1 text-[11.5px] text-muted-foreground">{(L.steps[lang] ?? L.steps.en).map((x) => <li key={x} className="flex items-center gap-1.5"><Check className="h-3 w-3 text-success" />{x}</li>)}</ul>
+      <ul className="mt-2 grid gap-1 text-[11.5px] text-muted-foreground">{pick(lang, L.steps).map((x) => <li key={x} className="flex items-center gap-1.5"><Check className="h-3 w-3 text-success" />{x}</li>)}</ul>
     </div>
   );
 }
@@ -304,7 +304,7 @@ export function Prism() {
 }
 
 // what the AI does to a source, in six steps, each with a picture made from a real paper (ResNet) or a real run
-const STEPS: Record<Lang, [string, string][]> = {
+const STEPS: Tr<[string, string][]> = {
   en: [
     ['Understand', 'Reads the whole source, figures and tables included, not just the abstract.'],
     ['Summarize', 'Keeps what matters: the question, the method and the result.'],
@@ -350,9 +350,9 @@ const S = {
   simple: { en: 'Simpler', zh: '更浅', vi: 'Dễ hơn', id: 'Lebih sederhana' },
   deeper: { en: 'Deeper', zh: '更深', vi: 'Sâu hơn', id: 'Lebih dalam' },
   simpleT: { en: 'Each block only fixes what the previous one missed.', zh: '每个块只修正上一个块漏掉的部分。', vi: 'Mỗi khối chỉ sửa phần khối trước bỏ sót.', id: 'Tiap blok hanya membetulkan yang terlewat oleh blok sebelumnya.' },
-  ch: { en: ['The problem', 'Shortcuts', 'Results', 'Why it works'], zh: ['问题', '捷径', '结果', '为什么有效'], vi: ['Vấn đề', 'Đường tắt', 'Kết quả', 'Vì sao hiệu quả'], id: ['Masalahnya', 'Jalan pintas', 'Hasil', 'Mengapa berhasil'] } as Record<Lang, string[]>,
+  ch: { en: ['The problem', 'Shortcuts', 'Results', 'Why it works'], zh: ['问题', '捷径', '结果', '为什么有效'], vi: ['Vấn đề', 'Đường tắt', 'Kết quả', 'Vì sao hiệu quả'], id: ['Masalahnya', 'Jalan pintas', 'Hasil', 'Mengapa berhasil'] } as Tr<string[]>,
   vq: { en: 'What does a shortcut connection pass on?', zh: '捷径连接把什么传下去？', vi: 'Kết nối tắt truyền đi cái gì?', id: 'Apa yang diteruskan jalan pintas?' },
-  vo: { en: ['The loss', 'The input, unchanged', 'A random layer'], zh: ['损失', '原样的输入', '随机一层'], vi: ['Hàm mất mát', 'Đầu vào, giữ nguyên', 'Một lớp ngẫu nhiên'], id: ['Nilai loss', 'Input, tanpa diubah', 'Lapisan acak'] } as Record<Lang, string[]>,
+  vo: { en: ['The loss', 'The input, unchanged', 'A random layer'], zh: ['损失', '原样的输入', '随机一层'], vi: ['Hàm mất mát', 'Đầu vào, giữ nguyên', 'Một lớp ngẫu nhiên'], id: ['Nilai loss', 'Input, tanpa diubah', 'Lapisan acak'] } as Tr<string[]>,
   ask: { en: 'What problem does this paper solve?', zh: '这篇论文解决了什么问题？', vi: 'Bài báo này giải quyết vấn đề gì?', id: 'Masalah apa yang diselesaikan makalah ini?' },
   ans: { en: 'Very deep networks were hard to train. The paper makes each layer learn a residual instead:', zh: '很深的网络难以训练。论文让每层改为学习残差：', vi: 'Mạng rất sâu khó huấn luyện. Bài báo cho mỗi lớp học phần dư:', id: 'Jaringan sangat dalam sulit dilatih. Makalah ini membuat tiap lapisan mempelajari residual:' },
   match: { en: 'Matched word for word', zh: '逐字一致', vi: 'Khớp nguyên văn', id: 'Cocok kata demi kata' },
@@ -404,12 +404,12 @@ function StepPic({ i }: { i: number }) {
     return (
       <div className={cn(box, 'grid grid-cols-[38%_1fr] gap-3 bg-[#0d0d1a] text-white')} aria-hidden>
         <ol className="grid content-center gap-1.5 text-[11px]">
-          {(S.ch[lang] ?? S.ch.en).map((x, k) => <li key={x} className={cn('rounded-md px-2 py-1.5', k === 1 ? 'bg-white/15 font-semibold' : 'text-white/60')}><span className="mr-1.5 text-white/40">{k + 1}</span>{x}{k === 1 && <span className="mt-1 block h-0.5 rounded-full bg-white/20"><span className="block h-full w-full rounded-full bg-lit" /></span>}</li>)}
+          {pick(lang, S.ch).map((x, k) => <li key={x} className={cn('rounded-md px-2 py-1.5', k === 1 ? 'bg-white/15 font-semibold' : 'text-white/60')}><span className="mr-1.5 text-white/40">{k + 1}</span>{x}{k === 1 && <span className="mt-1 block h-0.5 rounded-full bg-white/20"><span className="block h-full w-full rounded-full bg-lit" /></span>}</li>)}
         </ol>
         <div className="grid content-center">
           <p className="text-[10.5px] text-white/55">2 / 4</p>
           <p className="mt-0.5 text-[12.5px] font-semibold leading-snug">{t(S.vq)}</p>
-          <div className="mt-2 grid gap-1.5">{(S.vo[lang] ?? S.vo.en).map((o, k) => <span key={o} className={cn('flex items-center justify-between rounded-md border px-2 py-1 text-[11.5px]', k === 1 ? 'border-[#3ddc97] bg-[#3ddc97]/15' : 'border-white/15')}>{o}{k === 1 && <Check className="h-3.5 w-3.5 text-[#3ddc97]" />}</span>)}</div>
+          <div className="mt-2 grid gap-1.5">{pick(lang, S.vo).map((o, k) => <span key={o} className={cn('flex items-center justify-between rounded-md border px-2 py-1 text-[11.5px]', k === 1 ? 'border-[#3ddc97] bg-[#3ddc97]/15' : 'border-white/15')}>{o}{k === 1 && <Check className="h-3.5 w-3.5 text-[#3ddc97]" />}</span>)}</div>
         </div>
       </div>
     );
@@ -442,7 +442,7 @@ export function HowItWorks() {
   const { lang } = usePrefs();
   return (
     <ol className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-      {(STEPS[lang] ?? STEPS.en).map(([h, p], i) => (
+      {pick(lang, STEPS).map(([h, p], i) => (
         <li key={h} className="pl-card flex min-w-0 flex-col p-4">
           <StepPic i={i} />
           <div className="mt-4 flex items-baseline gap-2.5 px-1"><span className="text-sm font-semibold text-primary">{String(i + 1).padStart(2, '0')}</span><p className="font-display text-lg font-semibold">{h}</p></div>

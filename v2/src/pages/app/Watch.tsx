@@ -9,7 +9,7 @@ import { QuizPanel, Options, type QLog } from '@/components/watch/QuizPanel';
 import { PaperPane } from '@/components/watch/PaperPane';
 import { ApiError, askPaper, availableLangs, copyText, getJob, isMine, localPdfs, quizAll, quizPart, secText, storageKind, videoUrl, type Job, type Quiz } from '@/lib/explainer';
 import { track, useAccount } from '@/lib/account';
-import { fill, usePrefs, type Lang } from '@/lib/prefs';
+import { fill, usePrefs, type Lang, pick } from '@/lib/prefs';
 import { dateFmt } from '@/lib/strings';
 import { progressOf, sourceLabel, stageText, stepOf } from '@/lib/jobs';
 import { cn } from '@/lib/utils';
@@ -17,13 +17,13 @@ import { cn } from '@/lib/utils';
 const W = {
   notFound: { en: 'This video does not exist or was removed.', zh: '这个视频不存在或已被删除。', vi: 'Video này không tồn tại hoặc đã bị xóa.', id: 'Video ini tidak ada atau sudah dihapus.' },
   making: { en: 'Making your video', zh: '正在制作视频', vi: 'Đang tạo video', id: 'Membuat video Anda' },
-  closeOk: { en: 'You can close this tab. It keeps going and waits in your Library.', zh: '可以关掉页面，它会继续生成并保存在视频库里。', vi: 'Bạn có thể đóng tab. Video vẫn được làm tiếp và chờ trong Thư viện.', id: 'Anda boleh menutup tab. Proses berlanjut dan menunggu di Pustaka.' },
+  closeOk: { en: 'You can close this tab. It keeps going and waits in your Library.', zh: '可以关掉页面，它会继续生成并保存在视频库里。', vi: 'Bạn có thể đóng tab này. Video vẫn được tạo tiếp và chờ trong Thư viện.', id: 'Anda boleh menutup tab. Proses berlanjut dan menunggu di Pustaka.' },
   left: { en: 'About {n} min left', zh: '大约还需 {n} 分钟', vi: 'Còn khoảng {n} phút', id: 'Sekitar {n} menit lagi' },
   steps: { en: ['Reading the source', 'Writing the script', 'Checking quotes and numbers', 'Drawing and recording'], zh: ['阅读资料', '撰写讲稿', '核对引文和数字', '绘制并录音'], vi: ['Đọc nguồn', 'Viết kịch bản', 'Kiểm tra trích dẫn và số liệu', 'Vẽ và thu âm'], id: ['Membaca sumber', 'Menulis naskah', 'Memeriksa kutipan dan angka', 'Menggambar dan merekam'] },
   queued: { en: 'Waiting for a free renderer', zh: '等待空闲渲染器', vi: 'Đang chờ máy dựng trống', id: 'Menunggu perender kosong' },
   parts: { en: 'Parts', zh: '章节', vi: 'Các phần', id: 'Bagian' },
   failed: { en: 'This video could not be made', zh: '这个视频没能生成', vi: 'Không tạo được video này', id: 'Video ini tidak bisa dibuat' },
-  failedP: { en: 'Nothing was used: the credit went back to your balance. Common reasons: the page needs a login, is behind a paywall, or has too little text.', zh: '没有扣次数，额度已退还。常见原因：页面需要登录、付费墙，或正文太少。', vi: 'Không mất lượt: tín dụng đã được hoàn. Lý do thường gặp: trang cần đăng nhập, bị chặn trả phí, hoặc quá ít nội dung.', id: 'Tidak ada yang terpakai: kredit sudah dikembalikan. Penyebab umum: halaman perlu login, berbayar, atau teksnya terlalu sedikit.' },
+  failedP: { en: 'Nothing was used: the credit went back to your balance. Common reasons: the page needs a login, is behind a paywall, or has too little text.', zh: '没有扣次数，额度已退还。常见原因：页面需要登录、付费墙，或正文太少。', vi: 'Không mất lượt: tín dụng đã được hoàn lại. Lý do thường gặp: trang cần đăng nhập, bị chặn trả phí, hoặc có quá ít nội dung.', id: 'Tidak ada yang terpakai: kredit sudah dikembalikan. Penyebab umum: halaman perlu login, berbayar, atau teksnya terlalu sedikit.' },
   tryText: { en: 'Paste the text instead', zh: '改为粘贴文字', vi: 'Dán văn bản thay thế', id: 'Tempel teksnya saja' },
   tryFile: { en: 'Upload the PDF', zh: '上传 PDF', vi: 'Tải PDF lên', id: 'Unggah PDF' },
   again: { en: 'Try again', zh: '重试', vi: 'Thử lại', id: 'Coba lagi' },
@@ -38,15 +38,16 @@ const W = {
   guestP: { en: 'Sign up free to ask questions, take the quiz and make your own videos.', zh: '免费注册即可提问、做测验并制作自己的视频。', vi: 'Đăng ký miễn phí để đặt câu hỏi, làm bài kiểm tra và tạo video của riêng bạn.', id: 'Daftar gratis untuk bertanya, mengerjakan kuis, dan membuat video sendiri.' },
   signup: { en: 'Sign up free', zh: '免费注册', vi: 'Đăng ký miễn phí', id: 'Daftar gratis' },
   login: { en: 'Log in', zh: '登录', vi: 'Đăng nhập', id: 'Masuk' },
-  inter: { en: 'Interactive video', zh: '互动视频', vi: 'Video tương tác', id: 'Video interaktif' },
+  inter: { en: 'Interactive mode', zh: '互动模式', vi: 'Chế độ tương tác', id: 'Mode interaktif' },
   interHint: { en: 'Stops after each part with one question.', zh: '每段结束暂停并提问一题。', vi: 'Dừng sau mỗi phần với một câu hỏi.', id: 'Berhenti setiap bagian dengan satu pertanyaan.' },
-  interLeft: { en: '{n} of {c} left this month', zh: '本月还剩 {n} / {c} 个', vi: 'Còn {n}/{c} trong tháng này', id: 'Sisa {n} dari {c} bulan ini' },
+  interLeft: { en: '{n} of {c} left this month', zh: '本月还剩 {n} / {c} 次', vi: 'Còn {n}/{c} lượt trong tháng này', id: 'Sisa {n} dari {c} bulan ini' },
+  interLeftW: { en: '{n} of {c} left this week', zh: '本周还剩 {n} / {c} 次', vi: 'Còn {n}/{c} lượt trong tuần này', id: 'Sisa {n} dari {c} minggu ini' },
   interUses: { en: 'Turning it on here uses 1.', zh: '在这里打开会用掉 1 个。', vi: 'Bật ở đây sẽ dùng 1 lượt.', id: 'Menyalakan di sini memakai 1.' },
   interCounted: { en: 'Counted for this video: switching off and on is free.', zh: '本视频已计入：再次开关不扣次数。', vi: 'Đã tính cho video này: tắt bật lại miễn phí.', id: 'Sudah dihitung untuk video ini: matikan dan nyalakan lagi gratis.' },
-  interNone: { en: 'No interactive videos left this month. They come back on {d}.', zh: '本月互动视频已用完，{d} 恢复。', vi: 'Đã hết video tương tác tháng này. Có lại vào {d}.', id: 'Video interaktif bulan ini habis. Kembali pada {d}.' },
+  interNone: { en: 'Interactive mode is used up for now. It comes back on {d}.', zh: '互动模式次数已用完，{d} 恢复。', vi: 'Đã hết lượt tương tác. Có lại vào {d}.', id: 'Jatah mode interaktif habis. Kembali pada {d}.' },
   interReady: { en: 'Questions ready {a}/{b}', zh: '题目已准备 {a}/{b}', vi: 'Câu hỏi sẵn sàng {a}/{b}', id: 'Pertanyaan siap {a}/{b}' },
-  interOld: { en: 'This video was made before interactive video existed, so it has no stopping points. Make it again to use it.', zh: '这个视频制作于互动功能上线前，没有暂停点。重新生成即可使用。', vi: 'Video này được làm trước khi có video tương tác nên chưa có điểm dừng. Hãy tạo lại để dùng.', id: 'Video ini dibuat sebelum video interaktif ada, jadi belum punya titik berhenti. Buat ulang untuk memakainya.' },
-  upsell: { en: 'Plus gives 10 interactive videos a month, Pro 30, Premium 80.', zh: 'Plus 每月 10 个互动视频，Pro 30 个，Premium 80 个。', vi: 'Plus có 10 video tương tác mỗi tháng, Pro 30, Premium 80.', id: 'Plus memberi 10 video interaktif per bulan, Pro 30, Premium 80.' },
+  interOld: { en: 'This video was made before interactive mode existed, so it has no stopping points. Make it again to use it.', zh: '这个视频制作于互动模式上线之前，没有暂停点。重新生成后即可使用。', vi: 'Video này được tạo trước khi có chế độ tương tác nên không có điểm dừng. Hãy tạo lại để dùng.', id: 'Video ini dibuat sebelum ada mode interaktif, jadi tidak punya titik berhenti. Buat ulang untuk memakainya.' },
+  upsell: { en: 'Plus gives interactive mode on 40 videos a month, Pro 75, Premium 140.', zh: 'Plus 每月 40 个视频可开互动模式，Pro 75 个，Premium 140 个。', vi: 'Plus có chế độ tương tác cho 40 video mỗi tháng, Pro 75, Premium 140.', id: 'Plus memberi mode interaktif untuk 40 video per bulan, Pro 75, Premium 140.' },
   plans: { en: 'See plans', zh: '查看套餐', vi: 'Xem các gói', id: 'Lihat paket' },
   check: { en: 'Check yourself', zh: '自测一下', vi: 'Tự kiểm tra', id: 'Uji diri' },
   skip: { en: 'Skip', zh: '跳过', vi: 'Bỏ qua', id: 'Lewati' },
@@ -116,7 +117,7 @@ function Making({ job, started, now, lang }: { job: Job; started: number; now: n
           <h1 className="mt-2 font-display text-2xl font-bold">{job.title || sourceLabel(job)}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{st < 0 ? t(W.queued) : stageText(job.stage, lang)} · {fill(t(W.left), { n: leftMin })}</p>
           <ol className="mt-6 grid gap-3">
-            {(W.steps[lang] ?? W.steps.en).map((s, i) => (
+            {pick(lang, W.steps).map((s, i) => (
               <li key={s} className="flex items-center gap-3 text-sm">
                 {i < st ? <span className="grid h-6 w-6 place-items-center rounded-full bg-success text-white"><Check className="h-3.5 w-3.5" /></span>
                   : i === st ? <span className="grid h-6 w-6 place-items-center rounded-full bg-primary text-primary-foreground"><Loader2 className="h-3.5 w-3.5 animate-spin" /></span>
@@ -344,7 +345,7 @@ function Studio({ job }: { job: Job }) {
                 <Switch checked={inter} onCheckedChange={toggleInter} aria-label={t(W.inter)} />
               </div>
               <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs">
-                {iu && !me?.admin && <span className={cn('font-semibold', showNone ? 'text-destructive' : 'text-primary')}>{showNone ? fill(t(W.interNone), { d: dateFmt(iu.resets, ui, { day: 'numeric', month: 'short' }) }) : fill(t(W.interLeft), { n: iu.left, c: iu.cap })}</span>}
+                {iu && !me?.admin && <span className={cn('font-semibold', showNone ? 'text-destructive' : 'text-primary')}>{showNone ? fill(t(W.interNone), { d: dateFmt(iu.resets, ui, { day: 'numeric', month: 'short' }) }) : fill(t(iu.period === 'week' ? W.interLeftW : W.interLeft), { n: iu.left, c: iu.cap })}</span>}
                 {iu && !me?.admin && (counted || iu.left > 0) && <span className="text-muted-foreground">{counted ? t(W.interCounted) : !inter ? t(W.interUses) : ''}</span>}
                 {inter && chapters.length > 0 && <span className="text-muted-foreground">{prepared >= chapters.length ? '✓ ' : ''}{fill(t(W.interReady), { a: Math.min(prepared, chapters.length), b: chapters.length })}</span>}
                 {inter && chapters.length === 0 && <span className="text-muted-foreground">{t(W.interOld)}</span>}
