@@ -51,6 +51,32 @@ jobs:
           path: app/frontend/dist
           retention-days: 3
 
+  v2:
+    # Paperlit v2 (the new site at /paperlit/): checked on every push and pull request; published by hand into the user site repo
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: v2
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: v2/package-lock.json
+      - run: npm ci
+      - name: Type check
+        run: npx tsc --noEmit -p tsconfig.app.json
+      - name: Lint
+        run: npx eslint --quiet ./src
+      - name: Build
+        env:
+          VITE_BASE: /paperlit/
+        run: npx vite build
+      - name: Smoke check
+        run: test -s dist/index.html && grep -q "/paperlit/" dist/index.html
+
   publish:
     needs: build
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
