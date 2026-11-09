@@ -118,7 +118,7 @@ export default function AccountPage() {
     <div className="mx-auto max-w-6xl py-8">
       <h1 className="font-display text-3xl font-bold">{t(A.h)}</h1>
       <div className="mt-6 grid gap-6 lg:grid-cols-[220px_1fr]">
-        <nav className="-mx-4 flex gap-1 overflow-x-auto px-4 lg:mx-0 lg:grid lg:content-start lg:px-0" aria-label={t(A.h)}>
+        <nav data-g="acct-tabs" className="-mx-4 flex gap-1 overflow-x-auto px-4 lg:mx-0 lg:grid lg:content-start lg:px-0" aria-label={t(A.h)}>
           {(Object.keys(A.tabs) as Tab[]).map((k) => { const I = icons[k]; return (
             <button key={k} type="button" onClick={() => setTab(k)} aria-current={tab === k ? 'page' : undefined}
               className={cn('flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium transition', tab === k ? 'bg-accent text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground')}><I className="h-4 w-4" />{t(A.tabs[k])}</button>

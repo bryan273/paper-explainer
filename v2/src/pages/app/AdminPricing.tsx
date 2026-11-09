@@ -8,10 +8,10 @@ type Props = { jobs: Job[]; orders: Order[]; usdCny: number; activePlans: number
 
 // what each plan gives (keep in step with the pricing page and the backend TIERS / PLANS)
 const PLANS = [
-  { k: 'free', name: 'Free', month: 0, year: 0, videos: 5 * 4.33, maxMin: 3, inter: 3 * 4.33, deep: 5, keep: 7 },
-  { k: 'plus', name: 'Plus', month: 33, year: 330, videos: 80, maxMin: 5, inter: 40, deep: 20, keep: 30 },
-  { k: 'pro', name: 'Pro', month: 59, year: 590, videos: 150, maxMin: 10, inter: 75, deep: 35, keep: 90 },
-  { k: 'premium', name: 'Premium', month: 109, year: 1090, videos: 280, maxMin: 10, inter: 140, deep: 50, keep: 270 },
+  { k: 'free', name: 'Free', month: 0, year: 0, videos: 5 * 4.33, maxMin: 3, inter: 3 * 4.33, deep: 3, keep: 7 },
+  { k: 'plus', name: 'Plus', month: 33, year: 330, videos: 80, maxMin: 5, inter: 40, deep: 30, keep: 30 },
+  { k: 'pro', name: 'Pro', month: 59, year: 590, videos: 150, maxMin: 10, inter: 75, deep: 80, keep: 90 },
+  { k: 'premium', name: 'Premium', month: 109, year: 1090, videos: 280, maxMin: 10, inter: 140, deep: 160, keep: 270 },
 ];
 const PACKS = [{ n: 5, cny: 19 }, { n: 20, cny: 59 }, { n: 50, cny: 129 }];
 const y = (n: number) => `¥${(Math.round(n * 100) / 100).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -45,15 +45,17 @@ export function AdminPricing({ jobs, orders, usdCny, activePlans }: Props) {
   const [quickPerVideo, setQuickPerVideo] = useState(3);
   const [useVideos, setUseVideos] = useState(0.4);   // share of the video allowance people really use
   const [useInter, setUseInter] = useState(0.35);
-  const [deepPerVideo, setDeepPerVideo] = useState(1.5);   // in-depth answers asked per video on average
+  const [useDeep, setUseDeep] = useState(0.4);   // share of the monthly in-depth pool people really use
   const [fee, setFee] = useState(0);   // payment fee share (bank QR, WeChat, Alipay personal codes: 0)
   const [fixed, setFixed] = useState(15);   // fixed costs a month: domain, e-mail sending, etc.
   const [mix, setMix] = useState<Record<string, number>>({ free: 1000, plus: 40, pro: 10, premium: 3 });
 
   const rows = PLANS.map((p) => {
-    const perVideo = p.maxMin <= 3 ? vShort : p.maxMin <= 5 ? vMid : (vMid + vLong) / 2;
-    const worst = p.videos * perVideo + p.inter * cInter + p.videos * (p.deep * cDeep + quickPerVideo * cQuick);
-    const expect = p.videos * useVideos * (perVideo + deepPerVideo * cDeep + quickPerVideo * cQuick) + p.inter * useInter * cInter;
+    // cost of one video credit: most videos are short, the longest ones cost more but count as two credits
+    const perVideo = p.maxMin <= 3 ? vShort : Math.max(vMid, vLong / 2);   // worst case per credit
+    const typical = p.maxMin <= 3 ? vShort : 0.65 * vShort + 0.35 * vMid;   // what a normal member makes
+    const worst = p.videos * (perVideo + quickPerVideo * cQuick) + p.inter * cInter + p.deep * cDeep;
+    const expect = p.videos * useVideos * (typical + quickPerVideo * cQuick) + p.inter * useInter * cInter + p.deep * useDeep * cDeep;
     const income = p.month * (1 - fee);
     return { ...p, perVideo, worst, expect, income, margin: income ? (income - expect) / income : -1, worstMargin: income ? (income - worst) / income : -1, pricePerVideo: p.month ? p.month / p.videos : 0 };
   });
@@ -82,7 +84,7 @@ export function AdminPricing({ jobs, orders, usdCny, activePlans }: Props) {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 6 }}>
           <Num label="Share of videos used" value={useVideos} onChange={setUseVideos} step={0.05} />
           <Num label="Share of interactive used" value={useInter} onChange={setUseInter} step={0.05} />
-          <Num label="In-depth answers per video" value={deepPerVideo} onChange={setDeepPerVideo} step={0.5} />
+          <Num label="Share of in-depth answers used" value={useDeep} onChange={setUseDeep} step={0.05} />
           <Num label="Quick answers per video" value={quickPerVideo} onChange={setQuickPerVideo} step={1} />
           <Num label="Payment fee share" value={fee} onChange={setFee} step={0.01} />
           <Num label="Fixed costs a month" value={fixed} onChange={setFixed} step={1} suffix="¥" />
@@ -96,7 +98,7 @@ export function AdminPricing({ jobs, orders, usdCny, activePlans }: Props) {
             <td style={{ color: r.margin < 0.5 ? '#d6453d' : '#1a9a55' }}>{r.month ? pct(r.margin) : 'cost of acquisition'}</td><td>{y(r.worst)}</td>
             <td style={{ color: r.worstMargin < 0 ? '#d6453d' : r.worstMargin < 0.3 ? '#c98a12' : '#1a9a55' }}>{r.month ? pct(r.worstMargin) : '-'}</td></tr>)}
         </tbody></table></div>
-        <p className="cs-dim" style={{ fontSize: 13, marginTop: 8 }}>"Cost if fully used" assumes every video is made at the longest length, every interactive turn and every in-depth answer of every video is used. It is the worst case, not the normal one.</p>
+        <p className="cs-dim" style={{ fontSize: 13, marginTop: 8 }}>"Cost if fully used" assumes every video credit is spent on a 4 to 5 minute video and every interactive turn and every in-depth answer of the month is used. It is the worst case, not the normal one.</p>
       </section>
 
       <section className="cs-card">
@@ -122,7 +124,7 @@ export function AdminPricing({ jobs, orders, usdCny, activePlans }: Props) {
       <section className="cs-card">
         <h3>What the numbers say</h3>
         <ul style={{ display: 'grid', gap: 8, fontSize: 14, lineHeight: 1.55, paddingLeft: 18 }}>
-          <li>Videos are cheap for us; in-depth answers are not. One in-depth answer costs about as much as one to two whole videos, and the plans allow 20 to 50 per video, so a single heavy user can cost more than they pay. A monthly pool of in-depth answers (for example Plus 150, Pro 400, Premium 800) caps that risk without anyone noticing in normal use.</li>
+          <li>Videos are cheap for us; in-depth answers are not. One in-depth answer costs about as much as a whole 5 minute video, so they are a monthly pool (3, 30, 80, 160) instead of a number per video. That caps what one heavy member can cost, and normal use never reaches it.</li>
           <li>Free costs about {y(rows[0].expect)} per active member a month. That is the price of acquiring a user; keep it, but watch it as members grow.</li>
           <li>Packs earn far more per video than plans, which is right: they are for people who only need a few, and they push regular users to a plan.</li>
           <li>Sources are capped at 60,000 characters (about 25 pages), so a long book never costs more than a short paper.</li>

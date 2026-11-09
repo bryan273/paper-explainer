@@ -100,7 +100,7 @@ export function ProfileMenu() {
             {LANGS.map((l) => <DropdownMenuItem key={l.k} onSelect={() => setLang(l.k)}>{l.label}{lang === l.k && <Check className="ml-auto h-4 w-4 text-primary" />}</DropdownMenuItem>)}
           </DropdownMenuSubContent>
         </DropdownMenuSub>
-        <DropdownMenuItem onSelect={() => window.dispatchEvent(new Event('pl-tour'))}><Compass className="mr-2 h-4 w-4" />{t(NAV.tour)}</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => window.dispatchEvent(new Event('pl-guide'))}><Compass className="mr-2 h-4 w-4" />{t(NAV.tour)}</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => { signOut(); nav('/'); }} className="text-destructive focus:text-destructive"><LogOut className="mr-2 h-4 w-4" />{t(NAV.signOut)}</DropdownMenuItem>
       </DropdownMenuContent>

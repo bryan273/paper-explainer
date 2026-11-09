@@ -100,16 +100,16 @@ export default function Read() {
       {sharedId && <p className={cn('mt-4 rounded-lg px-3 py-2 text-sm', sharedState === 'gone' ? 'bg-destructive/10 text-destructive' : 'bg-accent text-primary')} role="status">{t(sharedState === 'gone' ? R.sharedGone : R.sharedBy)}</p>}
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <form onSubmit={(e: FormEvent) => { e.preventDefault(); start(goal, paper); }} className="pl-card grid gap-4 p-5 sm:p-6">
-          <div className="grid gap-1.5"><label htmlFor="rd-goal" className="text-sm font-medium">{t(R.goal)}</label>
+          <div data-g="goal" className="grid gap-1.5"><label htmlFor="rd-goal" className="text-sm font-medium">{t(R.goal)}</label>
             <Textarea id="rd-goal" rows={3} maxLength={1000} value={goal} disabled={running} onChange={(e) => setGoal(e.target.value)} placeholder={t(R.goalPh)} onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); start(goal, paper); } }} /></div>
-          <div className="grid gap-1.5"><label htmlFor="rd-paper" className="text-sm font-medium">{t(R.paper)}</label><Input id="rd-paper" value={paper} disabled={running} onChange={(e) => setPaper(e.target.value)} placeholder={t(R.paperPh)} /></div>
+          <div data-g="paper" className="grid gap-1.5"><label htmlFor="rd-paper" className="text-sm font-medium">{t(R.paper)}</label><Input id="rd-paper" value={paper} disabled={running} onChange={(e) => setPaper(e.target.value)} placeholder={t(R.paperPh)} /></div>
           {err && <p className="flex items-start gap-2 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{err}</p>}
-          <div className="flex gap-2">
+          <div data-g="start" className="flex gap-2">
             <Button type="submit" disabled={running}>{running ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}{t(R.start)}</Button>
             {running && <Button type="button" variant="outline" onClick={() => abort.current?.abort()}><Square className="mr-1.5 h-3.5 w-3.5" />{t(R.stop)}</Button>}
           </div>
         </form>
-        <aside className="pl-card p-5">
+        <aside data-g="examples" className="pl-card p-5">
           <p className="text-sm font-semibold">{t(R.examples)}</p>
           <div className="mt-3 grid gap-2">{pick(lang, R.ex).map((x) => <button key={x} type="button" disabled={running} onClick={() => { setGoal(x); setPaper(''); start(x, ''); }} className="rounded-lg border px-3 py-2 text-left text-sm hover:border-primary hover:bg-accent disabled:opacity-60">{x}</button>)}</div>
         </aside>
