@@ -6,7 +6,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { useAccount } from '@/lib/account';
 import { usePrefs, type Lang } from '@/lib/prefs';
 import { amount, fmtMoney, money, perMonthOfYear, type PriceKey } from '@/lib/currency';
-import { Prism, StepVisual } from '@/components/site/LandingViz';
+import { HowItWorks, Prism } from '@/components/site/LandingViz';
 import { HL, P, ROWS } from '@/pages/Pricing';
 import { PRODUCT, COMMON, NAV } from '@/lib/strings';
 import { cn } from '@/lib/utils';
@@ -33,19 +33,7 @@ const L = {
   exS: { en: 'Real videos made by Paperlit from famous papers. Open one and try the questions inside it.', zh: '由 Paperlit 根据经典论文生成的真实视频。打开一个，试试视频里的题目。', vi: 'Video thật do Paperlit làm từ các bài báo nổi tiếng. Mở một video và thử các câu hỏi bên trong.', id: 'Video asli buatan Paperlit dari makalah terkenal. Buka satu dan coba pertanyaan di dalamnya.' },
   min: { en: '{n} min', zh: '{n} 分钟', vi: '{n} phút', id: '{n} menit' },
   vH: { en: 'One source, many ways to learn', zh: '一份资料，多种学法', vi: 'Một nguồn, nhiều cách học', id: 'Satu sumber, banyak cara belajar' },
-  vS: { en: 'Between what you bring and what you get back, the AI does five things to your source.', zh: '从你带来的资料到你拿到的结果之间，AI 对资料做了五件事。', vi: 'Giữa thứ bạn mang đến và thứ bạn nhận lại, AI làm năm việc với nguồn của bạn.', id: 'Di antara yang Anda bawa dan yang Anda terima, AI melakukan lima hal pada sumber Anda.' },
-  verbs: {
-    en: [['Understand', 'Reads the whole source, including figures and tables.'], ['Summarize', 'Keeps what matters: the question, the method, the result.'], ['Explain', 'At your level and in your language.'], ['Restructure', 'Chapters, a script, a quiz, flashcards.'], ['Verify', 'Quotes the source word for word and re-runs results.']],
-    zh: [['理解', '读完整份资料，包括图和表。'], ['提炼', '留下关键：问题、方法、结果。'], ['讲解', '按你的水平，用你的语言。'], ['重组', '章节、讲稿、测验、闪卡。'], ['核实', '逐字引用原文，重新运行结果。']],
-    vi: [['Hiểu', 'Đọc toàn bộ nguồn, kể cả hình và bảng.'], ['Tóm lược', 'Giữ điều quan trọng: câu hỏi, phương pháp, kết quả.'], ['Giải thích', 'Theo trình độ và ngôn ngữ của bạn.'], ['Tái cấu trúc', 'Chương, kịch bản, bài kiểm tra, thẻ ghi nhớ.'], ['Kiểm chứng', 'Trích nguyên văn và chạy lại kết quả.']],
-    id: [['Memahami', 'Membaca seluruh sumber, termasuk gambar dan tabel.'], ['Meringkas', 'Menyimpan yang penting: pertanyaan, metode, hasil.'], ['Menjelaskan', 'Sesuai tingkat dan bahasa Anda.'], ['Menyusun ulang', 'Bab, naskah, kuis, kartu hafalan.'], ['Memverifikasi', 'Mengutip kata demi kata dan menjalankan ulang hasil.']],
-  },
-  f1H: { en: 'A video that checks you understood', zh: '会检查你是否看懂的视频', vi: 'Video kiểm tra xem bạn đã hiểu chưa', id: 'Video yang mengecek pemahaman Anda' },
-  f1P: { en: 'Turn on interactive video and it stops at the end of each part with one question. The explanation is ready the moment you answer.', zh: '打开互动视频后，每段结束都会暂停问一道题。你一作答，讲解立即出现。', vi: 'Bật video tương tác, video sẽ dừng cuối mỗi phần với một câu hỏi. Lời giải thích có ngay khi bạn trả lời.', id: 'Nyalakan video interaktif dan video berhenti di akhir tiap bagian dengan satu pertanyaan. Penjelasannya siap begitu Anda menjawab.' },
-  f2H: { en: 'Answers you can trace to the page', zh: '每个回答都能追溯到页码', vi: 'Câu trả lời truy được về từng trang', id: 'Jawaban yang bisa dilacak ke halamannya' },
-  f2P: { en: 'Ask anything. Quick answers come in seconds; in-depth answers use a stronger AI. Every quote is matched word for word against the source.', zh: '随便问。快速回答几秒就到；深入回答使用更强的 AI。每句引文都与原文逐字比对。', vi: 'Hỏi bất cứ điều gì. Trả lời nhanh trong vài giây; chế độ chuyên sâu dùng AI mạnh hơn. Mọi trích dẫn đều được đối chiếu nguyên văn với nguồn.', id: 'Tanyakan apa saja. Jawaban cepat dalam hitungan detik; mode mendalam memakai AI yang lebih kuat. Setiap kutipan dicocokkan kata demi kata dengan sumbernya.' },
-  f3H: { en: 'Know if the result really holds', zh: '知道结果是否真的成立', vi: 'Biết kết quả có thật sự đúng', id: 'Tahu apakah hasilnya benar-benar berlaku' },
-  f3P: { en: 'For papers with public code, Paperlit re-runs the experiment and shows whether the reported number comes out again.', zh: '对公开代码的论文，Paperlit 会重新运行实验，看报告的数字能否再次得到。', vi: 'Với bài báo có mã công khai, Paperlit chạy lại thí nghiệm và cho thấy con số công bố có xuất hiện lại không.', id: 'Untuk makalah dengan kode terbuka, Paperlit menjalankan ulang eksperimen dan menunjukkan apakah angka yang dilaporkan muncul lagi.' },
+  vS: { en: 'Between what you bring and what you get back, the AI does six things to your source.', zh: '从你带来的资料到你拿到的结果之间，AI 对资料做了六件事。', vi: 'Giữa thứ bạn mang đến và thứ bạn nhận lại, AI làm sáu việc với nguồn của bạn.', id: 'Di antara yang Anda bawa dan yang Anda terima, AI melakukan enam hal pada sumber Anda.' },
   uH: { en: 'Who it is for', zh: '适合谁', vi: 'Dành cho ai', id: 'Untuk siapa' },
   uS: { en: 'The same source becomes something different for each person.', zh: '同一份资料，对每个人变成不同的东西。', vi: 'Cùng một nguồn, mỗi người nhận được một thứ khác nhau.', id: 'Sumber yang sama menjadi sesuatu yang berbeda bagi setiap orang.' },
   uses: {
@@ -76,12 +64,6 @@ const L = {
   stCta: { en: 'Get student Plus', zh: '申请学生 Plus', vi: 'Nhận Plus cho sinh viên', id: 'Ambil Plus pelajar' },
   endH: { en: 'Learn anything, in the way that works for you.', zh: '学任何东西，用最适合你的方式。', vi: 'Học bất cứ điều gì, theo cách hợp với bạn.', id: 'Pelajari apa saja, dengan cara yang cocok untuk Anda.' },
   endP: { en: 'Your first video is free. It takes a link and about five minutes.', zh: '第一个视频免费，只需一个链接和大约五分钟。', vi: 'Video đầu tiên miễn phí. Chỉ cần một liên kết và khoảng năm phút.', id: 'Video pertama gratis. Cukup satu tautan dan sekitar lima menit.' },
-  mockQ: { en: 'Why does a residual block make deep networks easier to train?', zh: '为什么残差块让深层网络更容易训练？', vi: 'Vì sao khối residual giúp mạng sâu dễ huấn luyện hơn?', id: 'Mengapa blok residual membuat jaringan dalam lebih mudah dilatih?' },
-  mockOpts: { en: ['It adds more layers', 'It lets the signal skip ahead', 'It removes the loss'], zh: ['它增加了更多层', '它让信号可以跳过', '它去掉了损失函数'], vi: ['Nó thêm nhiều lớp hơn', 'Nó cho tín hiệu đi tắt', 'Nó bỏ hàm mất mát'], id: ['Menambah lapisan', 'Sinyal bisa melompat', 'Menghapus fungsi loss'] },
-  mockA: { en: 'The shortcut passes the input straight on, so each block only has to learn a small change.', zh: '捷径把输入直接传下去，每个块只需学习一个小的变化。', vi: 'Đường tắt đưa thẳng đầu vào đi tiếp, nên mỗi khối chỉ cần học một thay đổi nhỏ.', id: 'Jalan pintas meneruskan input langsung, jadi tiap blok hanya perlu mempelajari perubahan kecil.' },
-  mockPage: { en: 'Page 3', zh: '第 3 页', vi: 'Trang 3', id: 'Halaman 3' },
-  mockVerdict: { en: 'Reproduced', zh: '已复现', vi: 'Đã tái lập', id: 'Tereproduksi' },
-  mockSteps: { en: ['Code downloaded and set up', 'Experiment run twice from scratch', 'Numbers compared with the paper'], zh: ['下载并配置代码', '从头运行实验两次', '与论文数字对比'], vi: ['Tải và cài đặt mã', 'Chạy thí nghiệm hai lần từ đầu', 'So sánh với số liệu trong bài'], id: ['Kode diunduh dan disiapkan', 'Eksperimen dijalankan dua kali dari awal', 'Angka dibandingkan dengan makalah'] },
 };
 
 const EXAMPLES: { id: string; title: string; min: number; poster?: string }[] = [
@@ -148,47 +130,9 @@ export default function Landing() {
       </Section>
 
       <Section title={t(L.vH)} sub={t(L.vS)}>
-        <ol className="grid gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-5">
-          {pickArr(lang, L.verbs).map(([h, p], i) => (
-            <li key={h}>
-              <StepVisual i={i} />
-              <span className="text-xs font-semibold text-primary">{String(i + 1).padStart(2, '0')}</span>
-              <p className="mt-1 font-display text-lg font-semibold">{h}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{p}</p>
-            </li>
-          ))}
-        </ol>
+        <HowItWorks />
       </Section>
 
-      <section className="pl-container grid gap-6 pt-24 lg:grid-cols-3">
-        <Feature title={t(L.f1H)} text={t(L.f1P)}>
-          <div className="relative overflow-hidden rounded-xl bg-[#0d0d1a] p-4 text-white">
-            <p className="text-[11px] uppercase tracking-wide text-white/60">2 / 4</p>
-            <p className="mt-1 text-[13.5px] font-semibold leading-snug">{t(L.mockQ)}</p>
-            <div className="mt-3 grid gap-1.5">
-              {pickArr(lang, L.mockOpts).map((o, i) => (
-                <span key={o} className={cn('flex items-center justify-between rounded-lg border px-3 py-1.5 text-[12.5px]', i === 1 ? 'border-[#3ddc97] bg-[#3ddc97]/15' : 'border-white/15')}>{o}{i === 1 && <Check className="h-3.5 w-3.5 text-[#3ddc97]" />}</span>
-              ))}
-            </div>
-          </div>
-        </Feature>
-        <Feature title={t(L.f2H)} text={t(L.f2P)}>
-          <div className="rounded-xl border bg-muted/40 p-4 text-[13px]">
-            <p className="leading-relaxed">{t(L.mockA)}</p>
-            <div className="mt-3 flex items-start gap-2 rounded-lg border-l-2 border-primary bg-background p-2.5 text-[12.5px] italic text-muted-foreground"><Quote className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />“we explicitly let these layers fit a residual mapping”</div>
-            <span className="mt-2 inline-flex rounded-full bg-accent px-2 py-0.5 text-[11px] font-semibold text-primary">{t(L.mockPage)}</span>
-          </div>
-        </Feature>
-        <Feature title={t(L.f3H)} text={t(L.f3P)}>
-          <div className="rounded-xl border bg-muted/40 p-4">
-            <div className="flex items-center gap-2 text-[13px] font-semibold text-success"><span className="grid h-6 w-6 place-items-center rounded-full bg-success/15"><Check className="h-3.5 w-3.5" /></span>{t(L.mockVerdict)}</div>
-            <p className="mt-2 text-[13px] font-medium">Stochastic Voronoi Ensembles for Anomaly Detection</p>
-            <ul className="mt-3 grid gap-1.5 text-[12.5px] text-muted-foreground">
-              {pickArr(lang, L.mockSteps).map((x) => <li key={x} className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-success" />{x}</li>)}
-            </ul>
-          </div>
-        </Feature>
-      </section>
 
       <Section title={t(L.uH)} sub={t(L.uS)}>
         <div className="overflow-hidden rounded-2xl border">
@@ -246,16 +190,6 @@ export default function Landing() {
         </div>
       </section>
     </main>
-  );
-}
-
-function Feature({ title, text, children }: { title: string; text: string; children: React.ReactNode }) {
-  return (
-    <div className="pl-card flex flex-col p-6">
-      {children}
-      <h3 className="mt-6 font-display text-xl font-semibold">{title}</h3>
-      <p className="mt-2 text-[14.5px] leading-relaxed text-muted-foreground">{text}</p>
-    </div>
   );
 }
 
