@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+    <meta name="theme-color" content="#4f3ff0" />
+    <link rel="preconnect" href="https://wzdkroxbfrlqijbeiwpk.supabase.co" crossorigin />
+    <link rel="preload" href="%BASE_URL%fonts/Inter-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="%BASE_URL%fonts/SpaceGrotesk-500.woff2" as="font" type="font/woff2" crossorigin />
+    <title>Paperlit: from information to understanding</title>
+    <meta name="description" content="Paperlit turns a paper, an article or your notes into the way you learn best: a short video, a guided read, deep Q&A and a check of the results." />
+    <meta property="og:title" content="Paperlit: from information to understanding" />
+    <meta property="og:description" content="One source, many ways to learn. Start with a short video of any paper." />
+    <meta property="og:image" content="https://bryan273.github.io/paperlit/og.png" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script>
+      // theme before first paint, so a dark-mode visitor never sees a white flash
+      try { var t = localStorage.getItem('pl-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); if (t === 'dark') document.documentElement.classList.add('dark'); } catch (e) {}
+      // GitHub Pages sends deep links to 404.html, which stores the path here
+      try { var r = sessionStorage.getItem('pl-redirect'); if (r) { sessionStorage.removeItem('pl-redirect'); history.replaceState(null, '', r); } } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
