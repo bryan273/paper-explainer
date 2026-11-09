@@ -14,7 +14,9 @@ export const NAV = {
   account: { en: 'Account and settings', zh: '账户与设置', vi: 'Tài khoản và cài đặt', id: 'Akun dan pengaturan' },
   admin: { en: 'Admin', zh: '管理后台', vi: 'Quản trị', id: 'Admin' },
   signOut: { en: 'Sign out', zh: '退出登录', vi: 'Đăng xuất', id: 'Keluar' },
-  addAccount: { en: 'Add another account', zh: '添加其他账户', vi: 'Thêm tài khoản khác', id: 'Tambah akun lain' },
+  addAccount: { en: 'Add an account', zh: '添加账户', vi: 'Thêm tài khoản', id: 'Tambah akun' },
+  accounts: { en: 'Accounts', zh: '账户', vi: 'Tài khoản', id: 'Akun' },
+  tour: { en: 'Show the guide again', zh: '再次查看使用引导', vi: 'Xem lại hướng dẫn', id: 'Lihat panduan lagi' },
   switchTo: { en: 'Switch account', zh: '切换账户', vi: 'Đổi tài khoản', id: 'Ganti akun' },
   theme: { en: 'Dark mode', zh: '深色模式', vi: 'Chế độ tối', id: 'Mode gelap' },
   language: { en: 'Language', zh: '语言', vi: 'Ngôn ngữ', id: 'Bahasa' },
@@ -24,7 +26,7 @@ export const NAV = {
 
 export const PRODUCT = {
   video: { en: 'Video learning', zh: '视频学习', vi: 'Học qua video', id: 'Belajar lewat video' },
-  videoP: { en: 'A narrated video with chapters, and questions that stop the video to check you understood.', zh: '有旁白、分章节的视频，视频内会暂停提问，确认你真的看懂。', vi: 'Video có lời dẫn, chia chương, và câu hỏi dừng video lại để kiểm tra bạn đã hiểu.', id: 'Video bernarasi dengan bab, dan pertanyaan yang menghentikan video untuk mengecek pemahaman Anda.' },
+  videoP: { en: 'A narrated video with chapters, and questions that stop the video to check you understood.', zh: '有旁白、分章节的视频，视频内会暂停提问，确认你真的看懂。', vi: 'Video có lời dẫn, chia chương, và câu hỏi dừng video để kiểm tra bạn đã hiểu.', id: 'Video bernarasi dengan bab, dan pertanyaan yang menghentikan video untuk mengecek pemahaman Anda.' },
   text: { en: 'Text learning', zh: '文本学习', vi: 'Học qua văn bản', id: 'Belajar lewat teks' },
   textP: { en: 'Read the source side by side with answers that point to the page they come from.', zh: '左边原文，右边回答，每个回答都标出出处页码。', vi: 'Đọc nguồn song song với câu trả lời chỉ rõ trang được trích.', id: 'Baca sumbernya berdampingan dengan jawaban yang menunjuk halaman asalnya.' },
   deep: { en: 'Deep learning', zh: '深度学习', vi: 'Học chuyên sâu', id: 'Belajar mendalam' },

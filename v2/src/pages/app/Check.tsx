@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { accountApi, useAccount } from '@/lib/account';
 import { parseArxivId } from '@/lib/explainer';
-import { usePrefs, type Lang } from '@/lib/prefs';
+import { usePrefs, type Lang, pick, type Tr } from '@/lib/prefs';
 import { COMMON, dateFmt } from '@/lib/strings';
 import { cn } from '@/lib/utils';
 
@@ -35,7 +35,7 @@ const C = {
     id: ['Sebelum menjalankan, agen membaca makalah dan mencatat angka yang akan direproduksi serta batas kecocokannya.', 'Mengunduh kode dan data, lalu menyiapkan lingkungan.', 'Menjalankan eksperimen dua kali dari awal yang bersih.', 'Membandingkan hasil dengan makalah dan memberi putusan, dengan setiap perintah tercatat.'],
   },
 };
-const VERDICT: Record<string, { l: Record<Lang, string>; cls: string; icon: typeof CheckCircle2 }> = {
+const VERDICT: Record<string, { l: Tr<string>; cls: string; icon: typeof CheckCircle2 }> = {
   reproduced: { l: { en: 'Reproduced', zh: '已复现', vi: 'Đã tái lập', id: 'Tereproduksi' }, cls: 'bg-success/15 text-success', icon: CheckCircle2 },
   partially_reproduced: { l: { en: 'Partly reproduced', zh: '部分复现', vi: 'Tái lập một phần', id: 'Sebagian tereproduksi' }, cls: 'bg-warning/15 text-warning', icon: MinusCircle },
   not_reproduced: { l: { en: 'Not reproduced', zh: '未能复现', vi: 'Không tái lập được', id: 'Tidak tereproduksi' }, cls: 'bg-destructive/12 text-destructive', icon: XCircle },
@@ -118,7 +118,7 @@ export default function Check() {
           </section>
           <section className="pl-card p-5">
             <p className="font-semibold">{t(C.how)}</p>
-            <ol className="mt-3 grid gap-3">{(C.howSteps[lang] ?? C.howSteps.en).map((x, i) => <li key={i} className="grid grid-cols-[24px_1fr] gap-2 text-sm"><span className="grid h-6 w-6 place-items-center rounded-full bg-accent text-xs font-bold text-primary">{i + 1}</span><span className="text-muted-foreground">{x}</span></li>)}</ol>
+            <ol className="mt-3 grid gap-3">{pick(lang, C.howSteps).map((x, i) => <li key={i} className="grid grid-cols-[24px_1fr] gap-2 text-sm"><span className="grid h-6 w-6 place-items-center rounded-full bg-accent text-xs font-bold text-primary">{i + 1}</span><span className="text-muted-foreground">{x}</span></li>)}</ol>
           </section>
         </aside>
       </div>

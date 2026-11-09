@@ -7,8 +7,8 @@ import { fill, usePrefs } from '@/lib/prefs';
 import { cn } from '@/lib/utils';
 
 const I = {
-  h: { en: 'Invite a friend, get 3 videos', zh: '邀请好友，得 3 个视频', vi: 'Mời bạn bè, nhận ngay 03 video', id: 'Undang teman, dapat 3 video' },
-  p: { en: 'You get 3 videos as soon as a friend signs up with your link. Up to {m} friends.', zh: '好友用你的链接注册后，你立即获得 3 个视频。最多 {m} 位好友。', vi: 'Bạn nhận ngay 03 video khi bạn bè đăng ký bằng liên kết của bạn. Tối đa {m} người.', id: 'Anda dapat 3 video begitu teman mendaftar lewat tautan Anda. Hingga {m} teman.' },
+  h: { en: 'Invite a friend, get 3 videos', zh: '邀请好友，得 3 个视频', vi: 'Mời bạn bè, nhận 3 video', id: 'Undang teman, dapat 3 video' },
+  p: { en: 'You get 3 videos as soon as a friend signs up with your link. Up to {m} friends.', zh: '好友用你的链接注册后，你立即获得 3 个视频。最多 {m} 位好友。', vi: 'Bạn nhận 3 video ngay khi bạn bè đăng ký bằng liên kết của bạn. Tối đa {m} người.', id: 'Anda dapat 3 video begitu teman mendaftar lewat tautan Anda. Hingga {m} teman.' },
   count: { en: '{n} of {m} friends joined', zh: '已邀请 {n} / {m} 位', vi: 'Đã mời {n}/{m} người', id: '{n} dari {m} teman bergabung' },
   copy: { en: 'Copy invite link', zh: '复制邀请链接', vi: 'Sao chép liên kết mời', id: 'Salin tautan undangan' },
   copied: { en: 'Copied', zh: '已复制', vi: 'Đã sao chép', id: 'Tersalin' },

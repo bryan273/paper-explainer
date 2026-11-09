@@ -33,7 +33,7 @@ export function SiteHeader() {
         <Logo />
         <nav className="hidden items-center gap-0.5 md:flex" aria-label="Main">
           {items.map((i) => (
-            <NavLink key={i.to} to={i.to} className={({ isActive }) => cn(linkCls, isActive && 'text-foreground')}>{i.label}</NavLink>
+            <NavLink key={i.to} to={i.to} data-tour={i.to} className={({ isActive }) => cn(linkCls, isActive && 'text-foreground')}>{i.label}</NavLink>
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-1.5">
@@ -47,7 +47,7 @@ export function SiteHeader() {
           ) : (
             <>
               <Button variant="ghost" size="sm" className="hidden sm:inline-flex" onClick={() => openAuth('login')}>{t(NAV.login)}</Button>
-              <Button size="sm" onClick={() => openAuth('register')}>{t(NAV.start)}</Button>
+              <Button size="sm" data-tour="profile" onClick={() => openAuth('register')}>{t(NAV.start)}</Button>
             </>
           )}
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen(!open)} aria-label="Menu" aria-expanded={open}>

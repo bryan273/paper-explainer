@@ -4,25 +4,25 @@ import { ArrowRight, Check, GraduationCap, Minus, Play, PlayCircle, Quote, Circl
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useAccount } from '@/lib/account';
-import { usePrefs, type Lang } from '@/lib/prefs';
-import { amount, fmtMoney, money, perMonthOfYear, type PriceKey } from '@/lib/currency';
+import { usePrefs, type Lang, pick, type Tr } from '@/lib/prefs';
+import { amount, fmtMoney, money, perMonthOfYear, useCurrency, type PriceKey } from '@/lib/currency';
 import { HowItWorks, Prism } from '@/components/site/LandingViz';
-import { HL, P, ROWS } from '@/pages/Pricing';
+import { CurrencySwitch, HL, P, ROWS } from '@/pages/Pricing';
 import { PRODUCT, COMMON, NAV } from '@/lib/strings';
 import { cn } from '@/lib/utils';
 
 const L = {
-  chip: { en: 'Interactive video is here: questions inside the video', zh: '互动视频上线：视频里直接答题', vi: 'Đã có video tương tác: câu hỏi ngay trong video', id: 'Video interaktif hadir: pertanyaan di dalam video' },
-  h1: { en: 'From information to understanding.', zh: '从信息，到理解。', vi: 'Từ thông tin đến hiểu biết.', id: 'Dari informasi menjadi pemahaman.' },
+  chip: { en: 'New: interactive mode puts questions inside the video', zh: '新功能：互动模式，视频里直接答题', vi: 'Mới: chế độ tương tác đặt câu hỏi ngay trong video', id: 'Baru: mode interaktif menaruh pertanyaan di dalam video' },
+  h1: { en: 'Learn anything, your way.', zh: '用你的方式，学会任何东西。', vi: 'Học bất cứ điều gì, theo cách của bạn.', id: 'Pelajari apa saja, dengan cara Anda.' },
   lede: {
-    en: 'Paperlit turns a paper, an article or your own notes into the way you learn best: a short video, a guided read, deep questions and answers, or a check of the results.',
-    zh: 'Paperlit 把论文、文章或你自己的笔记，变成最适合你的学习方式：一段短视频、一次带引用的精读、深入问答，或对结果的复现检查。',
-    vi: 'Paperlit biến một bài báo, một bài viết hay ghi chú của bạn thành cách học hợp với bạn nhất: một video ngắn, một lần đọc có trích dẫn, hỏi đáp chuyên sâu, hoặc kiểm tra lại kết quả.',
-    id: 'Paperlit mengubah makalah, artikel, atau catatan Anda menjadi cara belajar yang paling cocok: video singkat, membaca dengan rujukan, tanya jawab mendalam, atau pengecekan hasil.',
+    en: 'Paperlit makes it easy. Give it a paper, an article or your own notes, and get a short video that asks you questions, a guided read whose answers show the page they come from, or a check of whether the results really hold.',
+    zh: 'Paperlit 让学习变得轻松。交给它一篇论文、一篇文章或你自己的笔记，就能得到一段会向你提问的短视频、一次答案标注出处页码的引导式阅读，或一次对结果是否成立的检验。',
+    vi: 'Paperlit giúp việc học trở nên dễ dàng hơn. Đưa vào một bài báo, một bài viết hay ghi chú của bạn, bạn sẽ nhận được một video ngắn có câu hỏi cho bạn, một bài đọc có hướng dẫn với câu trả lời chỉ rõ trang nguồn, hoặc kiểm chứng xem kết quả có thật sự đúng không.',
+    id: 'Paperlit membuatnya mudah. Berikan makalah, artikel, atau catatan Anda, lalu dapatkan video singkat yang mengajukan pertanyaan kepada Anda, bacaan terpandu yang jawabannya menunjukkan halaman sumbernya, atau pengecekan apakah hasilnya benar-benar berlaku.',
   },
   cta1: { en: 'Make a free video', zh: '免费做一个视频', vi: 'Tạo video miễn phí', id: 'Buat video gratis' },
   cta2: { en: 'Watch an example', zh: '看示例', vi: 'Xem ví dụ', id: 'Lihat contoh' },
-  trust: { en: 'Free to start. No card needed. English, 中文, Tiếng Việt, Bahasa Indonesia.', zh: '免费开始，无需绑卡。支持英文、中文、越南语、印尼语。', vi: 'Bắt đầu miễn phí, không cần thẻ. English, 中文, Tiếng Việt, Bahasa Indonesia.', id: 'Mulai gratis, tanpa kartu. English, 中文, Tiếng Việt, Bahasa Indonesia.' },
+  trust: { en: 'Free to start, no card needed. Available in English, 中文, Tiếng Việt, Bahasa Indonesia, 日本語, 한국어, Español, Français and Deutsch.', zh: '免费开始，无需绑卡。支持 English、中文、Tiếng Việt、Bahasa Indonesia、日本語、한국어、Español、Français、Deutsch。', vi: 'Bắt đầu miễn phí, không cần thẻ. Hỗ trợ English, 中文, Tiếng Việt, Bahasa Indonesia, 日本語, 한국어, Español, Français và Deutsch.', id: 'Mulai gratis, tanpa kartu. Tersedia dalam English, 中文, Tiếng Việt, Bahasa Indonesia, 日本語, 한국어, Español, Français, dan Deutsch.' },
   srcPaper: { en: 'Paper', zh: '论文', vi: 'Bài báo', id: 'Makalah' },
   srcArticle: { en: 'Article', zh: '文章', vi: 'Bài viết', id: 'Artikel' },
   srcNotes: { en: 'Your notes', zh: '你的笔记', vi: 'Ghi chú', id: 'Catatan' },
@@ -33,7 +33,7 @@ const L = {
   exS: { en: 'Real videos made by Paperlit from famous papers. Open one and try the questions inside it.', zh: '由 Paperlit 根据经典论文生成的真实视频。打开一个，试试视频里的题目。', vi: 'Video thật do Paperlit làm từ các bài báo nổi tiếng. Mở một video và thử các câu hỏi bên trong.', id: 'Video asli buatan Paperlit dari makalah terkenal. Buka satu dan coba pertanyaan di dalamnya.' },
   min: { en: '{n} min', zh: '{n} 分钟', vi: '{n} phút', id: '{n} menit' },
   vH: { en: 'One source, many ways to learn', zh: '一份资料，多种学法', vi: 'Một nguồn, nhiều cách học', id: 'Satu sumber, banyak cara belajar' },
-  vS: { en: 'Between what you bring and what you get back, the AI does six things to your source.', zh: '从你带来的资料到你拿到的结果之间，AI 对资料做了六件事。', vi: 'Giữa thứ bạn mang đến và thứ bạn nhận lại, AI làm sáu việc với nguồn của bạn.', id: 'Di antara yang Anda bawa dan yang Anda terima, AI melakukan enam hal pada sumber Anda.' },
+  vS: { en: 'Between what you bring and what you get back, the AI does six things to your source.', zh: '从你带来的资料到你拿到的结果之间，AI 对资料做了六件事。', vi: 'Giữa thứ bạn cung cấp và thứ bạn nhận lại, AI thực hiện sáu việc với nguồn của bạn.', id: 'Di antara yang Anda bawa dan yang Anda terima, AI melakukan enam hal pada sumber Anda.' },
   uH: { en: 'Who it is for', zh: '适合谁', vi: 'Dành cho ai', id: 'Untuk siapa' },
   uS: { en: 'The same source becomes something different for each person.', zh: '同一份资料，对每个人变成不同的东西。', vi: 'Cùng một nguồn, mỗi người nhận được một thứ khác nhau.', id: 'Sumber yang sama menjadi sesuatu yang berbeda bagi setiap orang.' },
   uses: {
@@ -47,23 +47,23 @@ const L = {
   pS: { en: 'Start free. Upgrade when Paperlit becomes part of how you study.', zh: '先免费用，成为学习习惯后再升级。', vi: 'Bắt đầu miễn phí. Nâng cấp khi Paperlit thành thói quen học của bạn.', id: 'Mulai gratis. Tingkatkan saat Paperlit jadi bagian cara belajar Anda.' },
   perMonth: { en: '/ month', zh: '/ 月', vi: '/ tháng', id: '/ bulan' },
   vids: { en: '{n} videos a month', zh: '每月 {n} 个视频', vi: '{n} video mỗi tháng', id: '{n} video per bulan' },
-  freeLine: { en: '1 video a day + 3 welcome videos', zh: '每天 1 个 + 3 个欢迎视频', vi: '1 video mỗi ngày + 3 video chào mừng', id: '1 video per hari + 3 video sambutan' },
+  freeLine: { en: '5 videos a week', zh: '每周 5 个视频', vi: '5 video mỗi tuần', id: '5 video per minggu' },
   hideCmp: { en: 'Hide the comparison', zh: '收起对比', vi: 'Thu gọn so sánh', id: 'Sembunyikan perbandingan' },
   buy: { en: 'Choose a plan', zh: '选择套餐', vi: 'Chọn gói', id: 'Pilih paket' },
   allPlans: { en: 'Compare all plans', zh: '比较所有套餐', vi: 'So sánh các gói', id: 'Bandingkan semua paket' },
   faqH: { en: 'Questions people ask', zh: '常见问题', vi: 'Câu hỏi thường gặp', id: 'Pertanyaan umum' },
   faq: {
-    en: [['What can I put in?', 'A link to any web page or paper (arXiv, a journal, a blog, a news site), pasted text, or a PDF or .txt file. Lecture videos and podcasts are coming.'], ['How long does a video take?', 'About 4 to 8 minutes. You can close the tab; it keeps going and waits in your library.'], ['How do you stop the AI from making things up?', 'Every quote and number in a video is matched against the source, and anything that does not match is removed. Answers show the page they come from.'], ['Is it free?', 'Yes, to start: 3 welcome videos, then 1 free video every day. Plans add more videos, interactive videos and in-depth answers.'], ['Can my class use it?', 'Yes. Students and teachers get a free month of Plus after sending a proof, and we make custom plans for classes and teams.']],
-    zh: [['可以放什么进来？', '任何网页或论文的链接（arXiv、期刊、博客、新闻），粘贴的文字，或 PDF、.txt 文件。课程视频和播客即将支持。'], ['做一个视频要多久？', '大约 4 到 8 分钟。可以关掉页面，它会继续生成并保存在你的视频库里。'], ['怎么防止 AI 编造？', '视频里的每句引文和数字都与原文比对，对不上的会被删掉。回答会标出出处页码。'], ['免费吗？', '可以免费开始：赠送 3 个视频，之后每天 1 个免费视频。套餐提供更多视频、互动视频和深入回答。'], ['班级可以用吗？', '可以。学生和教师提交证明后可免费用 1 个月 Plus，我们也为班级和团队定制方案。']],
-    vi: [['Tôi có thể đưa gì vào?', 'Liên kết tới bất kỳ trang web hay bài báo nào (arXiv, tạp chí, blog, báo), văn bản dán vào, hoặc tệp PDF, .txt. Video bài giảng và podcast sắp có.'], ['Làm một video mất bao lâu?', 'Khoảng 4 đến 8 phút. Bạn có thể đóng tab; video vẫn được làm tiếp và chờ trong thư viện.'], ['Làm sao để AI không bịa?', 'Mọi trích dẫn và con số trong video đều được đối chiếu với nguồn, phần nào không khớp sẽ bị loại. Câu trả lời ghi rõ trang nguồn.'], ['Có miễn phí không?', 'Có, để bắt đầu: tặng 3 video, sau đó mỗi ngày 1 video miễn phí. Các gói có thêm video, video tương tác và câu trả lời chuyên sâu.'], ['Lớp học có dùng được không?', 'Được. Sinh viên và giảng viên được tặng 1 tháng Plus sau khi gửi giấy tờ, và chúng tôi có gói riêng cho lớp học, nhóm.']],
-    id: [['Apa yang bisa saya masukkan?', 'Tautan ke halaman web atau makalah apa pun (arXiv, jurnal, blog, berita), teks yang ditempel, atau file PDF atau .txt. Video kuliah dan podcast segera hadir.'], ['Berapa lama membuat satu video?', 'Sekitar 4 sampai 8 menit. Anda boleh menutup tab; prosesnya berlanjut dan menunggu di pustaka Anda.'], ['Bagaimana AI dicegah mengarang?', 'Setiap kutipan dan angka di video dicocokkan dengan sumber, dan yang tidak cocok dibuang. Jawaban menunjukkan halaman asalnya.'], ['Apakah gratis?', 'Ya, untuk mulai: 3 video sambutan, lalu 1 video gratis setiap hari. Paket menambah video, video interaktif, dan jawaban mendalam.'], ['Apakah kelas bisa memakainya?', 'Bisa. Mahasiswa dan pengajar dapat 1 bulan Plus gratis setelah mengirim bukti, dan kami membuat paket khusus untuk kelas dan tim.']],
+    en: [['What can I put in?', 'A link to any web page or paper (arXiv, a journal, a blog, a news site), pasted text, or a PDF or .txt file. Lecture videos and podcasts are coming.'], ['How long does a video take?', 'About 4 to 8 minutes. You can close the tab; it keeps going and waits in your library.'], ['How do you stop the AI from making things up?', 'Every quote and number in a video is matched against the source, and anything that does not match is removed. Answers show the page they come from.'], ['Is it free?', 'Yes. A free account gets 5 videos every week, and 3 welcome videos with interactive mode when you sign up. Plans add more and longer videos, interactive mode on more videos and more in-depth answers.'], ['Can my class use it?', 'Yes. Students and teachers get a free month of Plus after sending a proof, and we make custom plans for classes and teams.']],
+    zh: [['可以放什么进来？', '任何网页或论文的链接（arXiv、期刊、博客、新闻），粘贴的文字，或 PDF、.txt 文件。课程视频和播客即将支持。'], ['做一个视频要多久？', '大约 4 到 8 分钟。可以关掉页面，它会继续生成并保存在你的视频库里。'], ['怎么防止 AI 编造？', '视频里的每句引文和数字都与原文比对，对不上的会被删掉。回答会标出出处页码。'], ['免费吗？', '免费。免费账户每周可做 5 个视频，注册时另送 3 个含互动模式的欢迎视频。套餐提供更多、更长的视频，更多可开互动模式的视频和更多深入回答。'], ['班级可以用吗？', '可以。学生和教师提交证明后可免费用 1 个月 Plus，我们也为班级和团队定制方案。']],
+    vi: [['Tôi có thể đưa gì vào?', 'Liên kết tới bất kỳ trang web hay bài báo nào (arXiv, tạp chí, blog, báo), văn bản dán vào, hoặc tệp PDF, .txt. Video bài giảng và podcast sắp có.'], ['Làm một video mất bao lâu?', 'Khoảng 4 đến 8 phút. Bạn có thể đóng tab; video vẫn được xử lý và chờ trong thư viện của bạn.'], ['Làm sao để AI không bịa?', 'Mọi trích dẫn và con số trong video đều được đối chiếu với nguồn, phần nào không khớp sẽ bị loại. Câu trả lời ghi rõ trang nguồn.'], ['Có miễn phí không?', 'Có. Tài khoản miễn phí được 5 video mỗi tuần và 3 video chào mừng có chế độ tương tác khi bạn đăng ký. Các gói có nhiều video hơn, video dài hơn, chế độ tương tác cho nhiều video hơn và câu trả lời chuyên sâu hơn.'], ['Lớp học có dùng được không?', 'Được. Sinh viên và giảng viên được tặng 1 tháng Plus sau khi gửi giấy tờ, và chúng tôi có gói riêng cho lớp học và nhóm.']],
+    id: [['Apa yang bisa saya masukkan?', 'Tautan ke halaman web atau makalah apa pun (arXiv, jurnal, blog, berita), teks yang ditempel, atau file PDF atau .txt. Video kuliah dan podcast segera hadir.'], ['Berapa lama membuat satu video?', 'Sekitar 4 sampai 8 menit. Anda boleh menutup tab; prosesnya berlanjut dan menunggu di pustaka Anda.'], ['Bagaimana AI dicegah mengarang?', 'Setiap kutipan dan angka di video dicocokkan dengan sumber, dan yang tidak cocok dibuang. Jawaban menunjukkan halaman asalnya.'], ['Apakah gratis?', 'Ya. Akun gratis mendapat 5 video setiap minggu, ditambah 3 video sambutan dengan mode interaktif saat mendaftar. Paket menambah jumlah dan durasi video, mode interaktif untuk lebih banyak video, dan lebih banyak jawaban mendalam.'], ['Apakah kelas bisa memakainya?', 'Bisa. Mahasiswa dan pengajar dapat 1 bulan Plus gratis setelah mengirim bukti, dan kami membuat paket khusus untuk kelas dan tim.']],
   },
   stH: { en: 'Students and teachers: a free month of Plus', zh: '学生和教师：免费用 1 个月 Plus', vi: 'Sinh viên và giảng viên: tặng 1 tháng Plus', id: 'Mahasiswa dan pengajar: 1 bulan Plus gratis' },
-  stP: { en: 'Send a photo of your student or staff card. After we check it, Plus switches on with its 50 videos.', zh: '上传学生证或工作证照片，审核通过后开通 Plus 和 50 个视频。', vi: 'Gửi ảnh thẻ sinh viên hoặc thẻ giảng viên. Sau khi duyệt, Plus và 50 video được kích hoạt.', id: 'Kirim foto kartu mahasiswa atau pengajar. Setelah dicek, Plus aktif beserta 50 videonya.' },
-  stList: { en: ['50 videos', '10 interactive videos', 'Notes and flashcards'], zh: ['50 个视频', '10 个互动视频', '笔记和闪卡'], vi: ['50 video', '10 video tương tác', 'Ghi chú và thẻ ghi nhớ'], id: ['50 video', '10 video interaktif', 'Catatan dan kartu hafalan'] },
+  stP: { en: 'Send a photo of your student or staff card. Once we have checked it, Plus switches on with its 80 videos.', zh: '上传学生证或工作证照片，审核通过后开通 Plus 及其 80 个视频。', vi: 'Gửi ảnh thẻ sinh viên hoặc thẻ giảng viên. Sau khi chúng tôi kiểm tra, gói Plus cùng 80 video sẽ được kích hoạt.', id: 'Kirim foto kartu mahasiswa atau kartu pengajar. Setelah kami cek, Plus aktif beserta 80 videonya.' },
+  stList: { en: ['80 videos', 'Interactive mode on 40 videos', 'Notes and flashcards'], zh: ['80 个视频', '40 个视频可开互动模式', '笔记和闪卡'], vi: ['80 video', 'Chế độ tương tác cho 40 video', 'Ghi chú và thẻ ghi nhớ'], id: ['80 video', 'Mode interaktif untuk 40 video', 'Catatan dan kartu hafalan'] },
   stCta: { en: 'Get student Plus', zh: '申请学生 Plus', vi: 'Nhận Plus cho sinh viên', id: 'Ambil Plus pelajar' },
-  endH: { en: 'Learn anything, in the way that works for you.', zh: '学任何东西，用最适合你的方式。', vi: 'Học bất cứ điều gì, theo cách hợp với bạn.', id: 'Pelajari apa saja, dengan cara yang cocok untuk Anda.' },
-  endP: { en: 'Your first video is free. It takes a link and about five minutes.', zh: '第一个视频免费，只需一个链接和大约五分钟。', vi: 'Video đầu tiên miễn phí. Chỉ cần một liên kết và khoảng năm phút.', id: 'Video pertama gratis. Cukup satu tautan dan sekitar lima menit.' },
+  endH: { en: 'Start with one paper today.', zh: '今天就从一篇论文开始。', vi: 'Hãy bắt đầu với một bài báo ngay hôm nay.', id: 'Mulai dari satu makalah hari ini.' },
+  endP: { en: 'Your first videos are free. All it takes is a link, and about five minutes.', zh: '前几个视频免费。只需要一个链接，大约五分钟。', vi: 'Những video đầu tiên miễn phí. Chỉ cần một liên kết và khoảng năm phút.', id: 'Video pertama Anda gratis. Cukup satu tautan dan sekitar lima menit.' },
 };
 
 const EXAMPLES: { id: string; title: string; min: number }[] = [
@@ -91,12 +91,6 @@ export default function Landing() {
   const { user, openAuth } = useAccount();
   const primary = user ? <Button asChild size="lg"><Link to="/app/new">{t(L.cta1)}<ArrowRight className="ml-1.5 h-4 w-4" /></Link></Button>
     : <Button size="lg" onClick={() => openAuth('register')}>{t(L.cta1)}<ArrowRight className="ml-1.5 h-4 w-4" /></Button>;
-  const plans = [
-    { k: 'free', name: t(COMMON.free), price: fmtMoney(0, lang), line: t(L.freeLine) },
-    { k: 'plus', name: 'Plus', price: fmtMoney(amount('plus_month', lang), lang), line: t(L.vids).replace('{n}', '50') },
-    { k: 'pro', name: 'Pro', price: fmtMoney(amount('pro_month', lang), lang), line: t(L.vids).replace('{n}', '120') },
-    { k: 'premium', name: 'Premium', price: fmtMoney(amount('premium_month', lang), lang), line: t(L.vids).replace('{n}', '250') },
-  ];
   return (
     <main>
       <section className="relative overflow-hidden">
@@ -193,10 +187,12 @@ export default function Landing() {
   );
 }
 
-function pickArr<T>(lang: Lang, v: Record<Lang, T>): T { return v[lang] ?? v.en; }
+function pickArr<T>(lang: Lang, v: Tr<T>): T { return pick(lang, v); }
 
 function PlansBlock() {
   const { lang, t } = usePrefs();
+  const { me } = useAccount();
+  const [cur, setCur] = useCurrency(lang, me?.country);
   const [year, setYear] = useState(true);
   const [more, setMore] = useState(false);
   const rows = ROWS(t);
@@ -214,7 +210,7 @@ function PlansBlock() {
         {ids.map((id) => {
           const name = id === 'free' ? t(COMMON.free) : id[0].toUpperCase() + id.slice(1);
           const dark = id === 'pro' || id === 'premium';
-          const monthly = id === 'free' ? 0 : year ? perMonthOfYear(`${id}_year`, lang) : amount(`${id}_month`, lang);
+          const monthly = id === 'free' ? 0 : year ? perMonthOfYear(`${id}_year`, cur) : amount(`${id}_month`, cur);
           const tick = id === 'premium' ? 'text-[#e6c46a]' : id === 'pro' ? 'text-[#f0c15a]' : 'text-primary';
           return (
             <Link key={id} to="/pricing" className={cn('relative flex flex-col rounded-2xl border p-6 no-underline transition hover:-translate-y-0.5', id === 'plus' && 'border-2 border-primary shadow-[0_12px_40px_-12px_hsl(var(--primary)/0.45)]',
@@ -222,10 +218,10 @@ function PlansBlock() {
               {id === 'plus' && <span className="absolute -top-3 left-6 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">{t(P.popular)}</span>}
               <p className="font-display text-lg font-semibold">{name}</p>
               <p className={cn('text-sm', dark ? 'text-white/65' : 'text-muted-foreground')}>{t(P[`${id}Sub` as const])}</p>
-              <p className="mt-5 flex flex-wrap items-baseline gap-x-1.5"><span className="font-display text-[32px] font-bold leading-none">{fmtMoney(monthly, lang)}</span>{id !== 'free' && <span className={cn('text-sm', dark ? 'text-white/65' : 'text-muted-foreground')}>{t(P.per)}</span>}</p>
-              <p className={cn('mt-1.5 min-h-[18px] text-xs', dark ? 'text-white/60' : 'text-muted-foreground')}>{id !== 'free' && year ? t(P.billedYear).replace('{p}', money(`${id}_year` as PriceKey, lang)) : ''}</p>
+              <p className="mt-5 flex flex-wrap items-baseline gap-x-1.5"><span className="font-display text-[32px] font-bold leading-none">{fmtMoney(monthly, cur)}</span>{id !== 'free' && <span className={cn('text-sm', dark ? 'text-white/65' : 'text-muted-foreground')}>{t(P.per)}</span>}</p>
+              <p className={cn('mt-1.5 min-h-[18px] text-xs', dark ? 'text-white/60' : 'text-muted-foreground')}>{id !== 'free' && year ? t(P.billedYear).replace('{p}', money(`${id}_year` as PriceKey, cur)) : ''}</p>
               <ul className="mt-4 grid gap-2 text-[14px]">
-                {(HL[id][lang] ?? HL[id].en).map((x) => <li key={x} className="flex gap-2"><Check className={cn('mt-0.5 h-4 w-4 shrink-0', tick)} /><span>{x}</span></li>)}
+                {pick(lang, HL[id]).map((x) => <li key={x} className="flex gap-2"><Check className={cn('mt-0.5 h-4 w-4 shrink-0', tick)} /><span>{x}</span></li>)}
               </ul>
             </Link>
           );

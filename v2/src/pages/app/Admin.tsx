@@ -1,3 +1,4 @@
+import { AdminPricing } from './AdminPricing';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAccount } from '@/lib/account';
 import { BarChart, Gauge, HBars, Kpi, LineChart, compact } from './AdminCharts';
@@ -105,7 +106,7 @@ function bucket(days: Day[], group: 'day' | 'week' | 'month') {
   return out;
 }
 
-type TabId = 'overview' | 'revenue' | 'members' | 'audience' | 'videos' | 'infra' | 'releases' | 'feedback';
+type TabId = 'overview' | 'revenue' | 'pricing' | 'members' | 'audience' | 'videos' | 'infra' | 'releases' | 'feedback';
 
 /** The admin console of the whole suite: one tab for each question an owner asks, one range filter for all the numbers. */
 export default function Admin() {
@@ -268,14 +269,14 @@ export default function Admin() {
 
   const tabs: { id: TabId; label: string; badge?: number }[] = [
     { id: 'overview', label: 'Overview', badge: warn.length || undefined }, { id: 'revenue', label: 'Revenue', badge: ordersOpen || undefined }, { id: 'members', label: 'Members', badge: proofsOpen || undefined },
-    { id: 'audience', label: 'Audience' }, { id: 'videos', label: 'Videos and usage', badge: failed24 || undefined }, { id: 'infra', label: 'Infrastructure' }, { id: 'releases', label: 'Releases' }, { id: 'feedback', label: 'Feedback' },
+    { id: 'pricing', label: 'Pricing model' }, { id: 'audience', label: 'Audience' }, { id: 'videos', label: 'Videos and usage', badge: failed24 || undefined }, { id: 'infra', label: 'Infrastructure' }, { id: 'releases', label: 'Releases' }, { id: 'feedback', label: 'Feedback' },
   ];
-  const needsRange = !['infra', 'releases'].includes(tab);
+  const needsRange = !['infra', 'releases', 'pricing'].includes(tab);
 
   return (
     <div className="cs-root w-full">
       <style>{css}</style>
-      <main className="cs">
+      <div className="cs">
         <div className="cs-head">
           <div>
             <h1>Admin</h1>
@@ -514,6 +515,8 @@ export default function Admin() {
               </>
             )}
 
+            {tab === 'pricing' && <div style={{ marginTop: 22 }}><AdminPricing jobs={data.jobs} orders={data.orders} usdCny={data.usd_cny} activePlans={data.active_plans} /></div>}
+
             {tab === 'releases' && (
               <>
                 <h2 style={{ marginTop: 22 }}>Suite version {suite?.[0] ? `v${suite[0].v}` : ''}{suite?.[0] ? <small className="cs-dim" style={{ fontWeight: 400, marginLeft: 10 }}>last release {fmt(suite[0].at)} ({ago(suite[0].at)})</small> : null}</h2>
@@ -586,7 +589,7 @@ export default function Admin() {
             </div>
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }

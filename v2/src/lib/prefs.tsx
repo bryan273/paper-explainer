@@ -1,38 +1,68 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
-export type Lang = 'en' | 'zh' | 'vi' | 'id';
+export type Lang = 'en' | 'zh' | 'vi' | 'id' | 'ja' | 'ko' | 'es' | 'fr' | 'de';
 export type Theme = 'light' | 'dark';
-export type T4 = { en: string; zh: string; vi: string; id: string };
-export const LANGS: { k: Lang; label: string }[] = [
-  { k: 'en', label: 'English' }, { k: 'zh', label: '中文' }, { k: 'vi', label: 'Tiếng Việt' }, { k: 'id', label: 'Bahasa Indonesia' },
+/** A text in several languages: English is always there, the others may be missing (then the dictionary of that language, then English). */
+export type Tr<T> = { en: T } & Partial<Record<Lang, T>>;
+export type T4 = Tr<string>;
+const ALL_LANGS: { k: Lang; label: string; short: string }[] = [
+  { k: 'en', label: 'English', short: 'EN' }, { k: 'zh', label: '中文', short: '中' }, { k: 'vi', label: 'Tiếng Việt', short: 'VI' }, { k: 'id', label: 'Bahasa Indonesia', short: 'ID' },
+  { k: 'ja', label: '日本語', short: 'JA' }, { k: 'ko', label: '한국어', short: 'KO' }, { k: 'es', label: 'Español', short: 'ES' }, { k: 'fr', label: 'Français', short: 'FR' }, { k: 'de', label: 'Deutsch', short: 'DE' },
 ];
+// a language is offered once its text exists: written by hand (en, zh, vi, id) or as a dictionary in src/i18n
+const loadersEarly = import.meta.glob('../i18n/*.json');
+const READY = new Set<string>(['en', 'zh', 'vi', 'id', ...Object.keys(loadersEarly).map((p) => p.replace(/^.*\/(\w+)\.json$/, '$1'))]);
+export const LANGS = ALL_LANGS.filter((l) => READY.has(l.k));
+const ALL = LANGS.map((l) => l.k);
 const LANG_KEY = 'suite-lang';   // shared with the older apps on the same site
 const THEME_KEY = 'pl-theme';
 
 const guessLang = (): Lang => {
-  try { const s = localStorage.getItem(LANG_KEY); if (s === 'en' || s === 'zh' || s === 'vi' || s === 'id') return s; } catch { /* no storage */ }
+  try { const s = localStorage.getItem(LANG_KEY) as Lang | null; if (s && ALL.includes(s)) return s; } catch { /* no storage */ }
   const n = (navigator.language || '').toLowerCase();
-  return n.startsWith('zh') ? 'zh' : n.startsWith('vi') ? 'vi' : n.startsWith('id') || n.startsWith('ms') ? 'id' : 'en';
+  if (n.startsWith('ms')) return 'id';
+  return (ALL.find((k) => n.startsWith(k)) ?? 'en') as Lang;
 };
 const guessTheme = (): Theme => {
   try { const s = localStorage.getItem(THEME_KEY); if (s === 'light' || s === 'dark') return s; } catch { /* no storage */ }
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 };
 
-/** Pick the string of the current language; English when a language is missing. */
-export const pick = <T,>(lang: Lang, v: { en: T; zh?: T; vi?: T; id?: T }): T => (v[lang] ?? v.en) as T;
+// languages without hand-written text use a dictionary from the English text (src/i18n/<lang>.json), loaded only when chosen
+const DICTS: Partial<Record<Lang, Record<string, string>>> = {};
+const loaders = import.meta.glob<{ default: Record<string, string> }>('../i18n/*.json');
+async function loadDict(lang: Lang) {
+  if (DICTS[lang] || !loaders[`../i18n/${lang}.json`]) return;
+  try { DICTS[lang] = (await loaders[`../i18n/${lang}.json`]()).default; } catch { /* stay in English */ }
+}
+function viaDict<T>(lang: Lang, v: T): T {
+  const d = DICTS[lang];
+  if (!d) return v;
+  if (typeof v === 'string') return (d[v] ?? v) as T;
+  if (Array.isArray(v)) return v.map((x) => viaDict(lang, x)) as T;
+  // objects (a help topic): every text field, never the id
+  if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v as Record<string, unknown>).map(([k, x]) => [k, k === 'id' ? x : viaDict(lang, x)])) as T;
+  return v;
+}
+
+/** Pick the text of the current language: written text first, then the dictionary, then English. */
+export const pick = <T,>(lang: Lang, v: Tr<T>): T => (v[lang] ?? viaDict(lang, v.en)) as T;
 /** Replace {name} placeholders. */
 export const fill = (s: string, vars: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m));
+/** BCP 47 tag for dates and numbers. */
+export const locale = (lang: Lang) => (lang === 'zh' ? 'zh-CN' : lang === 'vi' ? 'vi-VN' : lang === 'id' ? 'id-ID' : lang === 'ja' ? 'ja-JP' : lang === 'ko' ? 'ko-KR' : lang === 'es' ? 'es-ES' : lang === 'fr' ? 'fr-FR' : lang === 'de' ? 'de-DE' : 'en-GB');
 
-type Ctx = { lang: Lang; setLang: (l: Lang) => void; theme: Theme; setTheme: (t: Theme) => void; t: <T>(v: { en: T; zh?: T; vi?: T; id?: T }) => T };
+type Ctx = { lang: Lang; setLang: (l: Lang) => void; theme: Theme; setTheme: (t: Theme) => void; t: <T>(v: Tr<T>) => T };
 const PrefsCtx = createContext<Ctx | null>(null);
 
 export function PrefsProvider({ children }: { children: ReactNode }) {
   const [lang, setLangS] = useState<Lang>(guessLang);
   const [theme, setThemeS] = useState<Theme>(guessTheme);
+  const [, setLoaded] = useState(0);
   useEffect(() => {
     document.documentElement.lang = lang === 'zh' ? 'zh-CN' : lang;
     try { localStorage.setItem(LANG_KEY, lang); } catch { /* private mode */ }
+    if (!DICTS[lang] && loaders[`../i18n/${lang}.json`]) loadDict(lang).then(() => setLoaded((n) => n + 1));
   }, [lang]);
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -40,7 +70,9 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
   }, [theme]);
   const setLang = useCallback((l: Lang) => setLangS(l), []);
   const setTheme = useCallback((t: Theme) => setThemeS(t), []);
-  const value = useMemo<Ctx>(() => ({ lang, setLang, theme, setTheme, t: (v) => pick(lang, v) }), [lang, theme, setLang, setTheme]);
+  const dictReady = !!DICTS[lang];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const value = useMemo<Ctx>(() => ({ lang, setLang, theme, setTheme, t: (v) => pick(lang, v) }), [lang, theme, setLang, setTheme, dictReady]);
   return <PrefsCtx.Provider value={value}>{children}</PrefsCtx.Provider>;
 }
 

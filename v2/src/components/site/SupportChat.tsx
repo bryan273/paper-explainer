@@ -6,26 +6,26 @@ import { Textarea } from '@/components/ui/textarea';
 import { Mark } from '@/components/brand';
 import { accountApi, useAccount } from '@/lib/account';
 import { visitorId } from '@/lib/explainer';
-import { usePrefs, type Lang } from '@/lib/prefs';
+import { usePrefs, type Lang, pick, type Tr } from '@/lib/prefs';
 import { COMMON } from '@/lib/strings';
 import { cn } from '@/lib/utils';
 
 const LLM_URL = 'https://wzdkroxbfrlqijbeiwpk.supabase.co/functions/v1/agent-llm';
-const LANGNAME: Record<Lang, string> = { en: 'English', zh: 'Simplified Chinese', vi: 'Vietnamese', id: 'Indonesian' };
+const LANGNAME: Record<Lang, string> = { en: 'English', zh: 'Simplified Chinese', vi: 'Vietnamese', id: 'Indonesian', ja: 'Japanese', ko: 'Korean', es: 'Spanish', fr: 'French', de: 'German' };
 
 /** What the support assistant knows. Keep it in step with pricing and the help page. */
-const FACTS = `Paperlit is a learning platform. It turns one source (a research paper, an article, a web page, pasted text, a PDF or a .txt file) into: a narrated video with chapters (main feature), interactive video (questions inside the video at the end of each part), Ask (Quick answers and In-depth answers that quote the paper with page numbers), a quiz and a final quiz, notes and flashcards (plans only), Read (read a paper with an AI that cites pages), and Check (re-running papers with public code to see if the reported numbers hold).
-Making a video: Dashboard > New video, choose Link / Paste text / Upload file, pick video language (English, Chinese, Vietnamese, Indonesian), length (1 to 10 minutes; over 5 minutes needs Pro or Premium), tone and voice, optionally turn on interactive video, press Make video. It takes about 4 to 8 minutes and keeps going if the tab is closed. Failed videos refund their credit.
-Plans per month (Vietnam price / Indonesia / China): Free: 1 video a day + 3 welcome videos, 2 interactive videos a month, 3 in-depth answers per video. Plus 89.000đ / Rp79.000 / ¥33: 50 videos, 10 interactive videos (about 40 questions), 10 in-depth answers per video, notes and flashcards. Pro 159.000đ / Rp139.000 / ¥59: 120 videos up to 10 minutes, 30 interactive videos, 20 in-depth answers per video, videos kept a year. Premium 299.000đ / Rp259.000 / ¥109: 250 videos, 80 interactive videos, 30 in-depth answers per video. Yearly = 10 months price. Credit packs: 5, 20 or 50 videos, never expire. Custom plans for classes and teams: contact us.
-Students and teachers: send a photo of a student card or staff card in Account > Students and teachers; after approval (usually within a day) you get one free month of Plus with its 50 videos.
-Invite a friend: you get 3 videos when they sign up with your link (Account > Invite), up to 5 friends.
-Payment: Vietnam: bank transfer by VietQR (Techcombank or BIDV), then upload the payment screenshot. China and others: WeChat Pay or Alipay. Indonesia: contact us for payment details. Plans switch on after we confirm, usually within a day.
-Shared video links are watch only; asking questions needs a free account. Videos are kept 14 days on Free, 90 days on Plus, one year on Pro and Premium.
-Account: log in with email or username; Account and settings holds profile, plan, credits history, password, language, theme, text size, other accounts.`;
+const FACTS = `Paperlit is a learning platform. It turns one source (a research paper, an article, a web page, pasted text, a PDF or a .txt file) into: a narrated video with chapters (main feature), interactive mode (a feature turned on per video: questions inside the video at the end of each part, a quiz tab and a final quiz), Ask (Quick answers and In-depth answers that quote the source with page numbers), notes and flashcards (paid plans), Read (read papers with an AI that cites pages), and Check (re-running papers with public code to see if the reported numbers hold).
+Making a video: Dashboard > New video, choose Link / Paste text / Upload file, pick the video language (English, Chinese, Vietnamese or Indonesian), the length (Free up to 3 minutes, Plus up to 5, Pro and Premium up to 10), tone and voice, optionally turn on interactive mode, press Make video. It takes about 4 to 8 minutes and keeps going if the tab is closed. A video uses up to the first 60,000 characters (about 25 pages) of the source. A failed video is given back. A video of up to 5 minutes counts as 1, longer as 2.
+Plans (price per month in China / Vietnam / Indonesia): Free: 5 videos a week up to 3 minutes, interactive mode on 3 videos a week, 5 in-depth answers per video, videos kept 7 days; new accounts also get 3 welcome videos with interactive mode. Plus ¥33 / 89.000đ / Rp79.000: 80 videos a month up to 5 minutes, interactive mode on 40 videos, 20 in-depth answers per video, notes and flashcards, answers pitched to your level, videos kept 30 days. Pro ¥59 / 159.000đ / Rp139.000: 150 videos up to 10 minutes, interactive mode on 75, 35 in-depth answers per video, videos kept 90 days. Premium ¥109 / 299.000đ / Rp259.000: 280 videos, interactive mode on 140, 50 in-depth answers per video, videos kept 270 days, new features first. Yearly costs 10 months. Plans never renew on their own. Video packs: 5, 20 or 50 Pro videos (up to 10 minutes), never expire. Custom plans for classes and teams: contact us.
+Students and teachers: send a photo of a student or staff card in Account > Students and teachers (button "Verify"); after approval, usually within a day, you get one free month of Plus with its 80 videos.
+Invite a friend: you get 3 videos when they sign up with your link (Account > Invite friends), up to 5 friends.
+Payment: the buyer chooses the money: yuan (WeChat Pay or Alipay), dong (VietQR: Techcombank or BIDV) or rupiah (QRIS: GoPay, OVO, DANA or any Indonesian bank app). Pay the exact amount, write the order number in the note, add a screenshot, press "I have paid". Plans switch on once the payment is confirmed, usually within a few hours, always within a day.
+Shared video links are watch only; asking questions needs a free account.
+Account: log in with email or username; click the profile picture at the top right for settings, theme, language and to switch between saved accounts. The site is in English, Chinese, Vietnamese, Indonesian, Japanese, Korean, Spanish, French and German. A short guide shows on the first visit and can be replayed from Help.`;
 
 const T = {
   title: { en: 'Paperlit support', zh: 'Paperlit 客服', vi: 'Hỗ trợ Paperlit', id: 'Bantuan Paperlit' },
-  sub: { en: 'Answers right away. A person replies by email within a day.', zh: '马上回答。需要人工时，一天内邮件回复。', vi: 'Trả lời ngay. Cần người hỗ trợ thì chúng tôi trả lời qua email trong một ngày.', id: 'Jawaban langsung. Staf kami membalas lewat email dalam sehari.' },
+  sub: { en: 'Answers right away. A person replies by email within a day.', zh: '马上回答。需要人工时，一天内邮件回复。', vi: 'Trả lời ngay. Khi cần hỗ trợ, chúng tôi trả lời qua email trong một ngày.', id: 'Jawaban langsung. Staf kami membalas lewat email dalam sehari.' },
   hello: { en: 'Hi! Ask me anything about Paperlit: making videos, plans, payment or your account.', zh: '你好！关于 Paperlit 的任何问题都可以问我：做视频、套餐、付款或账户。', vi: 'Chào bạn! Hỏi mình bất cứ điều gì về Paperlit: tạo video, các gói, thanh toán hay tài khoản.', id: 'Halo! Tanyakan apa saja tentang Paperlit: membuat video, paket, pembayaran, atau akun Anda.' },
   ph: { en: 'Type your question', zh: '输入你的问题', vi: 'Nhập câu hỏi', id: 'Ketik pertanyaan Anda' },
   person: { en: 'Message the team', zh: '联系人工', vi: 'Nhắn cho đội ngũ', id: 'Kirim pesan ke tim' },
@@ -99,7 +99,7 @@ export function SupportChat() {
   return (
     <>
       {!open && (
-        <button type="button" onClick={() => setOpen(true)} aria-label={t(T.open)}
+        <button type="button" data-tour="chat" onClick={() => setOpen(true)} aria-label={t(T.open)}
           className="fixed bottom-5 right-5 z-50 grid h-14 w-14 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg transition hover:scale-105 max-md:bottom-20">
           <MessageCircle className="h-6 w-6" />
         </button>
@@ -155,7 +155,7 @@ export function SupportChat() {
   );
 }
 
-const pick4 = (lang: Lang, v: Record<Lang, string[]>) => v[lang] ?? v.en;
+const pick4 = (lang: Lang, v: Tr<string[]>) => pick(lang, v);
 
 function Bubble({ role, children }: { role: 'user' | 'assistant'; children: React.ReactNode }) {
   return (

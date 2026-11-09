@@ -10,10 +10,11 @@ import { cn } from '@/lib/utils';
 
 const U = {
   videosLeft: { en: 'Videos you can make', zh: '可制作视频', vi: 'Video có thể tạo', id: 'Video yang bisa dibuat' },
-  interLeft: { en: 'Interactive videos this month', zh: '本月互动视频', vi: 'Video tương tác tháng này', id: 'Video interaktif bulan ini' },
+  interLeft: { en: 'Interactive mode left', zh: '剩余互动模式次数', vi: 'Lượt tương tác còn lại', id: 'Sisa mode interaktif' },
+  freeWeek: { en: '{f} free this week + {c} credits', zh: '本周免费 {f} + 额度 {c}', vi: '{f} miễn phí trong tuần + {c} tín dụng', id: '{f} gratis minggu ini + {c} kredit' },
   freeToday: { en: '{f} free today + {c} credits', zh: '今日免费 {f} + 额度 {c}', vi: '{f} miễn phí hôm nay + {c} tín dụng', id: '{f} gratis hari ini + {c} kredit' },
   guestT: { en: 'You are browsing as a guest', zh: '你正在以访客身份使用', vi: 'Bạn đang dùng với tư cách khách', id: 'Anda menjelajah sebagai tamu' },
-  guestP: { en: 'Sign up free to keep your videos and get 3 welcome videos.', zh: '免费注册，保存视频并获得 3 个欢迎视频。', vi: 'Đăng ký miễn phí để lưu video và nhận 3 video chào mừng.', id: 'Daftar gratis untuk menyimpan video dan dapat 3 video sambutan.' },
+  guestP: { en: 'Sign up free to keep your videos, get 5 videos a week and 3 welcome videos with interactive mode.', zh: '免费注册：保存视频，每周 5 个视频，另送 3 个含互动模式的欢迎视频。', vi: 'Đăng ký miễn phí để lưu video, nhận 5 video mỗi tuần và 3 video chào mừng có chế độ tương tác.', id: 'Daftar gratis untuk menyimpan video, dapat 5 video per minggu dan 3 video sambutan dengan mode interaktif.' },
 };
 
 /** Usage at a glance, always in the same place. */
@@ -36,7 +37,7 @@ function UsageCard() {
       <div className="flex items-center justify-between"><PlanBadge plan={me?.plan} />{!me?.plan && <Link to="/pricing" className="text-xs font-semibold text-primary no-underline hover:underline">{t(NAV.upgrade)}</Link>}</div>
       <p className="mt-3 text-muted-foreground">{t(U.videosLeft)}</p>
       <p className="font-display text-xl font-bold">{me?.admin ? '∞' : free + credits}</p>
-      {!me?.admin && <p className="text-xs text-muted-foreground">{fill(t(U.freeToday), { f: free, c: credits })}</p>}
+      {!me?.admin && <p className="text-xs text-muted-foreground">{fill(t(me?.quota?.period === 'day' ? U.freeToday : U.freeWeek), { f: free, c: credits })}</p>}
       {it && !me?.admin && (
         <>
           <p className="mt-3 text-muted-foreground">{t(U.interLeft)}</p>
@@ -74,7 +75,7 @@ export function AppLayout() {
         <Button asChild className="mt-6 justify-start gap-2"><Link to="/app/new"><Sparkles className="h-4 w-4" />{t(NAV.newVideo)}</Link></Button>
         <nav className="mt-4 grid gap-0.5" aria-label="App">
           {items.map((i) => (
-            <NavLink key={i.to} to={i.to} end={i.end} className={({ isActive }) => cn(item, isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground')}>
+            <NavLink key={i.to} to={i.to} end={i.end} data-tour={i.to} className={({ isActive }) => cn(item, isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground')}>
               <i.icon className="h-4 w-4" />{i.label}
             </NavLink>
           ))}

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { accountSwr, useAccount } from '@/lib/account';
 import { getJob, type Job } from '@/lib/explainer';
-import type { Lang } from '@/lib/prefs';
+import type { Lang, Tr } from '@/lib/prefs';
 
 export type MyJob = Pick<Job, 'id' | 'arxiv' | 'title' | 'status' | 'stage' | 'seconds' | 'sections' | 'created_at' | 'langs' | 'source_url'> & { expired_at?: string | null };
 
@@ -36,7 +36,7 @@ export function sourceLabel(j: Pick<Job, 'source_url' | 'arxiv'>): string {
   return /^\d{4}\.\d{4,5}$/.test(j.arxiv) ? `arXiv ${j.arxiv}` : j.arxiv;
 }
 
-const STAGES: [RegExp, Record<Lang, string>][] = [
+const STAGES: [RegExp, Tr<string>][] = [
   [/^waiting for a renderer/i, { en: 'Waiting for a free renderer', zh: '等待渲染器', vi: 'Đang chờ máy dựng', id: 'Menunggu perender' }],
   [/^reading the paper/i, { en: 'Reading the source and writing the script', zh: '正在阅读并撰写脚本', vi: 'Đang đọc nội dung và viết kịch bản', id: 'Membaca sumber dan menulis naskah' }],
   [/^getting the drawing tools/i, { en: 'Getting the drawing tools ready', zh: '正在准备绘图工具', vi: 'Đang chuẩn bị công cụ vẽ', id: 'Menyiapkan alat gambar' }],

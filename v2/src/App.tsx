@@ -1,3 +1,4 @@
+import { Tour } from '@/components/site/Tour';
 import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
@@ -82,6 +83,7 @@ export default function App() {
             </Routes>
             <AuthDialog />
             <SupportChat />
+            <Tour />
             <Toaster position="top-center" />
           </BrowserRouter>
         </TooltipProvider>

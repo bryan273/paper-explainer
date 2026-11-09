@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { AgentError, emptyRun, parseArxivId, runAgent, type AgentRun } from '@/lib/read/agent';
 import { getSessionByShareId, listRecentSessions, noteCount, saveSession, type SessionRecord } from '@/lib/read/sessions';
 import { copyText } from '@/lib/explainer';
-import { usePrefs } from '@/lib/prefs';
+import { usePrefs, pick } from '@/lib/prefs';
 import { dateFmt } from '@/lib/strings';
 import { cn } from '@/lib/utils';
 
@@ -111,7 +111,7 @@ export default function Read() {
         </form>
         <aside className="pl-card p-5">
           <p className="text-sm font-semibold">{t(R.examples)}</p>
-          <div className="mt-3 grid gap-2">{(R.ex[lang] ?? R.ex.en).map((x) => <button key={x} type="button" disabled={running} onClick={() => { setGoal(x); setPaper(''); start(x, ''); }} className="rounded-lg border px-3 py-2 text-left text-sm hover:border-primary hover:bg-accent disabled:opacity-60">{x}</button>)}</div>
+          <div className="mt-3 grid gap-2">{pick(lang, R.ex).map((x) => <button key={x} type="button" disabled={running} onClick={() => { setGoal(x); setPaper(''); start(x, ''); }} className="rounded-lg border px-3 py-2 text-left text-sm hover:border-primary hover:bg-accent disabled:opacity-60">{x}</button>)}</div>
         </aside>
       </div>
 

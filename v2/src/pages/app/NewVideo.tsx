@@ -8,15 +8,15 @@ import { Switch } from '@/components/ui/switch';
 import { ApiError, createJob, lookupPaper, uploadPaper, localPdfs, MAX_PDF_BYTES, MAX_PDF_FILES, TONES, type Job, type MakeOpts } from '@/lib/explainer';
 import { PURPOSE, useSettings } from '@/lib/settings';
 import { track, useAccount } from '@/lib/account';
-import { fill, usePrefs, type Lang } from '@/lib/prefs';
+import { fill, usePrefs, type Lang, pick, type Tr } from '@/lib/prefs';
 import { cn } from '@/lib/utils';
 
 const T = {
   h: { en: 'Make a video', zh: '制作视频', vi: 'Tạo video', id: 'Buat video' },
-  s: { en: 'Give Paperlit one source. You get a narrated video with chapters, questions and answers you can trace to the page.', zh: '给 Paperlit 一份资料，得到带章节、可提问、能追溯页码的讲解视频。', vi: 'Đưa cho Paperlit một nguồn. Bạn nhận video có lời dẫn, chia chương, câu hỏi và câu trả lời truy được về trang.', id: 'Beri Paperlit satu sumber. Anda dapat video bernarasi dengan bab, pertanyaan, dan jawaban yang bisa dilacak ke halamannya.' },
+  s: { en: 'Give Paperlit one source. You get a narrated video with chapters, questions and answers you can trace to the page.', zh: '给 Paperlit 一份资料，得到带章节、可提问、能追溯页码的讲解视频。', vi: 'Đưa cho Paperlit một nguồn. Bạn nhận được video có lời dẫn, chia chương, câu hỏi và câu trả lời có thể truy dấu đến trang.', id: 'Beri Paperlit satu sumber. Anda dapat video bernarasi dengan bab, pertanyaan, dan jawaban yang bisa dilacak ke halamannya.' },
   step1: { en: '1. Your source', zh: '1. 资料来源', vi: '1. Nguồn của bạn', id: '1. Sumber Anda' },
   step2: { en: '2. Video settings', zh: '2. 视频设置', vi: '2. Cài đặt video', id: '2. Pengaturan video' },
-  step3: { en: '3. Interactive video', zh: '3. 互动视频', vi: '3. Video tương tác', id: '3. Video interaktif' },
+  step3: { en: '3. Interactive mode', zh: '3. 互动模式', vi: '3. Chế độ tương tác', id: '3. Mode interaktif' },
   link: { en: 'Link', zh: '链接', vi: 'Liên kết', id: 'Tautan' },
   text: { en: 'Paste text', zh: '粘贴文字', vi: 'Dán văn bản', id: 'Tempel teks' },
   file: { en: 'Upload file', zh: '上传文件', vi: 'Tải tệp', id: 'Unggah berkas' },
@@ -35,12 +35,14 @@ const T = {
   female: { en: 'Female', zh: '女声', vi: 'Nữ', id: 'Perempuan' },
   male: { en: 'Male', zh: '男声', vi: 'Nam', id: 'Laki-laki' },
   min: { en: '{n} min', zh: '{n} 分钟', vi: '{n} phút', id: '{n} menit' },
-  proOnly: { en: 'Longer than 5 minutes is part of Pro and Premium.', zh: '超过 5 分钟需要 Pro 或 Premium。', vi: 'Dài hơn 5 phút dành cho Pro và Premium.', id: 'Lebih dari 5 menit untuk Pro dan Premium.' },
+  proOnly: { en: 'Longer than 5 minutes is part of Pro and Premium.', zh: '超过 5 分钟需要 Pro 或 Premium。', vi: 'Video dài hơn 5 phút dành cho Pro và Premium.', id: 'Lebih dari 5 menit untuk Pro dan Premium.' },
+  plusOnly: { en: 'Longer than 3 minutes is part of Plus and above.', zh: '超过 3 分钟需要 Plus 及以上套餐。', vi: 'Video dài hơn 3 phút dành cho gói Plus trở lên.', id: 'Lebih dari 3 menit untuk Plus ke atas.' },
+  costTwo: { en: 'A video longer than 5 minutes counts as 2 videos.', zh: '超过 5 分钟的视频按 2 个计算。', vi: 'Video dài hơn 5 phút được tính là 2 video.', id: 'Video lebih dari 5 menit dihitung 2 video.' },
   custom: { en: 'Anything to focus on? (optional)', zh: '有想重点讲的吗？（可选）', vi: 'Muốn tập trung vào điều gì? (không bắt buộc)', id: 'Ada yang ingin difokuskan? (opsional)' },
   customPh: { en: 'e.g. focus on the experiments, skip the maths, explain for a first-year student', zh: '例如：重点讲实验，跳过数学，按大一学生的水平讲', vi: 'vd: tập trung vào thí nghiệm, bỏ qua phần toán, giải thích cho sinh viên năm nhất', id: 'mis. fokus pada eksperimen, lewati matematika, jelaskan untuk mahasiswa tahun pertama' },
   interOn: { en: 'Stop after each part and ask me a question', zh: '每段结束后暂停并提问', vi: 'Dừng sau mỗi phần và hỏi tôi một câu', id: 'Berhenti setiap bagian dan beri saya pertanyaan' },
   interHelp: { en: 'About 4 questions per video, with the explanation ready at once. You can also turn it on later while watching.', zh: '每个视频约 4 题，作答后立即看到讲解。观看时也可以再打开。', vi: 'Khoảng 4 câu mỗi video, có lời giải thích ngay. Bạn cũng có thể bật sau khi xem.', id: 'Sekitar 4 pertanyaan per video, penjelasannya langsung siap. Bisa juga dinyalakan nanti saat menonton.' },
-  interLeft: { en: '{n} of {c} interactive videos left this month', zh: '本月还剩 {n} / {c} 个互动视频', vi: 'Còn {n}/{c} video tương tác trong tháng này', id: 'Sisa {n} dari {c} video interaktif bulan ini' },
+  interLeft: { en: 'Interactive mode left: {n} of {c}', zh: '剩余互动模式次数：{n} / {c}', vi: 'Lượt tương tác còn lại: {n}/{c}', id: 'Sisa mode interaktif: {n} dari {c}' },
   make: { en: 'Make video', zh: '开始制作', vi: 'Tạo video', id: 'Buat video' },
   makeN: { en: 'Make {n} videos', zh: '制作 {n} 个视频', vi: 'Tạo {n} video', id: 'Buat {n} video' },
   uploading: { en: 'Uploading {i} of {n}…', zh: '正在上传 {i} / {n}…', vi: 'Đang tải lên {i}/{n}…', id: 'Mengunggah {i} dari {n}…' },
@@ -51,7 +53,7 @@ const T = {
   open: { en: 'Open it', zh: '打开', vi: 'Mở', id: 'Buka' },
   newAnyway: { en: 'Making a new one with your settings.', zh: '将按你的设置新做一个。', vi: 'Sẽ tạo video mới theo cài đặt của bạn.', id: 'Akan membuat yang baru dengan pengaturan Anda.' },
   limitGuest: { en: 'You used the free guest video for today.', zh: '今天的访客免费视频已用完。', vi: 'Bạn đã dùng hết video miễn phí của khách hôm nay.', id: 'Video gratis tamu hari ini sudah terpakai.' },
-  limitMember: { en: 'No videos left right now.', zh: '目前没有可用视频了。', vi: 'Hiện không còn video nào.', id: 'Saat ini tidak ada video tersisa.' },
+  limitMember: { en: 'Your free videos for this week are used. Choose a plan or buy a few videos to keep going.', zh: '本周的免费视频已用完。选择套餐或购买视频即可继续。', vi: 'Bạn đã dùng hết video miễn phí của tuần này. Hãy chọn một gói hoặc mua thêm video để tiếp tục.', id: 'Video gratis minggu ini sudah terpakai. Pilih paket atau beli beberapa video untuk lanjut.' },
   signup: { en: 'Sign up free', zh: '免费注册', vi: 'Đăng ký miễn phí', id: 'Daftar gratis' },
   plans: { en: 'See plans', zh: '查看套餐', vi: 'Xem các gói', id: 'Lihat paket' },
   network: { en: 'Could not reach the server. Check your connection and try again.', zh: '连不上服务器，请检查网络后重试。', vi: 'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.', id: 'Tidak bisa terhubung ke server. Periksa koneksi lalu coba lagi.' },
@@ -61,7 +63,7 @@ const T = {
   g: {
     en: [['Pick one clear source', 'One paper, one article or one chapter. The video follows its structure, so a focused source gives a focused video.'], ['Choose the language you learn in', 'The source can be in any language. The narration, captions and questions come out in the language you pick.'], ['Match the length to the goal', '1 to 2 minutes for the gist, 3 to 5 minutes to really learn it, up to 10 minutes (Pro) for long papers.'], ['Say what you care about', 'One line such as "focus on the method" or "explain for a beginner" changes the whole script.'], ['Turn on interactive video to remember it', 'The video stops after each part with one question. Answering makes the idea stick.']],
     zh: [['选一份清晰的资料', '一篇论文、一篇文章或一个章节。视频会沿用它的结构，资料越聚焦，视频越清楚。'], ['选你学习用的语言', '资料可以是任何语言，旁白、字幕和题目都会用你选的语言。'], ['按目标选时长', '1 到 2 分钟看要点，3 到 5 分钟真正学会，长论文最多 10 分钟（Pro）。'], ['说出你关心什么', '一句“重点讲方法”或“按初学者讲”就会改变整个讲稿。'], ['打开互动视频帮助记忆', '每段结束暂停问一题，作答能让知识点记得更牢。']],
-    vi: [['Chọn một nguồn rõ ràng', 'Một bài báo, một bài viết hoặc một chương. Video đi theo cấu trúc của nguồn, nguồn càng tập trung thì video càng rõ.'], ['Chọn ngôn ngữ bạn học', 'Nguồn có thể ở bất kỳ ngôn ngữ nào. Lời dẫn, phụ đề và câu hỏi sẽ theo ngôn ngữ bạn chọn.'], ['Chọn độ dài theo mục tiêu', '1 đến 2 phút để nắm ý chính, 3 đến 5 phút để học thật, tới 10 phút (Pro) cho bài dài.'], ['Nói điều bạn quan tâm', 'Một câu như "tập trung vào phương pháp" hay "giải thích cho người mới" sẽ thay đổi cả kịch bản.'], ['Bật video tương tác để nhớ lâu', 'Video dừng sau mỗi phần với một câu hỏi. Trả lời giúp kiến thức đọng lại.']],
+    vi: [['Chọn một nguồn rõ ràng', 'Một bài báo, một bài viết hoặc một chương. Video đi theo cấu trúc của nguồn, nên nguồn càng tập trung thì video càng rõ.'], ['Chọn ngôn ngữ bạn học', 'Nguồn có thể ở bất kỳ ngôn ngữ nào. Lời dẫn, phụ đề và câu hỏi sẽ theo ngôn ngữ bạn chọn.'], ['Chọn độ dài theo mục tiêu', '1 đến 2 phút để nắm ý chính, 3 đến 5 phút để học thật, tới 10 phút (Pro) cho bài dài.'], ['Nói điều bạn quan tâm', 'Một câu như "tập trung vào phương pháp" hay "giải thích cho người mới" sẽ thay đổi cả kịch bản.'], ['Bật video tương tác để nhớ lâu', 'Video dừng sau mỗi phần với một câu hỏi. Trả lời giúp kiến thức đọng lại.']],
     id: [['Pilih satu sumber yang jelas', 'Satu makalah, satu artikel, atau satu bab. Video mengikuti strukturnya, jadi sumber yang fokus memberi video yang fokus.'], ['Pilih bahasa belajar Anda', 'Sumber boleh berbahasa apa saja. Narasi, teks, dan pertanyaan keluar dalam bahasa yang Anda pilih.'], ['Sesuaikan durasi dengan tujuan', '1 sampai 2 menit untuk inti, 3 sampai 5 menit untuk benar-benar belajar, hingga 10 menit (Pro) untuk makalah panjang.'], ['Sebutkan yang Anda pedulikan', 'Satu kalimat seperti "fokus pada metode" atau "jelaskan untuk pemula" mengubah seluruh naskah.'], ['Nyalakan video interaktif agar ingat', 'Video berhenti setiap bagian dengan satu pertanyaan. Menjawab membuat konsep melekat.']],
   },
   nextH: { en: 'What happens next', zh: '接下来会怎样', vi: 'Tiếp theo sẽ thế nào', id: 'Apa yang terjadi selanjutnya' },
@@ -73,7 +75,8 @@ const T = {
   },
   guide: { en: 'Read the full guide', zh: '查看完整指南', vi: 'Xem hướng dẫn đầy đủ', id: 'Baca panduan lengkap' },
 };
-const TONE_L: Record<(typeof TONES)[number], Record<Lang, [string, string]>> = {
+type VLang = 'en' | 'zh' | 'vi' | 'id';
+const TONE_L: Record<(typeof TONES)[number], Tr<[string, string]>> = {
   teacher: { en: ['Clear teacher', 'Step by step, like a good lecture'], zh: ['清晰讲师', '像一堂好课，循序渐进'], vi: ['Giảng viên rõ ràng', 'Từng bước, như một bài giảng hay'], id: ['Pengajar jelas', 'Langkah demi langkah, seperti kuliah yang baik'] },
   casual: { en: 'Friendly chat|Relaxed, everyday words'.split('|') as [string, string], zh: ['轻松聊天', '轻松、日常的语言'], vi: ['Trò chuyện thân thiện', 'Thoải mái, lời lẽ đời thường'], id: ['Obrolan santai', 'Santai, kata sehari-hari'] },
   academic: { en: ['Academic', 'Precise terms, for researchers'], zh: ['学术', '术语准确，适合研究者'], vi: ['Học thuật', 'Thuật ngữ chính xác, cho nhà nghiên cứu'], id: ['Akademis', 'Istilah tepat, untuk peneliti'] },
@@ -99,7 +102,8 @@ export default function NewVideo() {
   const [text, setText] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [fileErr, setFileErr] = useState('');
-  const [vlang, setVlang] = useState<Lang>(lang);
+  const vOf = (l: Lang): VLang => (l === 'zh' || l === 'vi' || l === 'id' ? l : 'en');
+  const [vlang, setVlang] = useState<VLang>(vOf(lang));
   const [seconds, setSeconds] = useState<number>(pset.purpose ? PURPOSE[pset.purpose].seconds : 180);
   const [tone, setTone] = useState<MakeOpts['tone']>(pset.purpose ? PURPOSE[pset.purpose].tone : 'teacher');
   const [voice, setVoice] = useState<MakeOpts['voice']>('female');
@@ -107,16 +111,19 @@ export default function NewVideo() {
   const [inter, setInter] = useState(() => { try { return localStorage.getItem('pe-interactive') === '1'; } catch { return false; } });
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState('');
-  const [limit, setLimit] = useState<null | 'guest' | 'member' | 'length'>(null);
+  const [limit, setLimit] = useState<null | 'guest' | 'member' | 'length' | 'lengthPlus'>(null);
   const [existing, setExisting] = useState<Job[]>([]);
   const [drag, setDrag] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const pro = me?.admin || me?.plan === 'pro' || me?.plan === 'premium';
+  const plus = pro || me?.plan === 'plus';
+  // free: up to 3 minutes; Plus: 5; Pro and Premium: 10
+  const maxSec = pro ? 600 : plus ? 300 : 180;
   const left = (quota?.day_left ?? 0) + (user?.credits ?? 0);
-  const units = Math.max(1, Math.ceil(seconds / 180)) * (tab === 'file' ? Math.max(1, files.length) : 1);
+  const units = (seconds <= 300 ? 1 : 2) * (tab === 'file' ? Math.max(1, files.length) : 1);
   const MB = MAX_PDF_BYTES / 1024 / 1024;
 
-  useEffect(() => { setVlang(lang); }, [lang]);
+  useEffect(() => { setVlang(vOf(lang)); }, [lang]);
   useEffect(() => {
     const v = link.trim();
     if (tab !== 'link' || !looksLikeLink(v)) { setExisting([]); return; }
@@ -139,7 +146,7 @@ export default function NewVideo() {
   const submit = async (e: FormEvent) => {
     e.preventDefault(); setErr(''); setLimit(null);
     if ((tab === 'link' && !link.trim()) || (tab === 'text' && text.trim().length < 300) || (tab === 'file' && !files.length)) { setErr(t(T.empty)); return; }
-    if (seconds > 300 && !pro) { setLimit('length'); return; }
+    if (seconds > maxSec) { setLimit(seconds > 300 ? 'length' : 'lengthPlus'); return; }
     track('click_make', { tab, seconds, vlang });
     const opts: MakeOpts = { voice, style: 'animated', tone, seconds, custom: custom.trim(), langs: vlang };
     const made: Job[] = [];
@@ -165,6 +172,7 @@ export default function NewVideo() {
       if (x instanceof ApiError && x.code === 'quota_guest') setLimit('guest');
       else if (x instanceof ApiError && x.code === 'quota_member') setLimit('member');
       else if (x instanceof ApiError && x.code === 'length_pro') setLimit('length');
+      else if (x instanceof ApiError && x.code === 'length_plus') setLimit('lengthPlus');
       else if (x instanceof ApiError && x.code === 'upload_failed') setErr(t(T.uploadFail));
       else setErr(x instanceof ApiError ? x.message : t(T.network));
     } finally { setBusy(null); }
@@ -249,14 +257,14 @@ export default function NewVideo() {
               <div>
                 <p className="mb-2 text-sm font-medium">{t(T.vlang)}</p>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {(['en', 'zh', 'vi', 'id'] as Lang[]).map((l) => <button key={l} type="button" aria-pressed={vlang === l} onClick={() => setVlang(l)} className={seg(vlang === l)}>{{ en: 'English', zh: '中文', vi: 'Tiếng Việt', id: 'Bahasa Indonesia' }[l]}</button>)}
+                  {(['en', 'zh', 'vi', 'id'] as VLang[]).map((l) => <button key={l} type="button" aria-pressed={vlang === l} onClick={() => setVlang(l)} className={seg(vlang === l)}>{{ en: 'English', zh: '中文', vi: 'Tiếng Việt', id: 'Bahasa Indonesia' }[l]}</button>)}
                 </div>
               </div>
               <div>
                 <p className="mb-2 text-sm font-medium">{t(T.length)}</p>
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
                   {LENS.map((n) => {
-                    const locked = n > 300 && !pro;
+                    const locked = n > maxSec;
                     return <button key={n} type="button" aria-pressed={seconds === n} onClick={() => setSeconds(n)} className={cn(seg(seconds === n), 'flex items-center justify-center gap-1')}>{fill(t(T.min), { n: n / 60 })}{locked && <Lock className="h-3 w-3" />}</button>;
                   })}
                 </div>
@@ -267,8 +275,8 @@ export default function NewVideo() {
                 <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   {TONES.map((k) => (
                     <button key={k} type="button" aria-pressed={tone === k} onClick={() => setTone(k)} className={cn('rounded-xl border p-3 text-left transition', tone === k ? 'border-primary bg-accent' : 'hover:border-foreground/30')}>
-                      <span className={cn('block text-sm font-semibold', tone === k && 'text-primary')}>{TONE_L[k][lang][0]}</span>
-                      <span className="block text-xs text-muted-foreground">{TONE_L[k][lang][1]}</span>
+                      <span className={cn('block text-sm font-semibold', tone === k && 'text-primary')}>{pick(lang, TONE_L[k])[0]}</span>
+                      <span className="block text-xs text-muted-foreground">{pick(lang, TONE_L[k])[1]}</span>
                     </button>
                   ))}
                 </div>
@@ -299,7 +307,7 @@ export default function NewVideo() {
           {limit && (
             <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm" role="alert">
               <AlertCircle className="h-5 w-5 text-warning" />
-              <span className="flex-1 font-medium">{limit === 'guest' ? t(T.limitGuest) : limit === 'member' ? t(T.limitMember) : t(T.proOnly)}</span>
+              <span className="flex-1 font-medium">{limit === 'guest' ? t(T.limitGuest) : limit === 'member' ? t(T.limitMember) : limit === 'lengthPlus' ? t(T.plusOnly) : t(T.proOnly)}</span>
               {limit === 'guest' ? <Button size="sm" onClick={() => openAuth('register')}>{t(T.signup)}</Button> : <Button asChild size="sm"><Link to="/pricing">{t(T.plans)}</Link></Button>}
             </div>
           )}
@@ -317,7 +325,7 @@ export default function NewVideo() {
           <section className="pl-card p-5">
             <h2 className="flex items-center gap-2 font-display text-base font-semibold"><Lightbulb className="h-4 w-4 text-lit" />{t(T.gH)}</h2>
             <ol className="mt-4 grid gap-4">
-              {(T.g[lang] ?? T.g.en).map(([h, p], i) => (
+              {pick(lang, T.g).map(([h, p], i) => (
                 <li key={h} className="grid grid-cols-[24px_1fr] gap-2">
                   <span className="grid h-6 w-6 place-items-center rounded-full bg-accent text-xs font-bold text-primary">{i + 1}</span>
                   <span><span className="block text-sm font-semibold">{h}</span><span className="block text-[13px] leading-relaxed text-muted-foreground">{p}</span></span>
@@ -328,7 +336,7 @@ export default function NewVideo() {
           <section className="pl-card p-5">
             <h2 className="flex items-center gap-2 font-display text-base font-semibold"><Clock className="h-4 w-4 text-primary" />{t(T.nextH)}</h2>
             <ul className="mt-3 grid gap-2.5">
-              {(T.next[lang] ?? T.next.en).map((x) => <li key={x} className="flex gap-2 text-[13px] text-muted-foreground"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />{x}</li>)}
+              {pick(lang, T.next).map((x) => <li key={x} className="flex gap-2 text-[13px] text-muted-foreground"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />{x}</li>)}
             </ul>
             <Link to="/help" className="mt-4 inline-block text-sm font-medium text-primary no-underline hover:underline">{t(T.guide)}</Link>
           </section>
