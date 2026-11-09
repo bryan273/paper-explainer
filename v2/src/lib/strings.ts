@@ -6,6 +6,7 @@ export const NAV = {
   pricing: { en: 'Pricing', zh: '价格', vi: 'Bảng giá', id: 'Harga' },
   help: { en: 'Help', zh: '帮助', vi: 'Trợ giúp', id: 'Bantuan' },
   login: { en: 'Log in', zh: '登录', vi: 'Đăng nhập', id: 'Masuk' },
+  signUp: { en: 'Sign up', zh: '注册', vi: 'Đăng ký', id: 'Daftar', ja: '登録', ko: '가입', es: 'Regístrate', fr: 'S’inscrire', de: 'Registrieren' },
   start: { en: 'Start free', zh: '免费开始', vi: 'Bắt đầu miễn phí', id: 'Mulai gratis' },
   dashboard: { en: 'Dashboard', zh: '控制台', vi: 'Bảng điều khiển', id: 'Dasbor' },
   home: { en: 'Home', zh: '首页', vi: 'Trang chủ', id: 'Beranda' },

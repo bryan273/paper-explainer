@@ -128,8 +128,8 @@ function GuestButtons() {
   const { t } = usePrefs();
   return (
     <>
-      <Button variant="ghost" size="sm" onClick={() => openAuth('login')}>{t(NAV.login)}</Button>
-      <Button size="sm" onClick={() => openAuth('register')}>{t(NAV.start)}</Button>
+      <Button variant="ghost" size="sm" className="hidden sm:inline-flex" onClick={() => openAuth('login')}>{t(NAV.login)}</Button>
+      <Button size="sm" className="max-sm:px-3" onClick={() => openAuth('register')}><span className="sm:hidden">{t(NAV.signUp)}</span><span className="hidden sm:inline">{t(NAV.start)}</span></Button>
     </>
   );
 }
