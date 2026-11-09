@@ -8,7 +8,7 @@ const TOKEN_KEY = 'pe-session';
 export type Quota = { tier: 'guest' | 'member'; day_limit: number; day_used: number; day_left: number; credits: number; resets_in_min: number | null };
 export type Member = { id: string; username: string; handle?: string | null; credits: number; created_at: string };
 export type Pack = { credits: number; price: number };
-export type Interactive = { used: number; cap: number; left: number; resets: string };
+export type Interactive = { used: number; cap: number; left: number; resets: string; jobs?: string[] };
 type Me = { admin?: boolean; plan?: string | null; interactive?: Interactive; user: Member | null; quota: Quota; limits: { guest: number; member: number; welcome: number }; packs: Record<string, Pack> };
 
 export const getToken = () => {

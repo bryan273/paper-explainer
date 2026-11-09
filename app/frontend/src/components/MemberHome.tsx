@@ -24,6 +24,7 @@ const T = {
   change: { en: 'Change', zh: '更改', vi: 'Đổi', id: 'Ubah' } as L4,
   bannerH: { en: 'Your free month of Plus is active', zh: '你的 Plus 免费月已开通', vi: 'Tháng Plus miễn phí của bạn đã được kích hoạt', id: 'Bulan Plus gratis Anda sudah aktif' } as L4,
   bannerP: { en: 'Until {d}: 50 videos, 10 interactive videos and in-depth answers. Enjoy.', zh: '有效期至 {d}：50 个视频、10 个互动视频和深入回答。', vi: 'Đến {d}: 50 video, 10 video tương tác và câu trả lời chuyên sâu. Chúc bạn học tốt.', id: 'Sampai {d}: 50 video, 10 video interaktif, dan jawaban mendalam. Selamat belajar.' } as L4,
+  interReset: { en: 'resets {d}', zh: '{d} 重置', vi: 'làm mới {d}', id: 'reset {d}' } as L4,
   inter: { en: 'interactive videos left this month', zh: '本月剩余互动视频', vi: 'video tương tác còn lại tháng này', id: 'video interaktif tersisa bulan ini' } as L4,
   interSub: { en: 'about {q} questions inside videos · resets {d}', zh: '约 {q} 道视频内答题 · {d} 重置', vi: 'khoảng {q} câu hỏi trong video · làm mới {d}', id: 'sekitar {q} pertanyaan di dalam video · reset {d}' } as L4,
   pendingH: { en: 'We are checking your proof', zh: '我们正在审核你的证明', vi: 'Chúng tôi đang duyệt giấy tờ của bạn', id: 'Kami sedang memeriksa bukti Anda' } as L4,
@@ -76,7 +77,7 @@ export function MemberHead() {
         </span>
         {m?.interactive && !m.admin && (
           <span className="mh-stat big"><b>{m.interactive.left}<em className="mh-of"> / {m.interactive.cap}</em></b> {pick(lang, T.inter)}
-            <small>{pick(lang, T.interSub).replace('{q}', String(m.interactive.left * 4)).replace('{d}', fmtDate(m.interactive.resets, lang))}</small>
+            <small>{(m.interactive.left > 0 ? pick(lang, T.interSub).replace('{q}', String(m.interactive.left * 4)) : pick(lang, T.interReset)).replace('{d}', fmtDate(m.interactive.resets, lang))}</small>
           </span>
         )}
         <button type="button" className={`mh-mode${s.purpose ? ' on' : ''}`} onClick={() => window.dispatchEvent(new Event('pe-open-settings'))}>
