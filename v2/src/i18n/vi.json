@@ -430,5 +430,11 @@
  "{n} of {c} research questions left this week": "Còn {n}/{c} câu hỏi nghiên cứu tuần này",
  "{n} of {c} research questions left today": "Còn {n}/{c} câu hỏi nghiên cứu hôm nay",
  "{n} video credits": "{n} lượt video",
- "{p} per credit": "{p} mỗi lượt"
+ "{p} per credit": "{p} mỗi lượt",
+ "What does this picture show, and how does it relate to the video?": "Hình này thể hiện điều gì, và liên quan thế nào đến video?",
+ "picture": "hình ảnh",
+ "Picture added. Ask about it, or send it as it is.": "Đã thêm hình. Hãy hỏi về nó, hoặc gửi luôn.",
+ "Remove the picture": "Xóa hình",
+ "Add a picture (or paste one)": "Thêm hình (hoặc dán hình)",
+ "{n} quick answers left": "Còn {n} câu trả lời nhanh"
 }

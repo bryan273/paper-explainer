@@ -315,7 +315,7 @@ async function askRequest(init: RequestInit, query = ''): Promise<Record<string,
   return body;
 }
 
-export async function askPaper(p: { job: string; q: string; mode: 'plus' | 'paper'; intent: 'ask' | 'simpler'; model?: 'fast' | 'deep'; section?: number; history: { role: 'user' | 'ai'; text: string }[]; lang: Lang }): Promise<{ blocks: AskBlock[]; followups: string[]; left: number; deep_left?: number }> {
+export async function askPaper(p: { job: string; q: string; mode: 'plus' | 'paper'; intent: 'ask' | 'simpler'; model?: 'fast' | 'deep'; section?: number; history: { role: 'user' | 'ai'; text: string }[]; lang: Lang; image?: string }): Promise<{ blocks: AskBlock[]; followups: string[]; left: number; deep_left?: number }> {
   const out = await askRequest({ method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ ...p, visitor: visitorId() }) });
   return { blocks: (out.blocks as AskBlock[]) ?? [], followups: (out.followups as string[]) ?? [], left: Number(out.left ?? 0), deep_left: typeof out.deep_left === 'number' ? out.deep_left : undefined };
 }
@@ -326,6 +326,18 @@ export async function getChat(job: string): Promise<ChatMsg[]> {
   return Array.isArray(out.messages) ? (out.messages as ChatMsg[]) : [];
 }
 
+
+/** A picture for a question, made small enough to send: at most 1280 px on the long side, JPEG. */
+export async function shrinkImage(file: Blob, max = 1280): Promise<string> {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise<HTMLImageElement>((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = url; });
+    const k = Math.min(1, max / Math.max(img.width, img.height));
+    const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+    const g = c.getContext('2d')!; g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', 0.82);
+  } finally { URL.revokeObjectURL(url); }
+}
 
 export type Quiz = { question: string; options: string[]; answer: number; why: string; more?: string; section?: number };
 

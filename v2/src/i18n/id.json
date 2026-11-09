@@ -430,5 +430,11 @@
  "{n} of {c} research questions left this week": "Sisa {n} dari {c} pertanyaan riset minggu ini",
  "{n} of {c} research questions left today": "Sisa {n} dari {c} pertanyaan riset hari ini",
  "{n} video credits": "{n} kredit video",
- "{p} per credit": "{p} per kredit"
+ "{p} per credit": "{p} per kredit",
+ "What does this picture show, and how does it relate to the video?": "Apa yang ditunjukkan gambar ini, dan apa hubungannya dengan video?",
+ "picture": "gambar",
+ "Picture added. Ask about it, or send it as it is.": "Gambar ditambahkan. Tanyakan tentangnya, atau langsung kirim.",
+ "Remove the picture": "Hapus gambar",
+ "Add a picture (or paste one)": "Tambah gambar (atau tempel)",
+ "{n} quick answers left": "Sisa {n} jawaban cepat"
 }
