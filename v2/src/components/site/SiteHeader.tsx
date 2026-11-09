@@ -37,7 +37,7 @@ export function SiteHeader() {
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-1.5">
-          <LangMenu />
+          {!user && <LangMenu />}
           {!user && <span className="hidden sm:inline-flex"><ThemeButton /></span>}
           {user ? (
             <>

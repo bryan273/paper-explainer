@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 
 const S = {
   title: { en: 'Students and teachers: 1 month of Plus, free', zh: '学生和教师：免费用 1 个月 Plus', vi: 'Sinh viên và giảng viên: tặng 1 tháng Plus', id: 'Mahasiswa dan pengajar: 1 bulan Plus gratis' },
-  sub: { en: 'Send a photo of your student or staff card. We check it within a day, then Plus and its 80 videos switch on.', zh: '上传学生证或工作证照片，我们一天内审核，通过后开通 Plus 和 80 个视频。', vi: 'Gửi ảnh thẻ sinh viên hoặc thẻ giảng viên. Chúng tôi kiểm tra trong một ngày, sau đó gói Plus cùng 80 video sẽ được kích hoạt.', id: 'Kirim foto kartu mahasiswa atau kartu pengajar. Kami cek dalam sehari, lalu Plus dan 80 videonya aktif.' },
+  sub: { en: 'Send a photo of your student or staff card. We check it within a day, then a free month of Plus switches on.' },
   cta: { en: 'Verify', zh: '去认证', vi: 'Xác minh', id: 'Verifikasi' },
   login: { en: 'Sign up free first', zh: '请先免费注册', vi: 'Đăng ký miễn phí trước', id: 'Daftar gratis dulu' },
   student: { en: 'Student', zh: '学生', vi: 'Sinh viên', id: 'Mahasiswa' },

@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { AlertTriangle, ArrowLeft, Check, ChevronLeft, ChevronRight, Circle, FileText, HelpCircle, Loader2, MessageSquare, RotateCcw, Share2, Sparkles, Trophy } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Check, PencilLine, ChevronLeft, ChevronRight, Circle, FileText, HelpCircle, Loader2, MessageSquare, RotateCcw, Share2, Sparkles, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Player, type Chapter, type PlayerHandle } from '@/components/watch/Player';
 import { AskPanel } from '@/components/watch/AskPanel';
 import { QuizPanel, Options, type QLog } from '@/components/watch/QuizPanel';
 import { PaperPane } from '@/components/watch/PaperPane';
-import { ApiError, askPaper, availableLangs, copyText, getJob, isMine, localPdfs, quizAll, quizPart, secText, storageKind, videoUrl, type Job, type Quiz } from '@/lib/explainer';
+import { ApiError, askPaper, availableLangs, copyText, editJob, editsOf, getJob, isMine, localPdfs, quizAll, quizPart, secText, storageKind, videoUrl, type EditKind, type Job, type Quiz } from '@/lib/explainer';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { track, useAccount } from '@/lib/account';
 import { fill, usePrefs, type Lang, pick } from '@/lib/prefs';
 import { dateFmt } from '@/lib/strings';
@@ -31,6 +33,19 @@ const W = {
   ask: { en: 'Ask', zh: '提问', vi: 'Hỏi', id: 'Tanya' },
   quiz: { en: 'Quiz', zh: '测验', vi: 'Kiểm tra', id: 'Kuis' },
   paper: { en: 'Source', zh: '原文', vi: 'Nguồn', id: 'Sumber' },
+  edit: { en: 'Edit' },
+  editH: { en: 'Edit this video' },
+  editS: { en: 'Choose a part and say what to change. Only that part is made again; the rest stays as it is. An edit does not use a video credit.' },
+  editPart: { en: 'Which part?' },
+  editKind: { en: 'What kind of change?' },
+  kinds: { en: [['fix', 'Fix a mistake'], ['add', 'Add detail'], ['simpler', 'Make it simpler'], ['deeper', 'Go deeper'], ['other', 'Something else']] },
+  editNote: { en: 'What should change?' },
+  editPh: { en: 'e.g. The formula on screen is wrong: it should be F(x) + x. Also say why the shortcut helps training.' },
+  editLeft: { en: '{n} of {c} edits left for this video' },
+  editNone: { en: 'This video has used all its edits. Make a new video, or choose a plan with more edits.' },
+  editGo: { en: 'Make the new version' },
+  editWait: { en: 'The new version is being made. This page shows it as soon as it is ready.' },
+  editSign: { en: 'Sign in to edit your videos.' },
   share: { en: 'Share', zh: '分享', vi: 'Chia sẻ', id: 'Bagikan' },
   copied: { en: 'Link copied', zh: '链接已复制', vi: 'Đã sao chép liên kết', id: 'Tautan disalin' },
   shareHint: { en: 'Anyone with the link can watch. Asking needs a free account.', zh: '拿到链接的人都能观看，提问需要免费账户。', vi: 'Ai có liên kết đều xem được. Muốn hỏi cần tài khoản miễn phí.', id: 'Siapa pun dengan tautan bisa menonton. Bertanya butuh akun gratis.' },
@@ -183,6 +198,20 @@ function Studio({ job }: { job: Job }) {
   const [seed, setSeed] = useState<{ i: number; n: number } | null>(null);
   const [now, setNow] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [edits, setEdits] = useState<{ used: number; cap: number } | null>(null);
+  const [ePart, setEPart] = useState(0);
+  const [eKind, setEKind] = useState<EditKind>('fix');
+  const [eNote, setENote] = useState('');
+  const [eBusy, setEBusy] = useState(false);
+  const [eErr, setEErr] = useState('');
+  const openEdit = () => { setEditOpen(true); setEErr(''); setEPart(Math.max(0, current)); editsOf(job.id).then(setEdits).catch(() => setEdits(null)); };
+  const sendEdit = async () => {
+    setEBusy(true); setEErr('');
+    try { const n = await editJob(job.id, ePart, eKind, eNote.trim()); track('video_edit', { kind: eKind }); setEditOpen(false); nav(`/app/v/${n.id}`); }
+    catch (x) { setEErr(x instanceof ApiError ? x.message : (x as Error).message); }
+    finally { setEBusy(false); }
+  };
   const secs = job.sections ?? [];
   const chapters: Chapter[] = useMemo(() => secs.map((s) => ({ start: s.clip?.[lang as 'en']?.[0] ?? s.clip?.en?.[0] ?? -1, end: s.clip?.[lang as 'en']?.[1] ?? s.clip?.en?.[1] ?? -1, title: secText(s, 'title', lang) })).filter((c) => c.start >= 0 && c.end > c.start), [secs, lang]);
   const current = Math.max(0, chapters.findIndex((c) => now >= c.start && now < c.end));
@@ -324,6 +353,7 @@ function Studio({ job }: { job: Job }) {
             </div>
             <div className="flex flex-wrap gap-2">
               {langs.length > 1 && <div className="inline-flex rounded-lg bg-muted p-0.5">{langs.map((l) => <button key={l} type="button" onClick={() => setLang(l)} className={cn('rounded-md px-2.5 py-1.5 text-xs font-semibold uppercase', lang === l ? 'bg-background shadow-sm' : 'text-muted-foreground')}>{l === 'zh' ? '中文' : l}</button>)}</div>}
+              {user && <Button variant="outline" size="sm" onClick={openEdit} data-g="edit"><PencilLine className="mr-1.5 h-4 w-4" />{t(W.edit)}</Button>}
               <Button variant="outline" size="sm" onClick={share}>{copied ? <Check className="mr-1.5 h-4 w-4 text-success" /> : <Share2 className="mr-1.5 h-4 w-4" />}{copied ? t(W.copied) : t(W.share)}</Button>
             </div>
           </div>
@@ -381,6 +411,40 @@ function Studio({ job }: { job: Job }) {
           )}
         </div>
       </div>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogTitle className="font-display text-xl">{t(W.editH)}</DialogTitle>
+          <p className="text-sm text-muted-foreground">{t(W.editS)}</p>
+          {edits && edits.used >= edits.cap ? <p className="rounded-lg bg-warning/10 p-3 text-sm">{t(W.editNone)} <Link to="/pricing" className="font-semibold">{t(W.plans)}</Link></p> : (
+            <div className="grid gap-4">
+              <div>
+                <p className="mb-1.5 text-sm font-medium">{t(W.editPart)}</p>
+                <div className="grid max-h-48 gap-1.5 overflow-y-auto pr-1">
+                  {secs.map((x, i) => (
+                    <button key={i} type="button" aria-pressed={ePart === i} onClick={() => setEPart(i)} className={cn('flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm transition', ePart === i ? 'border-primary bg-accent' : 'hover:border-foreground/30')}>
+                      <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-muted text-[11px] font-bold">{i + 1}</span>
+                      <span className="min-w-0 flex-1 truncate">{secText(x, 'title', lang)}</span>
+                      {chapters[i] && chapters[i].start >= 0 && <span className="shrink-0 font-mono text-xs text-muted-foreground">{Math.floor(chapters[i].start / 60)}:{String(Math.floor(chapters[i].start % 60)).padStart(2, '0')}</span>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="mb-1.5 text-sm font-medium">{t(W.editKind)}</p>
+                <div className="flex flex-wrap gap-1.5">{(pick(ui, W.kinds) as [EditKind, string][]).map(([k, l]) => <button key={k} type="button" aria-pressed={eKind === k} onClick={() => setEKind(k)} className={cn('rounded-full border px-3 py-1 text-sm', eKind === k ? 'border-primary bg-accent text-primary' : 'text-muted-foreground hover:border-foreground/30')}>{l}</button>)}</div>
+              </div>
+              <div>
+                <label htmlFor="pl-edit-note" className="mb-1.5 block text-sm font-medium">{t(W.editNote)}</label>
+                <Textarea id="pl-edit-note" rows={4} maxLength={500} value={eNote} onChange={(e) => setENote(e.target.value)} placeholder={t(W.editPh)} />
+              </div>
+              {edits && <p className="text-xs text-muted-foreground">{fill(t(W.editLeft), { n: Math.max(0, edits.cap - edits.used), c: edits.cap })}</p>}
+              {eErr && <p className="text-sm text-destructive" role="alert">{eErr}</p>}
+              <Button onClick={sendEdit} disabled={eBusy || eNote.trim().length < 5}>{eBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PencilLine className="mr-2 h-4 w-4" />}{t(W.editGo)}</Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <aside id="side" className="mx-4 flex min-h-[560px] flex-col overflow-hidden rounded-2xl border bg-card sm:mx-0 min-[1360px]:sticky min-[1360px]:top-20 min-[1360px]:h-[calc(100dvh-104px)]">
         <div className="grid grid-cols-3 border-b p-1" role="tablist" data-g="side-tabs">

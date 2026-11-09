@@ -2,6 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 
 export type Lang = 'en' | 'zh' | 'vi' | 'id' | 'ja' | 'ko' | 'es' | 'fr' | 'de';
 export type Theme = 'light' | 'dark';
+/** What the person chose: follow the device (the default), or always light or dark. */
+export type ThemeMode = 'system' | Theme;
 /** A text in several languages: English is always there, the others may be missing (then the dictionary of that language, then English). */
 export type Tr<T> = { en: T } & Partial<Record<Lang, T>>;
 export type T4 = Tr<string>;
@@ -23,9 +25,10 @@ const guessLang = (): Lang => {
   if (n.startsWith('ms')) return 'id';
   return (ALL.find((k) => n.startsWith(k)) ?? 'en') as Lang;
 };
-const guessTheme = (): Theme => {
-  try { const s = localStorage.getItem(THEME_KEY); if (s === 'light' || s === 'dark') return s; } catch { /* no storage */ }
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+const deviceTheme = (): Theme => (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+const guessMode = (): ThemeMode => {
+  try { const s = localStorage.getItem(THEME_KEY); if (s === 'light' || s === 'dark' || s === 'system') return s; } catch { /* no storage */ }
+  return 'system';
 };
 
 // languages without hand-written text use a dictionary from the English text (src/i18n/<lang>.json), loaded only when chosen
@@ -52,27 +55,35 @@ export const fill = (s: string, vars: Record<string, string | number>) => s.repl
 /** BCP 47 tag for dates and numbers. */
 export const locale = (lang: Lang) => (lang === 'zh' ? 'zh-CN' : lang === 'vi' ? 'vi-VN' : lang === 'id' ? 'id-ID' : lang === 'ja' ? 'ja-JP' : lang === 'ko' ? 'ko-KR' : lang === 'es' ? 'es-ES' : lang === 'fr' ? 'fr-FR' : lang === 'de' ? 'de-DE' : 'en-GB');
 
-type Ctx = { lang: Lang; setLang: (l: Lang) => void; theme: Theme; setTheme: (t: Theme) => void; t: <T>(v: Tr<T>) => T };
+type Ctx = { lang: Lang; setLang: (l: Lang) => void; theme: Theme; setTheme: (t: Theme) => void; themeMode: ThemeMode; setThemeMode: (m: ThemeMode) => void; t: <T>(v: Tr<T>) => T };
 const PrefsCtx = createContext<Ctx | null>(null);
 
 export function PrefsProvider({ children }: { children: ReactNode }) {
   const [lang, setLangS] = useState<Lang>(guessLang);
-  const [theme, setThemeS] = useState<Theme>(guessTheme);
+  const [themeMode, setModeS] = useState<ThemeMode>(guessMode);
+  const [device, setDevice] = useState<Theme>(deviceTheme);
+  const theme: Theme = themeMode === 'system' ? device : themeMode;
+  useEffect(() => {   // follow the device while the person has not chosen
+    const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
+    if (!mq) return;
+    const on = () => setDevice(mq.matches ? 'dark' : 'light');
+    mq.addEventListener?.('change', on);
+    return () => mq.removeEventListener?.('change', on);
+  }, []);
   const [, setLoaded] = useState(0);
   useEffect(() => {
     document.documentElement.lang = lang === 'zh' ? 'zh-CN' : lang;
     try { localStorage.setItem(LANG_KEY, lang); } catch { /* private mode */ }
     if (!DICTS[lang] && loaders[`../i18n/${lang}.json`]) loadDict(lang).then(() => setLoaded((n) => n + 1));
   }, [lang]);
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-    try { localStorage.setItem(THEME_KEY, theme); } catch { /* private mode */ }
-  }, [theme]);
+  useEffect(() => { document.documentElement.classList.toggle('dark', theme === 'dark'); }, [theme]);
+  useEffect(() => { try { if (themeMode === 'system') localStorage.removeItem(THEME_KEY); else localStorage.setItem(THEME_KEY, themeMode); } catch { /* private mode */ } }, [themeMode]);
   const setLang = useCallback((l: Lang) => setLangS(l), []);
-  const setTheme = useCallback((t: Theme) => setThemeS(t), []);
+  const setTheme = useCallback((t: Theme) => setModeS(t), []);
+  const setThemeMode = useCallback((m: ThemeMode) => setModeS(m), []);
   const dictReady = !!DICTS[lang];
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const value = useMemo<Ctx>(() => ({ lang, setLang, theme, setTheme, t: (v) => pick(lang, v) }), [lang, theme, setLang, setTheme, dictReady]);
+  const value = useMemo<Ctx>(() => ({ lang, setLang, theme, setTheme, themeMode, setThemeMode, t: (v) => pick(lang, v) }), [lang, theme, themeMode, setLang, setTheme, setThemeMode, dictReady]);
   return <PrefsCtx.Provider value={value}>{children}</PrefsCtx.Provider>;
 }
 

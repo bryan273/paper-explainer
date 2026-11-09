@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { ApiError, createJob, lookupPaper, uploadPaper, localPdfs, MAX_PDF_BYTES, MAX_PDF_FILES, TONES, type Job, type MakeOpts } from '@/lib/explainer';
+import { ApiError, createJob, lookupPaper, uploadPaper, localPdfs, MAX_PDF_BYTES, MAX_PDF_FILES, TONES, VIDEO_LANGS, VIDEO_LANG_NAME, creditsOf, type Job, type MakeOpts, type VideoLang } from '@/lib/explainer';
 import { PURPOSE, useSettings } from '@/lib/settings';
 import { track, useAccount } from '@/lib/account';
 import { fill, usePrefs, type Lang, pick, type Tr } from '@/lib/prefs';
@@ -37,12 +37,21 @@ const T = {
   min: { en: '{n} min', zh: '{n} 分钟', vi: '{n} phút', id: '{n} menit' },
   proOnly: { en: 'Longer than 5 minutes is part of Pro and Premium.', zh: '超过 5 分钟需要 Pro 或 Premium。', vi: 'Video dài hơn 5 phút dành cho Pro và Premium.', id: 'Lebih dari 5 menit untuk Pro dan Premium.' },
   plusOnly: { en: 'Longer than 3 minutes is part of Plus and above.', zh: '超过 3 分钟需要 Plus 及以上套餐。', vi: 'Video dài hơn 3 phút dành cho gói Plus trở lên.', id: 'Lebih dari 3 menit untuk Plus ke atas.' },
-  costTwo: { en: 'A video longer than 5 minutes counts as 2 videos.', zh: '超过 5 分钟的视频按 2 个计算。', vi: 'Video dài hơn 5 phút được tính là 2 video.', id: 'Video lebih dari 5 menit dihitung 2 video.' },
+  costTwo: { en: 'Every started 5 minutes uses one video credit.' },
   custom: { en: 'Anything to focus on? (optional)', zh: '有想重点讲的吗？（可选）', vi: 'Muốn tập trung vào điều gì? (không bắt buộc)', id: 'Ada yang ingin difokuskan? (opsional)' },
   customPh: { en: 'e.g. focus on the experiments, skip the maths, explain for a first-year student', zh: '例如：重点讲实验，跳过数学，按大一学生的水平讲', vi: 'vd: tập trung vào thí nghiệm, bỏ qua phần toán, giải thích cho sinh viên năm nhất', id: 'mis. fokus pada eksperimen, lewati matematika, jelaskan untuk mahasiswa tahun pertama' },
   interOn: { en: 'Stop after each part and ask me a question', zh: '每段结束后暂停并提问', vi: 'Dừng sau mỗi phần và hỏi tôi một câu', id: 'Berhenti setiap bagian dan beri saya pertanyaan' },
   interHelp: { en: 'About 4 questions per video, with the explanation ready at once. You can also turn it on later while watching.', zh: '每个视频约 4 题，作答后立即看到讲解。观看时也可以再打开。', vi: 'Khoảng 4 câu mỗi video, có lời giải thích ngay. Bạn cũng có thể bật sau khi xem.', id: 'Sekitar 4 pertanyaan per video, penjelasannya langsung siap. Bisa juga dinyalakan nanti saat menonton.' },
   interLeft: { en: 'Interactive mode left: {n} of {c}', zh: '剩余互动模式次数：{n} / {c}', vi: 'Lượt tương tác còn lại: {n}/{c}', id: 'Sisa mode interaktif: {n} dari {c}' },
+  alsoH: { en: 'Also make it in another language' },
+  alsoP: { en: 'Each language is its own video and uses its own credits. Up to 3 more.' },
+  lenCredit1: { en: 'Uses 1 video credit: one for every started 5 minutes.' },
+  lenCreditsN: { en: 'Uses {n} video credits: one for every started 5 minutes.' },
+  premiumOnly: { en: 'Longer than 10 minutes is part of Premium.' },
+  ownH: { en: 'Your own style' },
+  ownP: { en: 'Describe how it should sound' },
+  ownPh: { en: 'e.g. like a lab meeting: short, direct, with one joke' },
+  filesN: { en: '{n} files' },
   make: { en: 'Make video', zh: '开始制作', vi: 'Tạo video', id: 'Buat video' },
   makeN: { en: 'Make {n} videos', zh: '制作 {n} 个视频', vi: 'Tạo {n} video', id: 'Buat {n} video' },
   uploading: { en: 'Uploading {i} of {n}…', zh: '正在上传 {i} / {n}…', vi: 'Đang tải lên {i}/{n}…', id: 'Mengunggah {i} dari {n}…' },
@@ -75,7 +84,7 @@ const T = {
   },
   guide: { en: 'Read the full guide', zh: '查看完整指南', vi: 'Xem hướng dẫn đầy đủ', id: 'Baca panduan lengkap' },
 };
-type VLang = 'en' | 'zh' | 'vi' | 'id';
+type VLang = VideoLang;
 const TONE_L: Record<(typeof TONES)[number], Tr<[string, string]>> = {
   teacher: { en: ['Clear teacher', 'Step by step, like a good lecture'], zh: ['清晰讲师', '像一堂好课，循序渐进'], vi: ['Giảng viên rõ ràng', 'Từng bước, như một bài giảng hay'], id: ['Pengajar jelas', 'Langkah demi langkah, seperti kuliah yang baik'] },
   casual: { en: 'Friendly chat|Relaxed, everyday words'.split('|') as [string, string], zh: ['轻松聊天', '轻松、日常的语言'], vi: ['Trò chuyện thân thiện', 'Thoải mái, lời lẽ đời thường'], id: ['Obrolan santai', 'Santai, kata sehari-hari'] },
@@ -88,7 +97,7 @@ const EXAMPLES = [
   { label: 'Wikipedia: Photosynthesis', v: 'https://en.wikipedia.org/wiki/Photosynthesis' },
   { label: 'arXiv 2005.14165', v: 'https://arxiv.org/abs/2005.14165' },
 ];
-const LENS = [60, 120, 180, 300, 420, 600];
+const LENS = [60, 120, 180, 300, 420, 600, 900, 1200];
 const looksLikeLink = (v: string) => /\d{4}\.\d{4,5}|^https?:\/\/\S+\.\S+|^10\.\d{4,9}\//.test(v.trim());
 
 export default function NewVideo() {
@@ -102,28 +111,33 @@ export default function NewVideo() {
   const [text, setText] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [fileErr, setFileErr] = useState('');
-  const vOf = (l: Lang): VLang => (l === 'zh' || l === 'vi' || l === 'id' ? l : 'en');
+  const vOf = (l: Lang): VLang => ((VIDEO_LANGS as readonly string[]).includes(l) ? (l as VLang) : 'en');
   const [vlang, setVlang] = useState<VLang>(vOf(lang));
   const [seconds, setSeconds] = useState<number>(pset.purpose ? PURPOSE[pset.purpose].seconds : 180);
   const [tone, setTone] = useState<MakeOpts['tone']>(pset.purpose ? PURPOSE[pset.purpose].tone : 'teacher');
   const [voice, setVoice] = useState<MakeOpts['voice']>('female');
+  const [also, setAlso] = useState<VLang[]>([]);
+  const [ownTone, setOwnTone] = useState(false);
+  const [style, setStyle] = useState('');
   const [custom, setCustom] = useState('');
   const [inter, setInter] = useState(() => { try { return localStorage.getItem('pe-interactive') === '1'; } catch { return false; } });
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState('');
-  const [limit, setLimit] = useState<null | 'guest' | 'member' | 'length' | 'lengthPlus'>(null);
+  const [limit, setLimit] = useState<null | 'guest' | 'member' | 'length' | 'lengthPlus' | 'lengthPremium'>(null);
   const [existing, setExisting] = useState<Job[]>([]);
   const [drag, setDrag] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const pro = me?.admin || me?.plan === 'pro' || me?.plan === 'premium';
+  const premium = me?.admin || me?.plan === 'premium';
+  const pro = premium || me?.plan === 'pro';
   const plus = pro || me?.plan === 'plus';
-  // free: up to 3 minutes; Plus: 5; Pro and Premium: 10
-  const maxSec = pro ? 600 : plus ? 300 : 180;
+  // free: up to 3 minutes; Plus: 5; Pro: 10; Premium: 20
+  const maxSec = premium ? 1200 : pro ? 600 : plus ? 300 : 180;
   const left = (quota?.day_left ?? 0) + (user?.credits ?? 0);
-  const units = (seconds <= 300 ? 1 : 2) * (tab === 'file' ? Math.max(1, files.length) : 1);
+  const units = creditsOf(seconds) * (1 + also.length) * (tab === 'file' ? Math.max(1, files.length) : 1);
   const MB = MAX_PDF_BYTES / 1024 / 1024;
 
   useEffect(() => { setVlang(vOf(lang)); }, [lang]);
+  useEffect(() => { setAlso((a) => a.filter((x) => x !== vlang)); }, [vlang]);
   useEffect(() => {
     const v = link.trim();
     if (tab !== 'link' || !looksLikeLink(v)) { setExisting([]); return; }
@@ -146,24 +160,28 @@ export default function NewVideo() {
   const submit = async (e: FormEvent) => {
     e.preventDefault(); setErr(''); setLimit(null);
     if ((tab === 'link' && !link.trim()) || (tab === 'text' && text.trim().length < 300) || (tab === 'file' && !files.length)) { setErr(t(T.empty)); return; }
-    if (seconds > maxSec) { setLimit(seconds > 300 ? 'length' : 'lengthPlus'); return; }
+    if (seconds > maxSec) { setLimit(seconds > 600 ? 'lengthPremium' : seconds > 300 ? 'length' : 'lengthPlus'); return; }
     track('click_make', { tab, seconds, vlang });
-    const opts: MakeOpts = { voice, style: 'animated', tone, seconds, custom: custom.trim(), langs: vlang };
+    const note = [custom.trim(), ownTone && style.trim() ? `Narration style: ${style.trim()}` : ''].filter(Boolean).join('. ').slice(0, 300);
+    const opts: MakeOpts = { voice, style: 'animated', tone, seconds, custom: note, langs: vlang };
+    const langsToMake: VLang[] = [vlang, ...also];
     const made: Job[] = [];
     try {
       if (tab === 'link') {
         setBusy('make');
-        made.push(await createJob(link.trim(), { ...opts, force_new: existing.length > 0 }));
+        for (const lg of langsToMake) made.push(await createJob(link.trim(), { ...opts, langs: lg, force_new: existing.length > 0 || lg !== vlang }));
       } else if (tab === 'text') {
         setBusy('make');
         const title = text.trim().split('\n')[0].slice(0, 80);
         const path = await uploadPaper(new Blob([text.trim()], { type: 'text/plain' }), title);
         made.push(await createJob('', { ...opts, force_new: true, upload: path, name: title }));
+        for (const lg of also) { const p2 = await uploadPaper(new Blob([text.trim()], { type: 'text/plain' }), title); made.push(await createJob('', { ...opts, langs: lg, force_new: true, upload: p2, name: title })); }
       } else {
         for (let i = 0; i < files.length; i++) {
           setBusy(fill(t(T.uploading), { i: i + 1, n: files.length }));
           const path = await uploadPaper(files[i]);
           const j = await createJob('', { ...opts, force_new: true, upload: path, name: files[i].name });
+          for (const lg of also) { const p2 = await uploadPaper(files[i]); made.push(await createJob('', { ...opts, langs: lg, force_new: true, upload: p2, name: files[i].name })); }
           localPdfs.set(j.id, URL.createObjectURL(files[i]));
           made.push(j);
         }
@@ -173,6 +191,7 @@ export default function NewVideo() {
       else if (x instanceof ApiError && x.code === 'quota_member') setLimit('member');
       else if (x instanceof ApiError && x.code === 'length_pro') setLimit('length');
       else if (x instanceof ApiError && x.code === 'length_plus') setLimit('lengthPlus');
+      else if (x instanceof ApiError && x.code === 'length_premium') setLimit('lengthPremium');
       else if (x instanceof ApiError && x.code === 'upload_failed') setErr(t(T.uploadFail));
       else setErr(x instanceof ApiError ? x.message : t(T.network));
     } finally { setBusy(null); }
@@ -191,7 +210,7 @@ export default function NewVideo() {
   const it = me?.interactive;
 
   return (
-    <div className="mx-auto max-w-6xl py-8">
+    <div className="mx-auto max-w-6xl pb-24 pt-8">
       <h1 className="font-display text-3xl font-bold">{t(T.h)}</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">{t(T.s)}</p>
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
@@ -254,32 +273,44 @@ export default function NewVideo() {
           <section className={card} aria-labelledby="s2">
             <h2 id="s2" className="font-display text-lg font-semibold">{t(T.step2)}</h2>
             <div className="mt-5 grid gap-6">
-              <div>
+              <div data-g="vlang">
                 <p className="mb-2 text-sm font-medium">{t(T.vlang)}</p>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {(['en', 'zh', 'vi', 'id'] as VLang[]).map((l) => <button key={l} type="button" aria-pressed={vlang === l} onClick={() => setVlang(l)} className={seg(vlang === l)}>{{ en: 'English', zh: '中文', vi: 'Tiếng Việt', id: 'Bahasa Indonesia' }[l]}</button>)}
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                  {VIDEO_LANGS.map((l) => <button key={l} type="button" aria-pressed={vlang === l} onClick={() => setVlang(l)} className={seg(vlang === l)}>{VIDEO_LANG_NAME[l]}</button>)}
                 </div>
+                <details className="group mt-3" open={also.length > 0}>
+                  <summary className="cursor-pointer select-none text-sm font-medium text-primary">{t(T.alsoH)}{also.length > 0 && ` (${also.length})`}</summary>
+                  <p className="mt-1 text-xs text-muted-foreground">{t(T.alsoP)}</p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {VIDEO_LANGS.filter((l) => l !== vlang).map((l) => { const on = also.includes(l); return <button key={l} type="button" aria-pressed={on} onClick={() => setAlso(on ? also.filter((x) => x !== l) : [...also, l].slice(0, 3))} className={cn('rounded-full border px-3 py-1 text-xs font-medium transition', on ? 'border-primary bg-accent text-primary' : 'text-muted-foreground hover:border-foreground/30')}>{on ? '✓ ' : '+ '}{VIDEO_LANG_NAME[l]}</button>; })}
+                  </div>
+                </details>
               </div>
               <div data-g="length">
                 <p className="mb-2 text-sm font-medium">{t(T.length)}</p>
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
                   {LENS.map((n) => {
                     const locked = n > maxSec;
-                    return <button key={n} type="button" aria-pressed={seconds === n} onClick={() => setSeconds(n)} className={cn(seg(seconds === n), 'flex items-center justify-center gap-1')}>{fill(t(T.min), { n: n / 60 })}{locked && <Lock className="h-3 w-3" />}</button>;
+                    return <button key={n} type="button" aria-pressed={seconds === n} onClick={() => setSeconds(n)} className={cn(seg(seconds === n), 'flex items-center justify-center gap-1 whitespace-nowrap px-1.5')}>{fill(t(T.min), { n: n / 60 })}{locked && <Lock className="h-3 w-3" />}</button>;
                   })}
                 </div>
-                {seconds > 300 && !pro && <p className="mt-2 text-xs text-warning">{t(T.proOnly)} <Link to="/pricing" className="font-semibold underline">{t(T.plans)}</Link></p>}
+                <p className="mt-2 text-xs text-muted-foreground">{creditsOf(seconds) === 1 ? t(T.lenCredit1) : fill(t(T.lenCreditsN), { n: creditsOf(seconds) })}{seconds > maxSec && <> <span className="text-warning">{t(seconds > 600 ? T.premiumOnly : seconds > 300 ? T.proOnly : T.plusOnly)}</span> <Link to="/pricing" className="font-semibold underline">{t(T.plans)}</Link></>}</p>
               </div>
               <div data-g="tone">
                 <p className="mb-2 text-sm font-medium">{t(T.tone)}</p>
                 <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   {TONES.map((k) => (
-                    <button key={k} type="button" aria-pressed={tone === k} onClick={() => setTone(k)} className={cn('rounded-xl border p-3 text-left transition', tone === k ? 'border-primary bg-accent' : 'hover:border-foreground/30')}>
-                      <span className={cn('block text-sm font-semibold', tone === k && 'text-primary')}>{pick(lang, TONE_L[k])[0]}</span>
+                    <button key={k} type="button" aria-pressed={!ownTone && tone === k} onClick={() => { setTone(k); setOwnTone(false); }} className={cn('rounded-xl border p-3 text-left transition', !ownTone && tone === k ? 'border-primary bg-accent' : 'hover:border-foreground/30')}>
+                      <span className={cn('block text-sm font-semibold', !ownTone && tone === k && 'text-primary')}>{pick(lang, TONE_L[k])[0]}</span>
                       <span className="block text-xs text-muted-foreground">{pick(lang, TONE_L[k])[1]}</span>
                     </button>
                   ))}
+                  <button type="button" aria-pressed={ownTone} onClick={() => setOwnTone(true)} className={cn('rounded-xl border border-dashed p-3 text-left transition', ownTone ? 'border-primary bg-accent' : 'hover:border-foreground/30')}>
+                    <span className={cn('block text-sm font-semibold', ownTone && 'text-primary')}>{t(T.ownH)}</span>
+                    <span className="block text-xs text-muted-foreground">{t(T.ownP)}</span>
+                  </button>
                 </div>
+                {ownTone && <Input className="mt-2" value={style} onChange={(e) => setStyle(e.target.value)} maxLength={140} placeholder={t(T.ownPh)} aria-label={t(T.ownH)} autoFocus />}
               </div>
               <div>
                 <p className="mb-2 text-sm font-medium">{t(T.voice)}</p>
@@ -307,17 +338,26 @@ export default function NewVideo() {
           {limit && (
             <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm" role="alert">
               <AlertCircle className="h-5 w-5 text-warning" />
-              <span className="flex-1 font-medium">{limit === 'guest' ? t(T.limitGuest) : limit === 'member' ? t(T.limitMember) : limit === 'lengthPlus' ? t(T.plusOnly) : t(T.proOnly)}</span>
+              <span className="flex-1 font-medium">{limit === 'guest' ? t(T.limitGuest) : limit === 'member' ? t(T.limitMember) : limit === 'lengthPlus' ? t(T.plusOnly) : limit === 'lengthPremium' ? t(T.premiumOnly) : t(T.proOnly)}</span>
               {limit === 'guest' ? <Button size="sm" onClick={() => openAuth('register')}>{t(T.signup)}</Button> : <Button asChild size="sm"><Link to="/pricing">{t(T.plans)}</Link></Button>}
             </div>
           )}
           {err && <p className="flex items-start gap-2 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive" role="alert"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />{err}</p>}
 
-          <div data-g="make" className="sticky bottom-[68px] z-10 flex flex-col gap-3 rounded-2xl border bg-background/95 p-4 backdrop-blur sm:flex-row sm:items-center lg:bottom-4">
-            <p className="flex-1 text-sm text-muted-foreground">{!user ? t(T.costGuest) : me?.admin ? '' : fill(t(T.cost), { u: units, left })}</p>
-            <Button type="submit" size="lg" disabled={!!busy} className="sm:min-w-[200px]">
-              {busy ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{busy !== 'make' ? busy : ''}</> : <><Sparkles className="mr-2 h-4 w-4" />{tab === 'file' && files.length > 1 ? fill(t(T.makeN), { n: files.length }) : t(T.make)}</>}
-            </Button>
+          <div data-g="make" className="fixed inset-x-0 bottom-[57px] z-30 border-t bg-background/95 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.18)] backdrop-blur lg:bottom-0 lg:left-[248px]">
+            <div className="mx-auto flex max-w-6xl items-center gap-3 py-3 pl-4 pr-20 sm:pl-6 lg:pl-10 lg:pr-24">
+              <div className="hidden min-w-0 flex-1 flex-wrap items-center gap-1.5 text-xs sm:flex">
+                <span className="rounded-full bg-muted px-2.5 py-1 font-medium">{tab === 'link' ? t(T.link) : tab === 'text' ? t(T.text) : fill(t(T.filesN), { n: files.length })}</span>
+                <span className="rounded-full bg-muted px-2.5 py-1 font-medium">{[vlang, ...also].map((l) => VIDEO_LANG_NAME[l]).join(' + ')}</span>
+                <span className="rounded-full bg-muted px-2.5 py-1 font-medium">{fill(t(T.min), { n: seconds / 60 })}</span>
+                {inter && <span className="rounded-full bg-accent px-2.5 py-1 font-medium text-primary">{t(T.step3).replace(/^3\. /, '')}</span>}
+                <span className="ml-1 text-muted-foreground">{!user ? t(T.costGuest) : me?.admin ? '' : fill(t(T.cost), { u: units, left })}</span>
+              </div>
+              <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground sm:hidden">{!user ? t(T.costGuest) : me?.admin ? '' : fill(t(T.cost), { u: units, left })}</p>
+              <Button type="submit" size="lg" disabled={!!busy} className="shrink-0 sm:min-w-[200px]">
+                {busy ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{busy !== 'make' ? busy : ''}</> : <><Sparkles className="mr-2 h-4 w-4" />{also.length || (tab === 'file' && files.length > 1) ? fill(t(T.makeN), { n: (1 + also.length) * (tab === 'file' ? Math.max(1, files.length) : 1) }) : t(T.make)}</>}
+              </Button>
+            </div>
           </div>
         </form>
 

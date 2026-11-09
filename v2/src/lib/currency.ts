@@ -5,12 +5,12 @@ import type { Lang } from '@/lib/prefs';
 export type PriceKey = 'plus_month' | 'plus_year' | 'pro_month' | 'pro_year' | 'premium_month' | 'premium_year' | 'pack_5' | 'pack_20' | 'pack_50';
 const TABLE: Record<PriceKey, [number, number, number]> = {
   //            CNY   VND        IDR
-  plus_month: [33, 89000, 79000],
-  plus_year: [330, 890000, 790000],
-  pro_month: [59, 159000, 139000],
-  pro_year: [590, 1590000, 1390000],
-  premium_month: [109, 299000, 259000],
-  premium_year: [1090, 2990000, 2590000],
+  plus_month: [29, 79000, 69000],
+  plus_year: [290, 790000, 690000],
+  pro_month: [55, 149000, 129000],
+  pro_year: [550, 1490000, 1290000],
+  premium_month: [99, 269000, 239000],
+  premium_year: [990, 2690000, 2390000],
   pack_5: [19, 69000, 45000],
   pack_20: [59, 209000, 139000],
   pack_50: [129, 459000, 299000],

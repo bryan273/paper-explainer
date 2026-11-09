@@ -13,7 +13,9 @@ export type Interactive = { used: number; cap: number; left: number; resets: str
 export type Tiers = Record<string, { interactive: number; deep: number }>;
 export type Verify = { status: 'pending' | 'approved' | 'rejected'; role: string; school?: string } | null;
 export type Referral = { code: string; invited: number; reward: number; max: number } | null;
+export type Use = { used: number; cap: number; left: number; period: 'day' | 'week' | 'month' };
 export type Me = {
+  usage?: { quick: Use; deep: Use; research: Use };
   admin?: boolean; user: Member | null; quota: Quota; limits: { guest: number; member: number; welcome: number }; packs: Record<string, Pack>;
   country?: string | null; plan?: string | null; plan_until?: string | null; plan_source?: string | null; interactive?: Interactive; tiers?: Tiers; verify?: Verify; referral?: Referral;
 };

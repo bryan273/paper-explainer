@@ -47,7 +47,7 @@ export interface Job {
   title?: string | null;
   videos?: Videos | null;
   sections?: Section[] | null;
-  langs?: 'en' | 'zh' | 'vi' | 'id' | 'both' | null;
+  langs?: VideoLang | 'both' | null;
   checks?: { checked?: number | null; removed?: string[] | null } | null;
   error?: string | null;
   cached?: boolean;
@@ -117,6 +117,12 @@ export const HERO_EXAMPLE = EXAMPLE_ORDER[0];
 
 export const STYLES = ['animated', 'cinema', 'classic', 'light', 'sunset', 'mono'] as const;
 export const TONES = ['teacher', 'casual', 'academic', 'eli5', 'story'] as const;
+/** The 9 languages a video can be narrated in; one language per video. */
+export const VIDEO_LANGS = ['en', 'zh', 'vi', 'id', 'ja', 'ko', 'es', 'fr', 'de'] as const;
+export type VideoLang = (typeof VIDEO_LANGS)[number];
+export const VIDEO_LANG_NAME: Record<VideoLang, string> = { en: 'English', zh: '中文', vi: 'Tiếng Việt', id: 'Bahasa Indonesia', ja: '日本語', ko: '한국어', es: 'Español', fr: 'Français', de: 'Deutsch' };
+/** Video credits a video uses: one for every started 5 minutes. */
+export const creditsOf = (sec: number) => Math.max(1, Math.ceil(sec / 300));
 export const LENGTHS = [60, 120, 180, 300, 420, 600] as const;
 export type MakeOpts = {
   model?: 'deepseek' | 'stepfun';
@@ -126,7 +132,7 @@ export type MakeOpts = {
   seconds: number;
   custom: string;
   /** the language the video is made in */
-  langs?: 'en' | 'zh' | 'vi' | 'id' | 'both';
+  langs?: VideoLang;
   force_new?: boolean;
   /** a path from uploadPaper(): make the video from that PDF instead of a link */
   upload?: string;
@@ -177,6 +183,18 @@ export async function createJob(arxiv: string, opts?: MakeOpts): Promise<Job> {
   })) as Job;
   if (!job.cached) rememberMine(job.id);
   return job;
+}
+
+export type EditKind = 'fix' | 'add' | 'simpler' | 'deeper' | 'other';
+/** Re-make one part of a finished video as a new version (does not use a video credit). */
+export async function editJob(job: string, part: number, kind: EditKind, note: string): Promise<Job & { edit?: { used: number; cap: number } }> {
+  const j = (await request({ method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ op: 'edit', job, part, kind, note, visitor: visitorId() }) })) as Job & { edit?: { used: number; cap: number } };
+  rememberMine(j.id);
+  return j;
+}
+/** How many edits this video (and its versions) has used, and the plan's cap. */
+export async function editsOf(job: string): Promise<{ used: number; cap: number; root?: string; versions?: { job: string; part: number; note: string; at: string }[] }> {
+  return (await request({ method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ op: 'edits', job }) })) as { used: number; cap: number };
 }
 
 export async function getJob(id: string): Promise<Job> {

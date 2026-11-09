@@ -1,12 +1,12 @@
 import { NavLink, Outlet, Link, useLocation } from 'react-router-dom';
-import { BookOpen, FlaskConical, Home, Library, Plus, Shield, Sparkles, Settings } from 'lucide-react';
+import { BookOpen, FlaskConical, GraduationCap, Home, Library, Plus, Shield, Sparkles, Settings } from 'lucide-react';
 import { Logo } from '@/components/brand';
 import { Button } from '@/components/ui/button';
 import { LangMenu, PlanBadge, ProfileMenu } from '@/components/site/menus';
 import { useAccount } from '@/lib/account';
 import { fill, usePrefs } from '@/lib/prefs';
 import { NAV } from '@/lib/strings';
-import { Guide } from '@/components/app/Guide';
+import { Guide, guideKey } from '@/components/app/Guide';
 import { cn } from '@/lib/utils';
 
 const U = {
@@ -15,7 +15,7 @@ const U = {
   freeWeek: { en: '{f} free this week + {c} credits', zh: '本周免费 {f} + 额度 {c}', vi: '{f} miễn phí trong tuần + {c} tín dụng', id: '{f} gratis minggu ini + {c} kredit' },
   freeToday: { en: '{f} free today + {c} credits', zh: '今日免费 {f} + 额度 {c}', vi: '{f} miễn phí hôm nay + {c} tín dụng', id: '{f} gratis hari ini + {c} kredit' },
   guestT: { en: 'You are browsing as a guest', zh: '你正在以访客身份使用', vi: 'Bạn đang dùng với tư cách khách', id: 'Anda menjelajah sebagai tamu' },
-  guestP: { en: 'Sign up free to keep your videos, get 5 videos a week and 3 welcome videos with interactive mode.', zh: '免费注册：保存视频，每周 5 个视频，另送 3 个含互动模式的欢迎视频。', vi: 'Đăng ký miễn phí để lưu video, nhận 5 video mỗi tuần và 3 video chào mừng có chế độ tương tác.', id: 'Daftar gratis untuk menyimpan video, dapat 5 video per minggu dan 3 video sambutan dengan mode interaktif.' },
+  guestP: { en: 'Sign up free to keep your videos, get 3 videos a week and 3 welcome videos with interactive mode.' },
 };
 
 /** Usage at a glance, always in the same place. */
@@ -100,8 +100,9 @@ export function AppLayout() {
         <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background/85 px-4 backdrop-blur-md sm:px-6">
           <Logo className="lg:hidden" to="/app" />
           <div className="ml-auto flex items-center gap-1.5">
+            {guideKey(loc.pathname) && <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => window.dispatchEvent(new Event('pl-guide'))} data-tutorial-button><GraduationCap className="h-4 w-4" /><span className="hidden sm:inline">{t(NAV.tutorial)}</span></Button>}
             <Button asChild variant="ghost" size="sm" className="hidden text-muted-foreground sm:inline-flex"><Link to="/help">{t(NAV.help)}</Link></Button>
-            <LangMenu compact />
+            {!user && <LangMenu compact />}
             {user ? <ProfileMenu /> : <GuestButtons />}
           </div>
         </header>

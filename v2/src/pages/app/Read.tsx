@@ -7,12 +7,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { AgentError, emptyRun, parseArxivId, runAgent, type AgentRun } from '@/lib/read/agent';
 import { getSessionByShareId, listRecentSessions, noteCount, saveSession, type SessionRecord } from '@/lib/read/sessions';
 import { copyText } from '@/lib/explainer';
+import { accountApi, useAccount } from '@/lib/account';
 import { usePrefs, pick } from '@/lib/prefs';
 import { dateFmt } from '@/lib/strings';
 import { cn } from '@/lib/utils';
 
 const R = {
-  h: { en: 'Read with cited answers', zh: '带引用地阅读', vi: 'Đọc kèm câu trả lời có trích dẫn', id: 'Membaca dengan jawaban bersitasi' },
+  leftMonth: { en: '{n} of {c} research questions left this month' },
+  leftWeek: { en: '{n} of {c} research questions left this week' },
+  leftDay: { en: '{n} of {c} research questions left today' },
+  h: { en: 'Research answers', zh: '研究问答', vi: 'Hỏi đáp nghiên cứu', id: 'Jawaban riset' },
   s: { en: 'Ask a research question. The AI plans, searches arXiv, reads the full papers and answers with numbered quotes you can check, then reviews its own answer.', zh: '提出一个研究问题。AI 会制定计划、搜索 arXiv、阅读全文，并用可核对的编号引文作答，最后自查答案。', vi: 'Đặt một câu hỏi nghiên cứu. AI lập kế hoạch, tìm trên arXiv, đọc toàn văn và trả lời kèm trích dẫn đánh số để bạn kiểm tra, rồi tự rà soát câu trả lời.', id: 'Ajukan pertanyaan riset. AI membuat rencana, mencari di arXiv, membaca makalah lengkap, dan menjawab dengan kutipan bernomor yang bisa Anda cek, lalu memeriksa jawabannya sendiri.' },
   goal: { en: 'Your question', zh: '你的问题', vi: 'Câu hỏi của bạn', id: 'Pertanyaan Anda' },
   goalPh: { en: 'e.g. How do vision transformers compare with CNNs on small datasets?', zh: '例如：在小数据集上，视觉 Transformer 和 CNN 相比如何？', vi: 'vd: Vision transformer so với CNN thế nào trên tập dữ liệu nhỏ?', id: 'mis. Bagaimana vision transformer dibanding CNN pada dataset kecil?' },
@@ -50,6 +54,8 @@ const R = {
 
 export default function Read() {
   const { lang, t } = usePrefs();
+  const { me, refresh } = useAccount();
+  const ru = me?.usage?.research;
   const { shareId: sharedId } = useParams<{ shareId: string }>();
   const [sharedState, setSharedState] = useState<'' | 'gone'>('');
   const [goal, setGoal] = useState('');
@@ -79,7 +85,10 @@ export default function Read() {
     const g = g0.trim(); if (!g) { setErr(t(R.needGoal)); return; }
     let paperId: string | null = null;
     if (p0.trim()) { paperId = parseArxivId(p0); if (!paperId) { setErr(t(R.badPaper)); return; } }
-    setErr(''); setShareId(''); setRunning(true); setRun(emptyRun());
+    setErr('');
+    try { await accountApi('research_start', { goal: g }); refresh(); }
+    catch (x) { setErr((x as Error).message); return; }
+    setShareId(''); setRunning(true); setRun(emptyRun());
     const c = new AbortController(); abort.current = c;
     requestAnimationFrame(() => work.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
     let fin: AgentRun | null = null;
@@ -107,6 +116,7 @@ export default function Read() {
           <div data-g="start" className="flex gap-2">
             <Button type="submit" disabled={running}>{running ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}{t(R.start)}</Button>
             {running && <Button type="button" variant="outline" onClick={() => abort.current?.abort()}><Square className="mr-1.5 h-3.5 w-3.5" />{t(R.stop)}</Button>}
+            {ru && !me?.admin && <span className="self-center text-xs text-muted-foreground">{t(ru.period === 'month' ? R.leftMonth : ru.period === 'week' ? R.leftWeek : R.leftDay).replace('{n}', String(ru.left)).replace('{c}', String(ru.cap))}</span>}
           </div>
         </form>
         <aside data-g="examples" className="pl-card p-5">

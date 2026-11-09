@@ -1,7 +1,7 @@
 // Words used in more than one place, in the four languages. Page-specific words live with their page.
 export const NAV = {
   video: { en: 'Video', zh: '视频', vi: 'Video', id: 'Video' },
-  read: { en: 'Read', zh: '阅读', vi: 'Đọc', id: 'Baca' },
+  read: { en: 'Research', zh: '研究问答', vi: 'Nghiên cứu', id: 'Riset' },
   check: { en: 'Check', zh: '复现', vi: 'Kiểm chứng', id: 'Cek' },
   pricing: { en: 'Pricing', zh: '价格', vi: 'Bảng giá', id: 'Harga' },
   help: { en: 'Help', zh: '帮助', vi: 'Trợ giúp', id: 'Bantuan' },
@@ -19,6 +19,12 @@ export const NAV = {
   tour: { en: 'Show the guide again', zh: '再次查看使用引导', vi: 'Xem lại hướng dẫn', id: 'Lihat panduan lagi' },
   switchTo: { en: 'Switch account', zh: '切换账户', vi: 'Đổi tài khoản', id: 'Ganti akun' },
   theme: { en: 'Dark mode', zh: '深色模式', vi: 'Chế độ tối', id: 'Mode gelap' },
+  themeH: { en: 'Theme' },
+  themeAuto: { en: 'Auto' },
+  themeLight: { en: 'Light' },
+  themeDark: { en: 'Dark' },
+  tutorial: { en: 'Tutorial' },
+  whatsNew: { en: 'What is new' },
   language: { en: 'Language', zh: '语言', vi: 'Ngôn ngữ', id: 'Bahasa' },
   upgrade: { en: 'Upgrade', zh: '升级', vi: 'Nâng cấp', id: 'Tingkatkan' },
   back: { en: 'Back', zh: '返回', vi: 'Quay lại', id: 'Kembali' },
@@ -27,11 +33,11 @@ export const NAV = {
 export const PRODUCT = {
   video: { en: 'Video learning', zh: '视频学习', vi: 'Học qua video', id: 'Belajar lewat video' },
   videoP: { en: 'A narrated video with chapters, and questions that stop the video to check you understood.', zh: '有旁白、分章节的视频，视频内会暂停提问，确认你真的看懂。', vi: 'Video có lời dẫn, chia chương, và câu hỏi dừng video để kiểm tra bạn đã hiểu.', id: 'Video bernarasi dengan bab, dan pertanyaan yang menghentikan video untuk mengecek pemahaman Anda.' },
-  text: { en: 'Text learning', zh: '文本学习', vi: 'Học qua văn bản', id: 'Belajar lewat teks' },
-  textP: { en: 'Read the source side by side with answers that point to the page they come from.', zh: '左边原文，右边回答，每个回答都标出出处页码。', vi: 'Đọc nguồn song song với câu trả lời chỉ rõ trang được trích.', id: 'Baca sumbernya berdampingan dengan jawaban yang menunjuk halaman asalnya.' },
-  deep: { en: 'Deep learning', zh: '深度学习', vi: 'Học chuyên sâu', id: 'Belajar mendalam' },
-  deepP: { en: 'Ask anything in depth, take a final quiz, and keep notes and flashcards.', zh: '深入追问任何问题，做期末测验，导出笔记和闪卡。', vi: 'Hỏi sâu bất cứ điều gì, làm bài kiểm tra cuối, lưu ghi chú và thẻ ghi nhớ.', id: 'Tanyakan apa saja secara mendalam, kerjakan kuis akhir, simpan catatan dan kartu hafalan.' },
-  repro: { en: 'Research reproduction', zh: '研究复现', vi: 'Tái lập nghiên cứu', id: 'Reproduksi riset' },
+  text: { en: 'Research answers', zh: '研究问答', vi: 'Hỏi đáp nghiên cứu', id: 'Jawaban riset' },
+  textP: { en: 'Ask a research question. The answer is built from real papers, and every quote shows the page it comes from.', zh: '提出研究问题，答案来自真实论文，每条引文都标明出处页码。', vi: 'Đặt câu hỏi nghiên cứu. Câu trả lời dựa trên bài báo thật, mỗi trích dẫn ghi rõ trang nguồn.', id: 'Ajukan pertanyaan riset. Jawabannya dari makalah nyata, dan setiap kutipan menunjukkan halaman sumbernya.' },
+  deep: { en: 'Ask, quiz and notes', zh: '提问、测验和笔记', vi: 'Hỏi, kiểm tra và ghi chú', id: 'Tanya, kuis, dan catatan' },
+  deepP: { en: 'Inside every video: quick and in-depth answers, a final quiz, notes and flashcards. Open an example.', zh: '每个视频都自带：快速与深入回答、期末测验、笔记和闪卡。打开示例看看。', vi: 'Có sẵn trong mỗi video: trả lời nhanh và chuyên sâu, bài kiểm tra cuối, ghi chú và thẻ ghi nhớ. Mở ví dụ.', id: 'Ada di setiap video: jawaban cepat dan mendalam, kuis akhir, catatan, dan kartu hafalan. Buka contoh.' },
+  repro: { en: 'Reproduction check', zh: '复现检验', vi: 'Kiểm chứng tái lập', id: 'Cek reproduksi' },
   reproP: { en: 'For papers with public code: re-run it and see whether the reported number holds.', zh: '对公开代码的论文：重新运行，看报告的数字是否成立。', vi: 'Với bài báo có mã công khai: chạy lại và xem con số có đúng không.', id: 'Untuk makalah dengan kode terbuka: jalankan ulang dan lihat apakah angkanya benar.' },
 };
 

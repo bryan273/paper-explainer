@@ -12,9 +12,6 @@ import { PRODUCT, COMMON, NAV } from '@/lib/strings';
 import { cn } from '@/lib/utils';
 
 const L = {
-  newH: { en: 'What is new' },
-  newS: { en: 'Recent additions, in plain words.' },
-  news: { en: [['Interactive mode', 'Questions now sit inside the video: it stops after each part, asks you one thing and explains the answer.'], ['Nine languages', 'The whole site and the narration follow the language you choose.'], ['Pay in your own money', 'Prices in yuan, dong or rupiah, with WeChat Pay, Alipay, bank QR or QRIS.'], ['A guide on every page', 'The first time you open a page, a short walkthrough shows you where to click. Replay it any time.']] },
   h1: { en: 'Learn anything, your way.', zh: '用你的方式，学会任何东西。', vi: 'Học bất cứ điều gì, theo cách của bạn.', id: 'Pelajari apa saja, dengan cara Anda.' },
   lede: {
     en: 'Paperlit makes it easy. Give it a paper, an article or your own notes, and get a short video that asks you questions, a guided read whose answers show the page they come from, or a check of whether the results really hold.',
@@ -49,7 +46,7 @@ const L = {
   pS: { en: 'Start free. Upgrade when Paperlit becomes part of how you study.', zh: '先免费用，成为学习习惯后再升级。', vi: 'Bắt đầu miễn phí. Nâng cấp khi Paperlit thành thói quen học của bạn.', id: 'Mulai gratis. Tingkatkan saat Paperlit jadi bagian cara belajar Anda.' },
   perMonth: { en: '/ month', zh: '/ 月', vi: '/ tháng', id: '/ bulan' },
   vids: { en: '{n} videos a month', zh: '每月 {n} 个视频', vi: '{n} video mỗi tháng', id: '{n} video per bulan' },
-  freeLine: { en: '5 videos a week', zh: '每周 5 个视频', vi: '5 video mỗi tuần', id: '5 video per minggu' },
+  freeLine: { en: '3 videos a week' },
   hideCmp: { en: 'Hide the comparison', zh: '收起对比', vi: 'Thu gọn so sánh', id: 'Sembunyikan perbandingan' },
   buy: { en: 'Choose a plan', zh: '选择套餐', vi: 'Chọn gói', id: 'Pilih paket' },
   allPlans: { en: 'Compare all plans', zh: '比较所有套餐', vi: 'So sánh các gói', id: 'Bandingkan semua paket' },
@@ -61,8 +58,8 @@ const L = {
     id: [['Apa yang bisa saya masukkan?', 'Tautan ke halaman web atau makalah apa pun (arXiv, jurnal, blog, berita), teks yang ditempel, atau file PDF atau .txt. Video kuliah dan podcast segera hadir.'], ['Berapa lama membuat satu video?', 'Sekitar 4 sampai 8 menit. Anda boleh menutup tab; prosesnya berlanjut dan menunggu di pustaka Anda.'], ['Bagaimana AI dicegah mengarang?', 'Setiap kutipan dan angka di video dicocokkan dengan sumber, dan yang tidak cocok dibuang. Jawaban menunjukkan halaman asalnya.'], ['Apakah gratis?', 'Ya. Akun gratis mendapat 5 video setiap minggu, ditambah 3 video sambutan dengan mode interaktif saat mendaftar. Paket menambah jumlah dan durasi video, mode interaktif untuk lebih banyak video, dan lebih banyak jawaban mendalam.'], ['Apakah kelas bisa memakainya?', 'Bisa. Mahasiswa dan pengajar dapat 1 bulan Plus gratis setelah mengirim bukti, dan kami membuat paket khusus untuk kelas dan tim.']],
   },
   stH: { en: 'Students and teachers: a free month of Plus', zh: '学生和教师：免费用 1 个月 Plus', vi: 'Sinh viên và giảng viên: tặng 1 tháng Plus', id: 'Mahasiswa dan pengajar: 1 bulan Plus gratis' },
-  stP: { en: 'Send a photo of your student or staff card. Once we have checked it, Plus switches on with its 80 videos.', zh: '上传学生证或工作证照片，审核通过后开通 Plus 及其 80 个视频。', vi: 'Gửi ảnh thẻ sinh viên hoặc thẻ giảng viên. Sau khi chúng tôi kiểm tra, gói Plus cùng 80 video sẽ được kích hoạt.', id: 'Kirim foto kartu mahasiswa atau kartu pengajar. Setelah kami cek, Plus aktif beserta 80 videonya.' },
-  stList: { en: ['80 videos', 'Interactive mode on 40 videos', 'Notes and flashcards'], zh: ['80 个视频', '40 个视频可开互动模式', '笔记和闪卡'], vi: ['80 video', 'Chế độ tương tác cho 40 video', 'Ghi chú và thẻ ghi nhớ'], id: ['80 video', 'Mode interaktif untuk 40 video', 'Catatan dan kartu hafalan'] },
+  stP: { en: 'Send a photo of your student or staff card. Once we have checked it, a free month of Plus switches on.' },
+  stList: { en: ['20 videos for the month', 'Interactive mode on every video', 'Notes and flashcards'] },
   stCta: { en: 'Get student Plus', zh: '申请学生 Plus', vi: 'Nhận Plus cho sinh viên', id: 'Ambil Plus pelajar' },
   endH: { en: 'Start with one paper today.', zh: '今天就从一篇论文开始。', vi: 'Hãy bắt đầu với một bài báo ngay hôm nay.', id: 'Mulai dari satu makalah hari ini.' },
   endP: { en: 'Your first videos are free. All it takes is a link, and a few minutes.', zh: '前几个视频免费。只需要一个链接，几分钟就好。', vi: 'Những video đầu tiên miễn phí. Chỉ cần một liên kết và vài phút.', id: 'Video pertama Anda gratis. Cukup satu tautan dan beberapa menit.' },
@@ -140,14 +137,6 @@ export default function Landing() {
               <span className="text-[14.5px] text-muted-foreground">{from}</span>
               <span className="text-[14.5px]">{to}</span>
             </div>
-          ))}
-        </div>
-      </Section>
-
-      <Section title={t(L.newH)} sub={t(L.newS)}>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {pickArr(lang, L.news).map(([h, p]) => (
-            <div key={h} className="pl-card p-5"><p className="font-display text-[16px] font-semibold">{h}</p><p className="mt-1.5 text-[14px] leading-relaxed text-muted-foreground">{p}</p></div>
           ))}
         </div>
       </Section>
