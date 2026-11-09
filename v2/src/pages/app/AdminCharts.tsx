@@ -27,7 +27,7 @@ export const compact = (n: number) => (Math.abs(n) >= 1e6 ? `${(n / 1e6).toFixed
 /** Bars, grouped or stacked, with a value axis, grid lines and a hover read-out. Big on purpose: this is the picture the decisions are made from. */
 export function BarChart({ labels, series, stacked = false, height = 300, fmt = compact }: { labels: string[]; series: Series[]; stacked?: boolean; height?: number; fmt?: (n: number) => string }) {
   const [box, W] = useWidth();
-  const H = height, L = 56, R = 12, T = 14, B = 34;
+  const H = height, L = 72, R = 12, T = 14, B = 34;
   const [hover, setHover] = useState<number | null>(null);
   const ref = useRef<SVGSVGElement>(null);
   const n = labels.length;
@@ -87,7 +87,7 @@ export function BarChart({ labels, series, stacked = false, height = 300, fmt = 
 /** Lines with a soft fill under the first one, for things that move continuously (members, visitors, tokens). */
 export function LineChart({ labels, series, height = 300, fmt = compact }: { labels: string[]; series: Series[]; height?: number; fmt?: (n: number) => string }) {
   const [box, W] = useWidth();
-  const H = height, L = 56, R = 16, T = 14, B = 34;
+  const H = height, L = 72, R = 16, T = 14, B = 34;
   const [hover, setHover] = useState<number | null>(null);
   const ref = useRef<SVGSVGElement>(null);
   const n = labels.length;
@@ -123,7 +123,7 @@ export function LineChart({ labels, series, height = 300, fmt = compact }: { lab
         {hover !== null && (
           <g>
             <line x1={x(hover)} x2={x(hover)} y1={T} y2={H - B} stroke="var(--text2)" strokeDasharray="3 3" />
-            {series.map((s) => <circle key={s.name} cx={x(hover)} cy={y(s.values[hover] || 0)} r={4.5} fill={s.color} stroke="var(--card)" strokeWidth={2} />)}
+            {series.map((s) => <circle key={s.name} cx={x(hover)} cy={y(s.values[hover] || 0)} r={4.5} fill={s.color} stroke="hsl(var(--card))" strokeWidth={2} />)}
           </g>
         )}
       </svg>
