@@ -12,7 +12,9 @@ import { PRODUCT, COMMON, NAV } from '@/lib/strings';
 import { cn } from '@/lib/utils';
 
 const L = {
-  chip: { en: 'New: interactive mode puts questions inside the video', zh: '新功能：互动模式，视频里直接答题', vi: 'Mới: chế độ tương tác đặt câu hỏi ngay trong video', id: 'Baru: mode interaktif menaruh pertanyaan di dalam video' },
+  newH: { en: 'What is new' },
+  newS: { en: 'Recent additions, in plain words.' },
+  news: { en: [['Interactive mode', 'Questions now sit inside the video: it stops after each part, asks you one thing and explains the answer.'], ['Nine languages', 'The whole site and the narration follow the language you choose.'], ['Pay in your own money', 'Prices in yuan, dong or rupiah, with WeChat Pay, Alipay, bank QR or QRIS.'], ['A guide on every page', 'The first time you open a page, a short walkthrough shows you where to click. Replay it any time.']] },
   h1: { en: 'Learn anything, your way.', zh: '用你的方式，学会任何东西。', vi: 'Học bất cứ điều gì, theo cách của bạn.', id: 'Pelajari apa saja, dengan cara Anda.' },
   lede: {
     en: 'Paperlit makes it easy. Give it a paper, an article or your own notes, and get a short video that asks you questions, a guided read whose answers show the page they come from, or a check of whether the results really hold.',
@@ -22,7 +24,7 @@ const L = {
   },
   cta1: { en: 'Make a free video', zh: '免费做一个视频', vi: 'Tạo video miễn phí', id: 'Buat video gratis' },
   cta2: { en: 'Watch an example', zh: '看示例', vi: 'Xem ví dụ', id: 'Lihat contoh' },
-  trust: { en: 'Free to start, no card needed. Available in English, 中文, Tiếng Việt, Bahasa Indonesia, 日本語, 한국어, Español, Français and Deutsch.', zh: '免费开始，无需绑卡。支持 English、中文、Tiếng Việt、Bahasa Indonesia、日本語、한국어、Español、Français、Deutsch。', vi: 'Bắt đầu miễn phí, không cần thẻ. Hỗ trợ English, 中文, Tiếng Việt, Bahasa Indonesia, 日本語, 한국어, Español, Français và Deutsch.', id: 'Mulai gratis, tanpa kartu. Tersedia dalam English, 中文, Tiếng Việt, Bahasa Indonesia, 日本語, 한국어, Español, Français, dan Deutsch.' },
+  trust: { en: 'Free to start, no card needed. Available in 9 languages.', zh: '免费开始，无需绑卡。支持 9 种语言。', vi: 'Bắt đầu miễn phí, không cần thẻ. Có sẵn 9 ngôn ngữ.', id: 'Mulai gratis, tanpa kartu. Tersedia dalam 9 bahasa.' },
   srcPaper: { en: 'Paper', zh: '论文', vi: 'Bài báo', id: 'Makalah' },
   srcArticle: { en: 'Article', zh: '文章', vi: 'Bài viết', id: 'Artikel' },
   srcNotes: { en: 'Your notes', zh: '你的笔记', vi: 'Ghi chú', id: 'Catatan' },
@@ -63,7 +65,7 @@ const L = {
   stList: { en: ['80 videos', 'Interactive mode on 40 videos', 'Notes and flashcards'], zh: ['80 个视频', '40 个视频可开互动模式', '笔记和闪卡'], vi: ['80 video', 'Chế độ tương tác cho 40 video', 'Ghi chú và thẻ ghi nhớ'], id: ['80 video', 'Mode interaktif untuk 40 video', 'Catatan dan kartu hafalan'] },
   stCta: { en: 'Get student Plus', zh: '申请学生 Plus', vi: 'Nhận Plus cho sinh viên', id: 'Ambil Plus pelajar' },
   endH: { en: 'Start with one paper today.', zh: '今天就从一篇论文开始。', vi: 'Hãy bắt đầu với một bài báo ngay hôm nay.', id: 'Mulai dari satu makalah hari ini.' },
-  endP: { en: 'Your first videos are free. All it takes is a link, and about five minutes.', zh: '前几个视频免费。只需要一个链接，大约五分钟。', vi: 'Những video đầu tiên miễn phí. Chỉ cần một liên kết và khoảng năm phút.', id: 'Video pertama Anda gratis. Cukup satu tautan dan sekitar lima menit.' },
+  endP: { en: 'Your first videos are free. All it takes is a link, and a few minutes.', zh: '前几个视频免费。只需要一个链接，几分钟就好。', vi: 'Những video đầu tiên miễn phí. Chỉ cần một liên kết và vài phút.', id: 'Video pertama Anda gratis. Cukup satu tautan dan beberapa menit.' },
 };
 
 const EXAMPLES: { id: string; title: string; min: number }[] = [
@@ -96,8 +98,7 @@ export default function Landing() {
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(60%_60%_at_20%_0%,hsl(var(--primary)/0.12),transparent),radial-gradient(40%_50%_at_90%_10%,hsl(var(--lit)/0.14),transparent)]" aria-hidden />
         <div className="pl-container relative pb-6 pt-16 sm:pt-24">
-          <Link to="/app/new" className="pl-chip no-underline hover:text-foreground"><span className="h-1.5 w-1.5 rounded-full bg-lit" />{t(L.chip)}</Link>
-          <h1 className="pl-h1 mt-6 max-w-[14ch]">{t(L.h1)}</h1>
+          <h1 className="pl-h1 max-w-[14ch]">{t(L.h1)}</h1>
           <p className="pl-lede mt-6 max-w-[60ch]">{t(L.lede)}</p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             {primary}
@@ -139,6 +140,14 @@ export default function Landing() {
               <span className="text-[14.5px] text-muted-foreground">{from}</span>
               <span className="text-[14.5px]">{to}</span>
             </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section title={t(L.newH)} sub={t(L.newS)}>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {pickArr(lang, L.news).map(([h, p]) => (
+            <div key={h} className="pl-card p-5"><p className="font-display text-[16px] font-semibold">{h}</p><p className="mt-1.5 text-[14px] leading-relaxed text-muted-foreground">{p}</p></div>
           ))}
         </div>
       </Section>
