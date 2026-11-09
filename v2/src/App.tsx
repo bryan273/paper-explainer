@@ -73,6 +73,7 @@ export default function App() {
                 <Route path="library" element={<Suspense fallback={<Spinner />}><LibraryPage /></Suspense>} />
                 <Route path="v/:id" element={<Suspense fallback={<Spinner />}><Watch /></Suspense>} />
                 <Route path="read" element={<Suspense fallback={<Spinner />}><Read /></Suspense>} />
+                <Route path="read/s/:shareId" element={<Suspense fallback={<Spinner />}><Read /></Suspense>} />
                 <Route path="check" element={<Suspense fallback={<Spinner />}><Check /></Suspense>} />
                 <Route path="account" element={<Suspense fallback={<Spinner />}><AccountPage /></Suspense>} />
                 <Route path="admin" element={<Suspense fallback={<Spinner />}><Admin /></Suspense>} />

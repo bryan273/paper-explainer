@@ -49,7 +49,7 @@ function useReleases() {
   const [prs, setPrs] = useState<Pr[] | null>(() => { try { const c = JSON.parse(localStorage.getItem('pe-prs') ?? 'null') as { at: number; v: Pr[] } | null; return c && Date.now() - c.at < 30 * 60000 ? c.v : null; } catch { return null; } });
   useEffect(() => {
     let alive = true;
-    fetch(`https://bryan273.github.io/repro-suite/hub/releases.json?t=${Date.now()}`).then((x) => x.json()).then((j) => alive && setSuite(j as SuiteRel[])).catch(() => alive && setSuite([]));
+    fetch(`${import.meta.env.BASE_URL}releases.json?t=${Date.now()}`).then((x) => x.json()).then((j) => alive && setSuite(j as SuiteRel[])).catch(() => alive && setSuite([]));
     if (prs) return () => { alive = false; };
     (async () => {
       const got = await Promise.all(REPOS.map(async ([repo]) => {

@@ -5,14 +5,6 @@ import { authHeaders, track } from '@/lib/account';
 
 export const RENDER_URL = 'https://wzdkroxbfrlqijbeiwpk.supabase.co/functions/v1/explainer-render';
 
-export const SUITE_URLS = {
-  repro: 'https://bryan273.github.io/repro-suite/repro/index.html',
-  bench: 'https://bryan273.github.io/repro-suite/repro/bench.html',
-  lite: 'https://bryan273.github.io/repro-suite/lite',
-  reading: 'https://bryan273.github.io/repro-suite/reading',
-  index: 'https://bryan273.github.io/repro-suite/indexboard/b/5dhum9j5h0',
-  all: 'https://bryan273.github.io/repro-suite/hub',
-} as const;
 
 export type JobStatus = 'queued' | 'running' | 'done' | 'failed';
 

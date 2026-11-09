@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { BookOpen, Check, CheckCircle2, Copy, ExternalLink, Loader2, Search, Square, Sparkles, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { AgentError, emptyRun, parseArxivId, runAgent, type AgentRun } from '@/lib/read/agent';
-import { listRecentSessions, noteCount, saveSession, type SessionRecord } from '@/lib/read/sessions';
+import { getSessionByShareId, listRecentSessions, noteCount, saveSession, type SessionRecord } from '@/lib/read/sessions';
 import { copyText } from '@/lib/explainer';
 import { usePrefs } from '@/lib/prefs';
 import { dateFmt } from '@/lib/strings';
@@ -41,12 +42,16 @@ const R = {
   recent: { en: 'Recent questions from readers', zh: '最近的阅读问题', vi: 'Câu hỏi gần đây', id: 'Pertanyaan terbaru' },
   rate: { en: 'Too many questions right now. Wait a minute and try again.', zh: '当前提问太多，请稍等一分钟再试。', vi: 'Hiện có quá nhiều câu hỏi. Đợi một phút rồi thử lại.', id: 'Terlalu banyak pertanyaan saat ini. Tunggu sebentar lalu coba lagi.' },
   aborted: { en: 'Stopped.', zh: '已停止。', vi: 'Đã dừng.', id: 'Dihentikan.' },
+  sharedGone: { en: 'This shared read was not found. It may have been removed.', zh: '找不到这个分享的精读，可能已被删除。', vi: 'Không tìm thấy lượt đọc được chia sẻ này. Có thể đã bị xóa.', id: 'Bacaan yang dibagikan ini tidak ditemukan. Mungkin sudah dihapus.' },
+  sharedBy: { en: 'You are viewing a shared read. Ask your own question below.', zh: '你正在查看别人分享的精读。可以在下面提出你自己的问题。', vi: 'Bạn đang xem một lượt đọc được chia sẻ. Hãy đặt câu hỏi của riêng bạn bên dưới.', id: 'Anda sedang melihat bacaan yang dibagikan. Ajukan pertanyaan Anda sendiri di bawah.' },
   fail: { en: 'Something went wrong: {m}', zh: '出了点问题：{m}', vi: 'Có lỗi xảy ra: {m}', id: 'Terjadi kesalahan: {m}' },
   notes_n: { en: '{n} quotes', zh: '{n} 条引文', vi: '{n} trích dẫn', id: '{n} kutipan' },
 };
 
 export default function Read() {
   const { lang, t } = usePrefs();
+  const { shareId: sharedId } = useParams<{ shareId: string }>();
+  const [sharedState, setSharedState] = useState<'' | 'gone'>('');
   const [goal, setGoal] = useState('');
   const [paper, setPaper] = useState('');
   const [run, setRun] = useState<AgentRun | null>(null);
@@ -59,6 +64,16 @@ export default function Read() {
   const work = useRef<HTMLDivElement>(null);
   const loadRecent = useCallback(async () => { try { setRecent(await listRecentSessions(8)); } catch { /* optional */ } }, []);
   useEffect(() => { loadRecent(); return () => abort.current?.abort(); }, [loadRecent]);
+  useEffect(() => {
+    if (!sharedId) { setSharedState(''); return; }
+    let alive = true;
+    getSessionByShareId(sharedId).then((s) => {
+      if (!alive) return;
+      if (!s) { setSharedState('gone'); return; }
+      setSharedState(''); setGoal(s.record.goal); setPaper(s.record.paper_id ?? ''); setRun(s.run); setShareId(sharedId);
+    }).catch(() => alive && setSharedState('gone'));
+    return () => { alive = false; };
+  }, [sharedId]);
 
   const start = async (g0: string, p0: string) => {
     const g = g0.trim(); if (!g) { setErr(t(R.needGoal)); return; }
@@ -73,7 +88,7 @@ export default function Read() {
     finally { setRunning(false); abort.current = null; }
     if (fin && fin.notes.length) { try { setShareId(await saveSession(fin, g, paperId, lang)); loadRecent(); } catch { /* sharing is optional */ } }
   };
-  const share = async () => { const url = `https://bryan273.github.io/repro-suite/reading/s/${shareId}`; if (await copyText(url)) { setCopied(true); window.setTimeout(() => setCopied(false), 2000); } };
+  const share = async () => { const url = `${window.location.origin}${import.meta.env.BASE_URL}app/read/s/${shareId}`; if (await copyText(url)) { setCopied(true); window.setTimeout(() => setCopied(false), 2000); } };
   const verifLabel = (v: string) => (v === 'fulltext' ? t(R.full) : v === 'abstract' ? t(R.abs) : t(R.unmatched));
   const answer = (text: string) => text.split(/(\[\d+\])/).map((p, i) => /^\[\d+\]$/.test(p)
     ? <a key={i} href={`#note-${p.slice(1, -1)}`} className="mx-0.5 rounded bg-accent px-1 text-xs font-bold text-primary no-underline">{p.slice(1, -1)}</a> : <span key={i}>{p}</span>);
@@ -82,6 +97,7 @@ export default function Read() {
     <div className="mx-auto max-w-6xl py-8">
       <h1 className="font-display text-3xl font-bold">{t(R.h)}</h1>
       <p className="mt-2 max-w-3xl text-muted-foreground">{t(R.s)}</p>
+      {sharedId && <p className={cn('mt-4 rounded-lg px-3 py-2 text-sm', sharedState === 'gone' ? 'bg-destructive/10 text-destructive' : 'bg-accent text-primary')} role="status">{t(sharedState === 'gone' ? R.sharedGone : R.sharedBy)}</p>}
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <form onSubmit={(e: FormEvent) => { e.preventDefault(); start(goal, paper); }} className="pl-card grid gap-4 p-5 sm:p-6">
           <div className="grid gap-1.5"><label htmlFor="rd-goal" className="text-sm font-medium">{t(R.goal)}</label>
@@ -155,10 +171,10 @@ export default function Read() {
           <h2 className="font-display text-lg font-semibold">{t(R.recent)}</h2>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {recent.map((r) => (
-              <a key={r.id} href={`https://bryan273.github.io/repro-suite/reading/s/${r.share_id}`} target="_blank" rel="noopener noreferrer" className="pl-card flex gap-3 p-4 no-underline transition hover:border-primary">
+              <Link key={r.id} to={`/app/read/s/${r.share_id}`} className="pl-card flex gap-3 p-4 no-underline transition hover:border-primary">
                 <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 <span className="min-w-0"><span className="line-clamp-2 block text-sm font-medium text-foreground">{r.goal}</span><span className="text-xs text-muted-foreground">{t(R.notes_n).replace('{n}', String(noteCount(r)))} · {dateFmt(r.created_at, lang, { day: 'numeric', month: 'short' })}</span></span>
-              </a>
+              </Link>
             ))}
           </div>
         </section>
