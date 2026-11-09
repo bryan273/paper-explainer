@@ -44,8 +44,8 @@ export default function LibraryPage() {
         <Button asChild><Link to="/app/new"><Plus className="mr-1.5 h-4 w-4" />{t(L.newV)}</Link></Button>
       </div>
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1 sm:max-w-sm"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t(L.search)} className="pl-9" aria-label={t(L.search)} /></div>
-        <div className="inline-flex w-fit rounded-lg bg-muted p-0.5" role="radiogroup">
+        <div data-g="search" className="relative flex-1 sm:max-w-sm"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t(L.search)} className="pl-9" aria-label={t(L.search)} /></div>
+        <div data-g="filter" className="inline-flex w-fit rounded-lg bg-muted p-0.5" role="radiogroup">
           {(['all', 'ready', 'making', 'failed'] as F[]).map((k) => <button key={k} type="button" role="radio" aria-checked={f === k} onClick={() => setF(k)} className={cn('rounded-md px-3 py-1.5 text-sm font-medium', f === k ? 'bg-background shadow-sm' : 'text-muted-foreground')}>{t(L[k])}</button>)}
         </div>
       </div>

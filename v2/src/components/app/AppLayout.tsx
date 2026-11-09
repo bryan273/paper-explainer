@@ -6,6 +6,7 @@ import { LangMenu, PlanBadge, ProfileMenu } from '@/components/site/menus';
 import { useAccount } from '@/lib/account';
 import { fill, usePrefs } from '@/lib/prefs';
 import { NAV } from '@/lib/strings';
+import { Guide } from '@/components/app/Guide';
 import { cn } from '@/lib/utils';
 
 const U = {
@@ -116,6 +117,7 @@ export function AppLayout() {
           </NavLink>
         ))}
       </nav>
+      <Guide />
     </div>
   );
 }

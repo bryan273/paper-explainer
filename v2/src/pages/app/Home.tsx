@@ -73,7 +73,7 @@ export default function Home() {
       <h1 className="font-display text-3xl font-bold">{user ? fill(t(H.hi), { n: displayName(user) }) : t(H.hiGuest)}</h1>
       <p className="mt-1 text-muted-foreground">{t(H.sub)}</p>
 
-      <form onSubmit={quick} className="mt-6 flex flex-col gap-2 rounded-2xl border bg-card p-2 shadow-sm sm:flex-row">
+      <form data-g="quick" onSubmit={quick} className="mt-6 flex flex-col gap-2 rounded-2xl border bg-card p-2 shadow-sm sm:flex-row">
         <div className="relative flex-1"><Link2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={link} onChange={(e) => setLink(e.target.value)} placeholder={t(H.quickPh)} className="h-12 border-0 pl-9 text-[15px] shadow-none focus-visible:ring-0" aria-label={t(H.quickPh)} /></div>
         <Button type="submit" size="lg" className="h-12"><Sparkles className="mr-2 h-4 w-4" />{t(H.go)}</Button>
       </form>
@@ -87,7 +87,7 @@ export default function Home() {
       )}
 
       {user && (
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div data-g="kpis" className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div className={kpi}>
             <p className="flex items-center gap-2 text-sm text-muted-foreground"><Video className="h-4 w-4" />{t(H.canMake)}</p>
             <p className="mt-2 font-display text-3xl font-bold">{me?.admin ? '∞' : free + credits}</p>
@@ -125,7 +125,7 @@ export default function Home() {
         </section>
       )}
 
-      <section className="mt-10">
+      <section data-g="recent" className="mt-10">
         <div className="flex items-baseline justify-between"><h2 className="font-display text-lg font-semibold">{t(H.recent)}</h2>{recent.length > 0 && <Link to="/app/library" className="flex items-center gap-1 text-sm font-medium text-primary no-underline">{t(H.all)}<ArrowRight className="h-4 w-4" /></Link>}</div>
         {jobs === null ? <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i}><Skeleton className="aspect-video rounded-xl" /><Skeleton className="mt-2 h-4 w-3/4" /></div>)}</div>
           : recent.length ? <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{recent.map((j) => <VideoCard key={j.id} j={j} />)}</div>
@@ -140,7 +140,7 @@ export default function Home() {
           )}
       </section>
 
-      <section className="mt-10 grid gap-4 lg:grid-cols-3">
+      <section data-g="tools" className="mt-10 grid gap-4 lg:grid-cols-3">
         <Link to="/app/read" className="pl-card flex gap-3 p-5 no-underline transition hover:border-primary"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent text-primary"><BookOpen className="h-5 w-5" /></span><span><span className="block font-semibold text-foreground">{t({ en: 'Read', zh: '阅读', vi: 'Đọc', id: 'Baca' })}</span><span className="block text-sm text-muted-foreground">{t(H.readP)}</span></span></Link>
         <Link to="/app/check" className="pl-card flex gap-3 p-5 no-underline transition hover:border-primary"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent text-primary"><FlaskConical className="h-5 w-5" /></span><span><span className="block font-semibold text-foreground">{t({ en: 'Check', zh: '复现', vi: 'Kiểm chứng', id: 'Cek' })}</span><span className="block text-sm text-muted-foreground">{t(H.checkP)}</span></span></Link>
         {user ? <InviteCard compact /> : <div className="pl-card flex gap-3 p-5"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent text-primary"><Gift className="h-5 w-5" /></span><span className="text-sm text-muted-foreground">{t(H.guestP)}</span></div>}

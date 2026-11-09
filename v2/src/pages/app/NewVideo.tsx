@@ -198,9 +198,9 @@ export default function NewVideo() {
         <form onSubmit={submit} className="grid content-start gap-5">
           <section className={card} aria-labelledby="s1">
             <h2 id="s1" className="font-display text-lg font-semibold">{t(T.step1)}</h2>
-            <div className="mt-4 inline-flex rounded-xl bg-muted p-1" role="tablist">
+            <div className="mt-4 inline-flex rounded-xl bg-muted p-1" role="tablist" data-g="src-tabs">
               {tabs.map((x) => (
-                <button key={x.k} type="button" role="tab" aria-selected={tab === x.k} onClick={() => { setTab(x.k); setErr(''); }}
+                <button key={x.k} data-g={`tab-${x.k}`} type="button" role="tab" aria-selected={tab === x.k} onClick={() => { setTab(x.k); setErr(''); }}
                   className={cn('flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition', tab === x.k ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}>
                   <x.icon className="h-4 w-4" />{x.label}
                 </button>
@@ -211,7 +211,7 @@ export default function NewVideo() {
                 <div className="grid gap-2">
                   <Input value={link} onChange={(e) => setLink(e.target.value)} placeholder={t(T.linkPh)} inputMode="url" aria-label={t(T.link)} className="h-12 text-[15px]" />
                   <p className="text-sm text-muted-foreground">{t(T.linkHelp)}</p>
-                  <div className="flex flex-wrap items-center gap-2 text-sm"><span className="text-muted-foreground">{t(T.tryThese)}</span>
+                  <div data-g="examples" className="flex flex-wrap items-center gap-2 text-sm"><span className="text-muted-foreground">{t(T.tryThese)}</span>
                     {EXAMPLES.map((x) => <button key={x.v} type="button" onClick={() => setLink(x.v)} className="rounded-full border px-2.5 py-1 text-xs hover:border-primary hover:text-primary">{x.label}</button>)}
                   </div>
                   {existing.length > 0 && (
@@ -260,7 +260,7 @@ export default function NewVideo() {
                   {(['en', 'zh', 'vi', 'id'] as VLang[]).map((l) => <button key={l} type="button" aria-pressed={vlang === l} onClick={() => setVlang(l)} className={seg(vlang === l)}>{{ en: 'English', zh: '中文', vi: 'Tiếng Việt', id: 'Bahasa Indonesia' }[l]}</button>)}
                 </div>
               </div>
-              <div>
+              <div data-g="length">
                 <p className="mb-2 text-sm font-medium">{t(T.length)}</p>
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
                   {LENS.map((n) => {
@@ -270,7 +270,7 @@ export default function NewVideo() {
                 </div>
                 {seconds > 300 && !pro && <p className="mt-2 text-xs text-warning">{t(T.proOnly)} <Link to="/pricing" className="font-semibold underline">{t(T.plans)}</Link></p>}
               </div>
-              <div>
+              <div data-g="tone">
                 <p className="mb-2 text-sm font-medium">{t(T.tone)}</p>
                 <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   {TONES.map((k) => (
@@ -292,7 +292,7 @@ export default function NewVideo() {
             </div>
           </section>
 
-          <section className={card} aria-labelledby="s3">
+          <section className={card} aria-labelledby="s3" data-g="interactive">
             <div className="flex items-start gap-4">
               <div className="flex-1">
                 <h2 id="s3" className="font-display text-lg font-semibold">{t(T.step3)}</h2>
@@ -313,7 +313,7 @@ export default function NewVideo() {
           )}
           {err && <p className="flex items-start gap-2 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive" role="alert"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />{err}</p>}
 
-          <div className="sticky bottom-[68px] z-10 flex flex-col gap-3 rounded-2xl border bg-background/95 p-4 backdrop-blur sm:flex-row sm:items-center lg:bottom-4">
+          <div data-g="make" className="sticky bottom-[68px] z-10 flex flex-col gap-3 rounded-2xl border bg-background/95 p-4 backdrop-blur sm:flex-row sm:items-center lg:bottom-4">
             <p className="flex-1 text-sm text-muted-foreground">{!user ? t(T.costGuest) : me?.admin ? '' : fill(t(T.cost), { u: units, left })}</p>
             <Button type="submit" size="lg" disabled={!!busy} className="sm:min-w-[200px]">
               {busy ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{busy !== 'make' ? busy : ''}</> : <><Sparkles className="mr-2 h-4 w-4" />{tab === 'file' && files.length > 1 ? fill(t(T.makeN), { n: files.length }) : t(T.make)}</>}

@@ -82,9 +82,9 @@ export default function Check() {
         <section>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-display text-lg font-semibold">{t(C.checked)}</h2>
-            <div className="relative w-full sm:w-72"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t(C.search)} className="pl-9" aria-label={t(C.search)} /></div>
+            <div data-g="search" className="relative w-full sm:w-72"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t(C.search)} className="pl-9" aria-label={t(C.search)} /></div>
           </div>
-          <div className="mt-4 overflow-hidden rounded-2xl border">
+          <div data-g="list" className="mt-4 overflow-hidden rounded-2xl border">
             {rows === null ? <div className="p-6"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
               : list.length === 0 ? <p className="p-6 text-sm text-muted-foreground">{t(C.none)}</p>
               : list.map((r, i) => {
@@ -103,7 +103,7 @@ export default function Check() {
           </div>
         </section>
         <aside className="grid content-start gap-5">
-          <section className="pl-card p-5">
+          <section data-g="request" className="pl-card p-5">
             <p className="flex items-center gap-2 font-display text-base font-semibold"><FlaskConical className="h-4 w-4 text-primary" />{t(C.reqH)}</p>
             <p className="mt-1 text-sm text-muted-foreground">{t(C.reqP)}</p>
             {state === 'sent' ? <p className="mt-4 rounded-lg bg-success/10 p-3 text-sm text-success">{t(C.sent)}</p> : (

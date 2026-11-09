@@ -315,7 +315,7 @@ function Studio({ job }: { job: Job }) {
   return (
     <div className="mx-auto grid max-w-[1400px] gap-6 py-4 sm:py-6 min-[1360px]:grid-cols-[minmax(0,1fr)_400px]">
       <div className="min-w-0">
-        <Player ref={player} src={src} poster={poster} chapters={chapters} title={job.title ?? ''} onTime={setNow} overlay={overlay} onPlay={() => { const k = storageKind(src); if (k) track('video_play', { k }); }} />
+        <div data-g="player"><Player ref={player} src={src} poster={poster} chapters={chapters} title={job.title ?? ''} onTime={setNow} overlay={overlay} onPlay={() => { const k = storageKind(src); if (k) track('video_play', { k }); }} /></div>
         <div className="px-4 sm:px-0">
           <div className="mt-4 flex flex-wrap items-start gap-3">
             <div className="min-w-0 flex-1">
@@ -335,7 +335,7 @@ function Studio({ job }: { job: Job }) {
               <div className="flex gap-2"><Button size="sm" onClick={() => openAuth('register')}>{t(W.signup)}</Button><Button size="sm" variant="outline" onClick={() => openAuth('login')}>{t(W.login)}</Button></div>
             </div>
           ) : (
-            <div className="mt-4 rounded-2xl border p-4">
+            <div data-g="inter" className="mt-4 rounded-2xl border p-4">
               <div className="flex items-center gap-3">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent text-primary"><Sparkles className="h-5 w-5" /></span>
                 <div className="min-w-0 flex-1">
@@ -360,7 +360,7 @@ function Studio({ job }: { job: Job }) {
           )}
 
           {secs.length > 0 && s && (
-            <section className="mt-4 rounded-2xl border p-4 sm:p-5" aria-label={t(W.chapters)}>
+            <section data-g="chapters" className="mt-4 rounded-2xl border p-4 sm:p-5" aria-label={t(W.chapters)}>
               <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-2">
                 {secs.map((x, i) => (
                   <button key={x.i} type="button" onClick={() => chapters[i] && go(chapters[i].start)} disabled={!chapters[i]} aria-current={i === current ? 'step' : undefined}
@@ -383,9 +383,9 @@ function Studio({ job }: { job: Job }) {
       </div>
 
       <aside id="side" className="mx-4 flex min-h-[560px] flex-col overflow-hidden rounded-2xl border bg-card sm:mx-0 min-[1360px]:sticky min-[1360px]:top-20 min-[1360px]:h-[calc(100dvh-104px)]">
-        <div className="grid grid-cols-3 border-b p-1" role="tablist">
+        <div className="grid grid-cols-3 border-b p-1" role="tablist" data-g="side-tabs">
           {([['ask', MessageSquare, t(W.ask)], ['quiz', Trophy, t(W.quiz)], ['paper', FileText, t(W.paper)]] as const).map(([k, Icon, label]) => (
-            <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={cn('flex items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition', tab === k ? 'bg-accent text-primary' : 'text-muted-foreground hover:text-foreground')}><Icon className="h-4 w-4" />{label}</button>
+            <button key={k} data-g={`tab-${k}`} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={cn('flex items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition', tab === k ? 'bg-accent text-primary' : 'text-muted-foreground hover:text-foreground')}><Icon className="h-4 w-4" />{label}</button>
           ))}
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">
