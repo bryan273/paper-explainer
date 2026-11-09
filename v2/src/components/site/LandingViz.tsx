@@ -255,7 +255,7 @@ export function Prism() {
   const mid = geo.h / 2;
   return (
     <div className="pl-card relative mt-14 grid items-stretch gap-3 p-5 sm:p-7 lg:grid-cols-[1fr_110px_1.3fr]">
-      <div className="flex flex-col">
+      <div className="flex min-w-0 flex-col">
         <div className="-mx-1 flex overflow-x-auto border-b [scrollbar-width:none]" role="tablist" aria-label="Source">
           {SRCS.map((k) => {
             const I = SRC_ICON[k]; const on = src === k; const soon = k === 'lecture' || k === 'podcast';
@@ -278,7 +278,7 @@ export function Prism() {
         <circle cx="8" cy={mid} r="6" fill="hsl(var(--lit))" />
       </svg>
       <div className="mx-auto h-6 w-0.5 bg-gradient-to-b from-lit to-primary lg:hidden" aria-hidden />
-      <div ref={col} className="grid content-center gap-2.5" onMouseEnter={() => setHold(true)} onMouseLeave={() => setHold(false)} onFocus={() => setHold(true)} onBlur={() => setHold(false)}>
+      <div ref={col} className="grid min-w-0 content-center gap-2.5" onMouseEnter={() => setHold(true)} onMouseLeave={() => setHold(false)} onFocus={() => setHold(true)} onBlur={() => setHold(false)}>
         {outs.map((o, i) => {
           const on = out === i;
           return (
@@ -443,7 +443,7 @@ export function HowItWorks() {
   return (
     <ol className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {(STEPS[lang] ?? STEPS.en).map(([h, p], i) => (
-        <li key={h} className="pl-card flex flex-col p-4">
+        <li key={h} className="pl-card flex min-w-0 flex-col p-4">
           <StepPic i={i} />
           <div className="mt-4 flex items-baseline gap-2.5 px-1"><span className="text-sm font-semibold text-primary">{String(i + 1).padStart(2, '0')}</span><p className="font-display text-lg font-semibold">{h}</p></div>
           <p className="mt-1 px-1 pb-1 text-[14px] leading-relaxed text-muted-foreground">{p}</p>
