@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, Check, FileText, FlaskConical, Lightbulb, Mic, Play, PlayCircle, Video, StickyNote, Newspaper, Quote, CircleHelp } from 'lucide-react';
+import { ArrowRight, Check, GraduationCap, Minus, Play, PlayCircle, Quote, CircleHelp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useAccount } from '@/lib/account';
 import { usePrefs, type Lang } from '@/lib/prefs';
-import { amount, fmtMoney } from '@/lib/currency';
+import { amount, fmtMoney, money, perMonthOfYear, type PriceKey } from '@/lib/currency';
+import { Prism, StepVisual } from '@/components/site/LandingViz';
+import { HL, P, ROWS } from '@/pages/Pricing';
 import { PRODUCT, COMMON, NAV } from '@/lib/strings';
 import { cn } from '@/lib/utils';
 
@@ -58,6 +60,8 @@ const L = {
   perMonth: { en: '/ month', zh: '/ 月', vi: '/ tháng', id: '/ bulan' },
   vids: { en: '{n} videos a month', zh: '每月 {n} 个视频', vi: '{n} video mỗi tháng', id: '{n} video per bulan' },
   freeLine: { en: '1 video a day + 3 welcome videos', zh: '每天 1 个 + 3 个欢迎视频', vi: '1 video mỗi ngày + 3 video chào mừng', id: '1 video per hari + 3 video sambutan' },
+  hideCmp: { en: 'Hide the comparison', zh: '收起对比', vi: 'Thu gọn so sánh', id: 'Sembunyikan perbandingan' },
+  buy: { en: 'Choose a plan', zh: '选择套餐', vi: 'Chọn gói', id: 'Pilih paket' },
   allPlans: { en: 'Compare all plans', zh: '比较所有套餐', vi: 'So sánh các gói', id: 'Bandingkan semua paket' },
   faqH: { en: 'Questions people ask', zh: '常见问题', vi: 'Câu hỏi thường gặp', id: 'Pertanyaan umum' },
   faq: {
@@ -66,6 +70,10 @@ const L = {
     vi: [['Tôi có thể đưa gì vào?', 'Liên kết tới bất kỳ trang web hay bài báo nào (arXiv, tạp chí, blog, báo), văn bản dán vào, hoặc tệp PDF, .txt. Video bài giảng và podcast sắp có.'], ['Làm một video mất bao lâu?', 'Khoảng 4 đến 8 phút. Bạn có thể đóng tab; video vẫn được làm tiếp và chờ trong thư viện.'], ['Làm sao để AI không bịa?', 'Mọi trích dẫn và con số trong video đều được đối chiếu với nguồn, phần nào không khớp sẽ bị loại. Câu trả lời ghi rõ trang nguồn.'], ['Có miễn phí không?', 'Có, để bắt đầu: tặng 3 video, sau đó mỗi ngày 1 video miễn phí. Các gói có thêm video, video tương tác và câu trả lời chuyên sâu.'], ['Lớp học có dùng được không?', 'Được. Sinh viên và giảng viên được tặng 1 tháng Plus sau khi gửi giấy tờ, và chúng tôi có gói riêng cho lớp học, nhóm.']],
     id: [['Apa yang bisa saya masukkan?', 'Tautan ke halaman web atau makalah apa pun (arXiv, jurnal, blog, berita), teks yang ditempel, atau file PDF atau .txt. Video kuliah dan podcast segera hadir.'], ['Berapa lama membuat satu video?', 'Sekitar 4 sampai 8 menit. Anda boleh menutup tab; prosesnya berlanjut dan menunggu di pustaka Anda.'], ['Bagaimana AI dicegah mengarang?', 'Setiap kutipan dan angka di video dicocokkan dengan sumber, dan yang tidak cocok dibuang. Jawaban menunjukkan halaman asalnya.'], ['Apakah gratis?', 'Ya, untuk mulai: 3 video sambutan, lalu 1 video gratis setiap hari. Paket menambah video, video interaktif, dan jawaban mendalam.'], ['Apakah kelas bisa memakainya?', 'Bisa. Mahasiswa dan pengajar dapat 1 bulan Plus gratis setelah mengirim bukti, dan kami membuat paket khusus untuk kelas dan tim.']],
   },
+  stH: { en: 'Students and teachers: a free month of Plus', zh: '学生和教师：免费用 1 个月 Plus', vi: 'Sinh viên và giảng viên: tặng 1 tháng Plus', id: 'Mahasiswa dan pengajar: 1 bulan Plus gratis' },
+  stP: { en: 'Send a photo of your student or staff card. After we check it, Plus switches on with its 50 videos.', zh: '上传学生证或工作证照片，审核通过后开通 Plus 和 50 个视频。', vi: 'Gửi ảnh thẻ sinh viên hoặc thẻ giảng viên. Sau khi duyệt, Plus và 50 video được kích hoạt.', id: 'Kirim foto kartu mahasiswa atau pengajar. Setelah dicek, Plus aktif beserta 50 videonya.' },
+  stList: { en: ['50 videos', '10 interactive videos', 'Notes and flashcards'], zh: ['50 个视频', '10 个互动视频', '笔记和闪卡'], vi: ['50 video', '10 video tương tác', 'Ghi chú và thẻ ghi nhớ'], id: ['50 video', '10 video interaktif', 'Catatan dan kartu hafalan'] },
+  stCta: { en: 'Get student Plus', zh: '申请学生 Plus', vi: 'Nhận Plus cho sinh viên', id: 'Ambil Plus pelajar' },
   endH: { en: 'Learn anything, in the way that works for you.', zh: '学任何东西，用最适合你的方式。', vi: 'Học bất cứ điều gì, theo cách hợp với bạn.', id: 'Pelajari apa saja, dengan cara yang cocok untuk Anda.' },
   endP: { en: 'Your first video is free. It takes a link and about five minutes.', zh: '第一个视频免费，只需一个链接和大约五分钟。', vi: 'Video đầu tiên miễn phí. Chỉ cần một liên kết và khoảng năm phút.', id: 'Video pertama gratis. Cukup satu tautan dan sekitar lima menit.' },
   mockQ: { en: 'Why does a residual block make deep networks easier to train?', zh: '为什么残差块让深层网络更容易训练？', vi: 'Vì sao khối residual giúp mạng sâu dễ huấn luyện hơn?', id: 'Mengapa blok residual membuat jaringan dalam lebih mudah dilatih?' },
@@ -76,78 +84,15 @@ const L = {
   mockSteps: { en: ['Code downloaded and set up', 'Experiment run twice from scratch', 'Numbers compared with the paper'], zh: ['下载并配置代码', '从头运行实验两次', '与论文数字对比'], vi: ['Tải và cài đặt mã', 'Chạy thí nghiệm hai lần từ đầu', 'So sánh với số liệu trong bài'], id: ['Kode diunduh dan disiapkan', 'Eksperimen dijalankan dua kali dari awal', 'Angka dibandingkan dengan makalah'] },
 };
 
-const EXAMPLES = [
+const EXAMPLES: { id: string; title: string; min: number; poster?: string }[] = [
   { id: '6a21030a-b5f8-4c0e-977e-39090d7ebc70', title: 'Deep Residual Learning for Image Recognition', min: 3 },
   { id: 'c91b06ea-3226-4fdf-90ae-1a7a21b9f283', title: 'Language Models are Few-Shot Learners', min: 3 },
   { id: 'ea94b4d8-195f-43b5-a267-72d7ac02bbad', title: 'An Image is Worth 16x16 Words', min: 3 },
   { id: '4c6f43f4-0849-4f95-815e-8c7d5c3b151d', title: 'BERT: Pre-training of Deep Bidirectional Transformers', min: 1 },
   { id: '5420c9c1-a5f6-48b0-a506-10ab1f13d691', title: 'Adam: A Method for Stochastic Optimization', min: 1 },
+  { id: '7b19a9ff-6cbb-4049-931e-9308f5d8c819', title: 'Attention Is All You Need', min: 3, poster: `${import.meta.env.BASE_URL}landing/attention.jpg` },
 ];
-export const posterOf = (id: string) => `https://bryan273.github.io/repro-suite/explainer/examples/${id}/poster0.jpg`;
-
-type Src = 'paper' | 'article' | 'notes' | 'lecture' | 'podcast';
-const SRC: Record<Src, { icon: typeof FileText; kind: Record<Lang, string>; title: Record<Lang, string>; soon?: boolean }> = {
-  paper: { icon: FileText, kind: { en: 'arXiv 1512.03385', zh: 'arXiv 1512.03385', vi: 'arXiv 1512.03385', id: 'arXiv 1512.03385' }, title: { en: 'Deep Residual Learning', zh: 'Deep Residual Learning', vi: 'Deep Residual Learning', id: 'Deep Residual Learning' } },
-  article: { icon: Newspaper, kind: { en: 'A web link', zh: '网页链接', vi: 'Liên kết web', id: 'Tautan web' }, title: { en: 'A blog post or a news story', zh: '一篇博客或新闻', vi: 'Một bài blog hoặc bài báo', id: 'Sebuah blog atau berita' } },
-  notes: { icon: StickyNote, kind: { en: 'Pasted text or .txt', zh: '粘贴文字或 .txt', vi: 'Văn bản dán hoặc .txt', id: 'Teks atau .txt' }, title: { en: 'Your lecture notes', zh: '你的课堂笔记', vi: 'Ghi chú bài giảng của bạn', id: 'Catatan kuliah Anda' } },
-  lecture: { icon: Video, kind: { en: 'Coming soon', zh: '即将推出', vi: 'Sắp có', id: 'Segera hadir' }, title: { en: 'A recorded lecture', zh: '一段录制的课程', vi: 'Một bài giảng đã ghi hình', id: 'Rekaman kuliah' }, soon: true },
-  podcast: { icon: Mic, kind: { en: 'Coming soon', zh: '即将推出', vi: 'Sắp có', id: 'Segera hadir' }, title: { en: 'A podcast episode', zh: '一期播客', vi: 'Một tập podcast', id: 'Satu episode podcast' }, soon: true },
-};
-
-function Prism() {
-  const { lang, t } = usePrefs();
-  const [src, setSrc] = useState<Src>('paper');
-  const s = SRC[src];
-  const outs = [
-    { icon: PlayCircle, h: t(PRODUCT.video), p: t(PRODUCT.videoP), to: '/app/new', main: true },
-    { icon: BookOpen, h: t(PRODUCT.text), p: t(PRODUCT.textP), to: '/app/read' },
-    { icon: Lightbulb, h: t(PRODUCT.deep), p: t(PRODUCT.deepP), to: '/app/new' },
-    { icon: FlaskConical, h: t(PRODUCT.repro), p: t(PRODUCT.reproP), to: '/app/check' },
-  ];
-  const labels: Record<Src, string> = { paper: t(L.srcPaper), article: t(L.srcArticle), notes: t(L.srcNotes), lecture: t(L.srcLecture), podcast: t(L.srcPodcast) };
-  return (
-    <div className="pl-card relative mt-14 grid items-center gap-2 p-5 sm:p-7 lg:grid-cols-[0.95fr_150px_1.35fr]">
-      <div>
-        <div className="mb-4 flex flex-wrap gap-1.5" role="group" aria-label="Source">
-          {(Object.keys(SRC) as Src[]).map((k) => (
-            <button key={k} type="button" aria-pressed={src === k} onClick={() => setSrc(k)}
-              className={cn('rounded-full border px-3 py-1.5 text-[13px] font-medium transition', src === k ? 'border-primary bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground')}>
-              {labels[k]}{SRC[k].soon && <span className="ml-1 text-[10px] opacity-75">{t(COMMON.soon)}</span>}
-            </button>
-          ))}
-        </div>
-        <div className="relative overflow-hidden rounded-2xl border bg-muted/50 p-5" aria-live="polite">
-          <div className="flex items-center gap-2 text-xs font-semibold text-primary"><s.icon className="h-4 w-4" />{s.kind[lang]}</div>
-          <p className="mt-2 font-display text-lg font-semibold">{s.title[lang]}</p>
-          <div className="mt-4 grid gap-2" aria-hidden>
-            {[100, 92, 78, 88, 56].map((w, i) => <span key={i} className={cn('block h-2 rounded-full', i % 2 ? 'bg-lit/80' : 'bg-border')} style={{ width: `${w}%` }} />)}
-          </div>
-        </div>
-      </div>
-      <svg viewBox="0 0 150 300" className="mx-auto hidden h-[300px] w-[150px] lg:block" aria-hidden preserveAspectRatio="none">
-        <circle cx="6" cy="150" r="6" fill="hsl(var(--lit))" />
-        <path className="pl-beam" d="M6 150 C 75 150, 80 38, 148 38" fill="none" stroke="hsl(var(--primary))" strokeWidth="4" strokeLinecap="round" />
-        <path className="pl-beam" d="M6 150 C 75 150, 80 112, 148 112" fill="none" stroke="hsl(var(--lit))" strokeWidth="3" strokeLinecap="round" />
-        <path className="pl-beam" d="M6 150 C 75 150, 80 188, 148 188" fill="none" stroke="hsl(var(--lit))" strokeWidth="3" strokeLinecap="round" />
-        <path className="pl-beam" d="M6 150 C 75 150, 80 262, 148 262" fill="none" stroke="hsl(var(--lit))" strokeWidth="3" strokeLinecap="round" />
-      </svg>
-      <div className="mx-auto h-8 w-0.5 bg-gradient-to-b from-lit to-primary lg:hidden" aria-hidden />
-      <div className="grid gap-2.5">
-        {outs.map((o) => (
-          <Link key={o.h} to={o.to} className={cn('group grid grid-cols-[44px_1fr_auto] items-center gap-3 rounded-2xl border p-3.5 no-underline transition hover:border-primary', o.main && 'border-2 border-primary bg-accent')}>
-            <span className={cn('grid h-11 w-11 place-items-center rounded-xl', o.main ? 'bg-primary text-primary-foreground' : 'bg-accent text-primary')}><o.icon className="h-5 w-5" /></span>
-            <span className="min-w-0">
-              <span className="block font-display text-[15.5px] font-semibold text-foreground">{o.h}</span>
-              <span className="block text-[13px] leading-snug text-muted-foreground">{o.p}</span>
-            </span>
-            {o.main ? <span className="hidden rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground sm:inline">{t(L.start)}</span>
-              : <ArrowRight className="h-4 w-4 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary" />}
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
-}
+export const posterOf = (id: string) => EXAMPLES.find((e) => e.id === id)?.poster ?? `https://bryan273.github.io/repro-suite/explainer/examples/${id}/poster0.jpg`;
 
 function Section({ id, title, sub, children, className }: { id?: string; title: string; sub?: string; children: React.ReactNode; className?: string }) {
   return (
@@ -188,24 +133,25 @@ export default function Landing() {
       </section>
 
       <Section id="examples" title={t(L.exH)} sub={t(L.exS)}>
-        <div className="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-x-5 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
           {EXAMPLES.map((e) => (
-            <Link key={e.id} to={`/app/v/${e.id}`} className="group w-[240px] shrink-0 snap-start no-underline sm:w-auto">
+            <Link key={e.id} to={`/app/v/${e.id}`} className="group block no-underline">
               <div className="relative aspect-video overflow-hidden rounded-xl border bg-muted">
                 <img src={posterOf(e.id)} alt="" loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" />
                 <span className="absolute inset-0 grid place-items-center bg-black/0 transition group-hover:bg-black/25"><PlayCircle className="h-10 w-10 text-white opacity-0 drop-shadow transition group-hover:opacity-100" /></span>
                 <span className="absolute bottom-2 right-2 rounded bg-black/70 px-1.5 py-0.5 text-[11px] font-medium text-white">{t(L.min).replace('{n}', String(e.min))}</span>
               </div>
-              <p className="mt-2 line-clamp-2 text-[14px] font-medium leading-snug text-foreground">{e.title}</p>
+              <p className="mt-2.5 line-clamp-2 text-[15px] font-medium leading-snug text-foreground">{e.title}</p>
             </Link>
           ))}
         </div>
       </Section>
 
       <Section title={t(L.vH)} sub={t(L.vS)}>
-        <ol className="grid border-t-2 border-foreground sm:grid-cols-2 lg:grid-cols-5">
+        <ol className="grid gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-5">
           {pickArr(lang, L.verbs).map(([h, p], i) => (
-            <li key={h} className="border-b py-5 pr-5 lg:border-b-0 lg:border-r lg:last:border-r-0 lg:[&:not(:first-child)]:pl-5">
+            <li key={h}>
+              <StepVisual i={i} />
               <span className="text-xs font-semibold text-primary">{String(i + 1).padStart(2, '0')}</span>
               <p className="mt-1 font-display text-lg font-semibold">{h}</p>
               <p className="mt-1 text-sm text-muted-foreground">{p}</p>
@@ -260,17 +206,20 @@ export default function Landing() {
       </Section>
 
       <Section title={t(L.pH)} sub={t(L.pS)}>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {plans.map((p) => (
-            <Link key={p.k} to="/pricing" className={cn('pl-card block p-5 no-underline transition hover:-translate-y-0.5', p.k === 'plus' && 'border-primary ring-1 ring-primary')}>
-              <p className="text-sm font-semibold text-muted-foreground">{p.name}</p>
-              <p className="mt-2 font-display text-2xl font-bold text-foreground">{p.price}<span className="ml-1 text-sm font-normal text-muted-foreground">{p.k !== 'free' && t(L.perMonth)}</span></p>
-              <p className="mt-1 text-sm text-muted-foreground">{p.line}</p>
-            </Link>
-          ))}
-        </div>
-        <Button asChild variant="outline" className="mt-6"><Link to="/pricing">{t(L.allPlans)}<ArrowRight className="ml-1.5 h-4 w-4" /></Link></Button>
+        <PlansBlock />
       </Section>
+
+      <section className="pl-container pt-16">
+        <div className="pl-card flex flex-col gap-5 p-6 sm:p-8 md:flex-row md:items-center">
+          <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground"><GraduationCap className="h-7 w-7" /></span>
+          <div className="flex-1">
+            <h2 className="font-display text-2xl font-bold">{t(L.stH)}</h2>
+            <p className="mt-1.5 max-w-[62ch] text-[15px] text-muted-foreground">{t(L.stP)}</p>
+            <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm">{pickArr(lang, L.stList).map((x) => <li key={x} className="flex items-center gap-1.5"><Check className="h-4 w-4 text-primary" />{x}</li>)}</ul>
+          </div>
+          <Button asChild size="lg"><Link to="/pricing#students">{t(L.stCta)}<ArrowRight className="ml-1.5 h-4 w-4" /></Link></Button>
+        </div>
+      </section>
 
       <Section title={t(L.faqH)}>
         <Accordion type="single" collapsible className="max-w-3xl">
@@ -311,3 +260,62 @@ function Feature({ title, text, children }: { title: string; text: string; child
 }
 
 function pickArr<T>(lang: Lang, v: Record<Lang, T>): T { return v[lang] ?? v.en; }
+
+function PlansBlock() {
+  const { lang, t } = usePrefs();
+  const [year, setYear] = useState(true);
+  const [more, setMore] = useState(false);
+  const rows = ROWS(t);
+  const ids = ['free', 'plus', 'pro', 'premium'] as const;
+  return (
+    <div>
+      <div className="mb-8 inline-flex rounded-full border bg-muted p-1" role="radiogroup" aria-label="Billing">
+        {([false, true] as const).map((y) => (
+          <button key={String(y)} type="button" role="radio" aria-checked={year === y} onClick={() => setYear(y)} className={cn('rounded-full px-5 py-2 text-sm font-medium transition', year === y ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground')}>
+            {t(y ? P.year : P.month)}{y && <span className="ml-1.5 text-xs font-semibold text-success">{t(P.save)}</span>}
+          </button>
+        ))}
+      </div>
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        {ids.map((id) => {
+          const name = id === 'free' ? t(COMMON.free) : id[0].toUpperCase() + id.slice(1);
+          const dark = id === 'pro' || id === 'premium';
+          const monthly = id === 'free' ? 0 : year ? perMonthOfYear(`${id}_year`, lang) : amount(`${id}_month`, lang);
+          const tick = id === 'premium' ? 'text-[#e6c46a]' : id === 'pro' ? 'text-[#f0c15a]' : 'text-primary';
+          return (
+            <Link key={id} to="/pricing" className={cn('relative flex flex-col rounded-2xl border p-6 no-underline transition hover:-translate-y-0.5', id === 'plus' && 'border-2 border-primary shadow-[0_12px_40px_-12px_hsl(var(--primary)/0.45)]',
+              id === 'pro' && 'border-[#2b2275] bg-[#17123f] text-white', id === 'premium' && 'border-[#d9b45a] bg-[#14110a] text-[#f6efe0]', !dark && 'bg-card text-foreground')}>
+              {id === 'plus' && <span className="absolute -top-3 left-6 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">{t(P.popular)}</span>}
+              <p className="font-display text-lg font-semibold">{name}</p>
+              <p className={cn('text-sm', dark ? 'text-white/65' : 'text-muted-foreground')}>{t(P[`${id}Sub` as const])}</p>
+              <p className="mt-5 flex flex-wrap items-baseline gap-x-1.5"><span className="font-display text-[32px] font-bold leading-none">{fmtMoney(monthly, lang)}</span>{id !== 'free' && <span className={cn('text-sm', dark ? 'text-white/65' : 'text-muted-foreground')}>{t(P.per)}</span>}</p>
+              <p className={cn('mt-1.5 min-h-[18px] text-xs', dark ? 'text-white/60' : 'text-muted-foreground')}>{id !== 'free' && year ? t(P.billedYear).replace('{p}', money(`${id}_year` as PriceKey, lang)) : ''}</p>
+              <ul className="mt-4 grid gap-2 text-[14px]">
+                {(HL[id][lang] ?? HL[id].en).map((x) => <li key={x} className="flex gap-2"><Check className={cn('mt-0.5 h-4 w-4 shrink-0', tick)} /><span>{x}</span></li>)}
+              </ul>
+            </Link>
+          );
+        })}
+      </div>
+      <div className="mt-6 flex flex-wrap items-center gap-3">
+        <Button variant="outline" aria-expanded={more} onClick={() => setMore((m) => !m)}>{t(more ? L.hideCmp : L.allPlans)}</Button>
+        <Button asChild><Link to="/pricing">{t(L.buy)}<ArrowRight className="ml-1.5 h-4 w-4" /></Link></Button>
+      </div>
+      {more && (
+        <div className="mt-6 overflow-x-auto rounded-2xl border">
+          <table className="w-full min-w-[640px] text-sm">
+            <thead><tr className="border-b bg-muted/50"><th className="px-5 py-3.5" />{[t(COMMON.free), 'Plus', 'Pro', 'Premium'].map((h, i) => <th key={h} className={cn('px-4 py-3.5 text-center font-display text-base font-semibold', i === 1 && 'text-primary')}>{h}</th>)}</tr></thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r[0]} className="border-b last:border-0">
+                  <td className="px-5 py-3 font-medium">{r[0]}</td>
+                  {r.slice(1).map((v, i) => <td key={i} className="px-4 py-3 text-center">{v === true ? <Check className="mx-auto h-4 w-4 text-primary" /> : v === false ? <Minus className="mx-auto h-4 w-4 text-muted-foreground/50" /> : v}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
