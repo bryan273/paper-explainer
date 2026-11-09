@@ -43,7 +43,7 @@ const GUIDES: Record<string, GStep[]> = {
     { target: '[data-g=length]', act: 'click', h: { en: 'Choose the length' }, p: { en: 'Short videos give you the main idea quickly. Longer ones go into the method and the results. Click any length.' } },
     { target: '[data-g=tone]', act: 'click', h: { en: 'Choose how it sounds' }, p: { en: 'The tone sets how the narrator explains: relaxed, clear and neutral, or closer to a lecture. Click one.' } },
     { target: '[data-g=interactive]', h: { en: 'Interactive mode' }, p: { en: 'Switch it on and the video stops after each part with one question, then explains the answer. A quiz at the end checks the whole video. It uses one of your interactive videos.' } },
-    { target: '[data-g=make]', h: { en: 'Make the video' }, p: { en: 'Press the button when you are ready. The video takes about five minutes and you can close the tab meanwhile. It will be waiting in your Library.' } },
+    { target: '[data-g=make]', h: { en: 'Make the video' }, p: { en: 'Press the button when you are ready. The video takes five to eight minutes and you can close the tab meanwhile. It will be waiting in your Library.' } },
   ],
   library: [
     { target: '[data-g=search]', act: 'type', h: { en: 'Find a video' }, p: { en: 'Type a few letters of a title, a paper number or a web address to narrow the list.' } },
