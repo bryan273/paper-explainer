@@ -66,15 +66,15 @@ const L = {
   endP: { en: 'Your first video is free. It takes a link and about five minutes.', zh: '第一个视频免费，只需一个链接和大约五分钟。', vi: 'Video đầu tiên miễn phí. Chỉ cần một liên kết và khoảng năm phút.', id: 'Video pertama gratis. Cukup satu tautan dan sekitar lima menit.' },
 };
 
-const EXAMPLES: { id: string; title: string; min: number; poster?: string }[] = [
+const EXAMPLES: { id: string; title: string; min: number }[] = [
   { id: '6a21030a-b5f8-4c0e-977e-39090d7ebc70', title: 'Deep Residual Learning for Image Recognition', min: 3 },
   { id: 'c91b06ea-3226-4fdf-90ae-1a7a21b9f283', title: 'Language Models are Few-Shot Learners', min: 3 },
   { id: 'ea94b4d8-195f-43b5-a267-72d7ac02bbad', title: 'An Image is Worth 16x16 Words', min: 3 },
   { id: '4c6f43f4-0849-4f95-815e-8c7d5c3b151d', title: 'BERT: Pre-training of Deep Bidirectional Transformers', min: 1 },
   { id: '5420c9c1-a5f6-48b0-a506-10ab1f13d691', title: 'Adam: A Method for Stochastic Optimization', min: 1 },
-  { id: '7b19a9ff-6cbb-4049-931e-9308f5d8c819', title: 'Attention Is All You Need', min: 3, poster: `${import.meta.env.BASE_URL}landing/attention.jpg` },
+  { id: '7b19a9ff-6cbb-4049-931e-9308f5d8c819', title: 'Attention Is All You Need', min: 3 },
 ];
-export const posterOf = (id: string) => EXAMPLES.find((e) => e.id === id)?.poster ?? `https://bryan273.github.io/repro-suite/explainer/examples/${id}/poster0.jpg`;
+export const posterOf = (id: string) => `${import.meta.env.BASE_URL}landing/ex-${id}.jpg`;
 
 function Section({ id, title, sub, children, className }: { id?: string; title: string; sub?: string; children: React.ReactNode; className?: string }) {
   return (

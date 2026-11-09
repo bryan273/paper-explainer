@@ -6,7 +6,7 @@ import { COMMON, PRODUCT } from '@/lib/strings';
 import { cn } from '@/lib/utils';
 
 type T4 = Record<Lang, string>;
-const ATT = 'https://bryan273.github.io/repro-suite/explainer/examples/6a21030a-b5f8-4c0e-977e-39090d7ebc70/poster0.jpg';
+const ATT = `${import.meta.env.BASE_URL}landing/ex-6a21030a-b5f8-4c0e-977e-39090d7ebc70.jpg`;
 
 const L = {
   start: { en: 'Start here', zh: '从这里开始', vi: 'Bắt đầu ở đây', id: 'Mulai di sini' },
