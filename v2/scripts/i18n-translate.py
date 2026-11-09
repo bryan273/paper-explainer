@@ -74,6 +74,9 @@ def run(lang, need):
             d = call(lang, [s])[0]
             if ok(s, d): have[s] = d
         except Exception: pass
+    # what someone wrote in the file while this ran (a hand translation) wins over what this run made
+    now = json.load(open(path, encoding="utf-8")) if os.path.exists(path) else {}
+    have.update(now)
     keep = {s: have[s] for s in sorted(have) if s in set(need)}
     json.dump(keep, open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=0, sort_keys=True)
     print(lang, "done:", len(keep), "of", len(need), flush=True)

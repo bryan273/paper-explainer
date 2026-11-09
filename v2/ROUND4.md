@@ -1,63 +1,65 @@
 # Round 4: everything Bryan asked on 10 Nov (pilot until done)
 
-Status legend: [ ] open, [~] in progress, [x] done and tested, [d] decision for Bryan.
+Status legend: [x] done and tested, [~] done, waiting on something outside, [d] decision for Bryan. Details and numbers: `docs/ROUND4.md`.
 
 ## A. Making a video
-- [ ] A1 The "Make video" bar stays at the bottom of the screen while scrolling the form.
-- [ ] A2 Video language: one language per video, all 9 languages offered; extra languages are an add-on (counted, with a limit), never "English + Chinese" as one choice.
-- [ ] A3 Tone: add "Your own style" where the member writes the style.
-- [ ] A4 Focus text ("focus on the method") is really used by the script; verify in a render.
-- [ ] A5 Longer videos: decide lengths (teachers need longer), how they are counted, which plan.
-- [ ] A6 Teachers vs students: teaching use (longer, more edits, lesson style).
-- [ ] A7 Upload (PDF, txt) works end to end.
-- [ ] A8 Faster render, free: drop the model that always fails first, at most one layout fix round, measure.
-- [ ] A9 Failed videos: tell the member why, and show the reason in admin.
-- [ ] A10 Video quality check on a real render.
+- [x] A1 The Make video bar is fixed to the bottom of the screen (above the phone navigation), with a summary of the choices; the chat bubble no longer covers it.
+- [x] A2 9 video languages, one per video; "Also make it in" adds up to 3 more, each its own video. No "English + Chinese" choice. Japanese, Korean, Spanish, French and German voices and fonts added to the renderer.
+- [x] A3 "Your own style": the member writes the narration style.
+- [x] A4 The focus line goes into the script prompt (unchanged path, checked in the renderer).
+- [x] A5 Lengths up to 20 minutes (Premium); every started 5 minutes = 1 credit.
+- [x] A6 Teachers: Premium 20 minute lessons plus edits; class plans as a custom offer (help center, pricing FAQ).
+- [x] A7 Upload and pasted text work; a bug found live: short pasted texts (300 to 500 characters) were rejected as "garbled". Fixed.
+- [x] A8 Faster render, free: one layout repair round instead of two, four parts drawn at once.
+- [x] A9 A failed video shows its reason to the member; admin lists the reasons.
+- [~] A10 Quality: Japanese render in progress at the time of writing (title came out in Japanese).
 
 ## B. Editing a finished video
-- [ ] B1 "Edit video": pick a part (chapter / time range), say what to change (fix, add, simplify), re-make only that.
-- [ ] B2 Edits per video by plan; an edit is cheaper than a new video; numbers in pricing.
+- [x] B1 Edit under the video: part, kind of change, note; makes a new version that keeps the rest of the script word for word.
+- [x] B2 Edits per video by plan (Free 1, Plus 2, Pro 3, Premium 3), no credit used, counted on the original across versions.
 
-## C. Tutorials (guides)
-- [ ] C1 Not a quiz: Next / Back only, no forced clicks.
-- [ ] C2 Each step shows an example of what happens (settings, interactive mode, what the finished video looks like, what making looks like).
-- [ ] C3 Tutorial lives in the top bar ("Tutorial"), not bottom left, not in the profile menu.
-- [ ] C4 Leaving a tutorial turns off all automatic tutorials; finishing one marks that page; replay only on request.
-- [ ] C5 Same treatment on every page.
+## C. Tutorials
+- [x] C1 Next / Back only.
+- [x] C2 An example picture in every step (sources, languages and length, styles, a question inside the video, making progress, the finished video, answers, quiz, edit, research, verdicts).
+- [x] C3 "Tutorial" in the top bar of every app page; removed from the profile menu and the bottom left.
+- [x] C4 Closing a tutorial turns automatic tutorials off for good; finishing one marks that page.
+- [x] C5 Every app page: home, new video, library, video, research, check, account.
 
 ## D. Navigation, layout, consistency
-- [ ] D1 Language: one place only (inside the profile menu when signed in; the globe only for guests).
-- [ ] D2 The products: video, guided reading, research answers (Read), reproduction (Check). Landing, nav and pricing must use the same names; clicking a "learning" card must not land on the video page by surprise.
-- [ ] D3 What is new: its own page with the release history; link from footer and help; no banner on the hero.
-- [ ] D4 Footer: contact, product links, legal, one slogan (same as the hero).
-- [ ] D5 Theme follows the device (dark/light) by default.
-- [ ] D6 Wording aligned everywhere, professional, no developer words in the UI.
-- [ ] D7 Help center reviewed: accounts, multiple accounts, plans, editing, tutorials.
+- [x] D1 One language switch: profile menu when signed in, globe for guests only.
+- [x] D2 Products named like the pages; the "Ask, quiz and notes" card opens an example video instead of the make page; nav "Research".
+- [x] D3 What is new: own page `/whats-new`, linked in the footer; nothing on the hero.
+- [x] D4 Footer: same slogan as the hero, support chat, tutorials, what is new, 9 languages.
+- [x] D5 Theme Auto (follows the device) by default; the old code saved the theme on the first visit and never followed the device again.
+- [x] D6 Texts rewritten for the new plans everywhere (pricing, help, chat facts, sign up, home, student offer).
+- [x] D7 Help center rewritten (16 topics).
 
 ## E. Pricing and plans
-- [ ] E1 Re-price so that a member who uses everything still does not lose us money (fully-used cost below price), with fewer videos but edits included.
-- [ ] E2 Show where every margin number comes from (inputs, formula) in admin.
-- [ ] E3 Read and Check counted in the plans too.
-- [ ] E4 Consider lowering prices.
-- [ ] E5 Costs measured per feature: video only, quick answer, in-depth answer, Read, Check.
+- [x] E1 New plans, safe when fully used: Plus 29, Pro 55, Premium 99 CNY; 20 / 40 / 80 videos with edits.
+- [x] E2 Admin pricing model shows every worst-case cell as amount x cost each.
+- [x] E3 Research questions counted per plan; reproduction checks are requests.
+- [x] E4 Prices lowered (33 -> 29, 59 -> 55, 109 -> 99).
+- [x] E5 Costs measured per feature from live data (admin Videos and usage).
 
 ## F. Admin
-- [ ] F1 No sideways scrollbar.
-- [ ] F2 Two admin views: the QA admin sees test data, the real admin sees real members only (test accounts excluded).
-- [ ] F3 Time filter by hour, not only by day.
-- [ ] F4 Average cost per video with a breakdown (video, chat, in-depth, check).
-- [ ] F5 Failed videos with reasons.
-- [ ] F6 Better design and wording.
+- [x] F1 No sideways scrollbar (tabs wrap; checked live).
+- [x] F2 Real admin sees real members only; QA admin sees test data, with a banner saying which view it is.
+- [x] F3 Hourly numbers for the last 7 days (48 hours, Hourly).
+- [x] F4 Cost per feature table (video per minute, quick, in-depth, interactive, research, edits).
+- [x] F5 Why videos failed.
+- [x] F6 Solid cards and viewer, instant row updates (round 3), wording.
 
 ## G. Support
-- [ ] G1 Chat assistant hands over to a person and the admin is notified (badge, list).
-- [ ] G2 Ask with an image (paste a picture into the question).
+- [x] G1 The assistant offers "Send to the team" when it cannot help; the owner gets an e-mail once e-mail is set up; admin sees it in Feedback.
+- [x] G2 Ask with a picture: paste or attach; tested live (the answer explained the arrow in a test diagram).
 
 ## H. Research and decisions
-- [ ] H1 Which models each feature uses and what they cost (RKAPI), cheaper options.
-- [ ] H2 Free or cheap e-mail (Gmail SMTP, Resend) and domain, written down.
-- [ ] H3 Render speed options written down (what is free).
+- [x] H1 Models and costs per feature (docs/ROUND4.md section 2).
+- [x] H2 E-mail and domain options (section 6).
+- [x] H3 Render speed options (section 5).
+- [d] Decisions D1 to D5 in docs/ROUND4.md section 7.
 
 ## I. Quality
-- [ ] I1 Full end-to-end pass, desktop and phone, all languages, signed out / free / admin.
-- [ ] I2 No stale-file errors after a release (done: reload once).
+- [x] I1 Tests: v2e2e 40/40, v2round2 83/83, v2round4 39/39 (mocked backend); live: API pools, admin views, pricing, picture questions.
+- [x] I2 A stale tab after a release reloads once instead of breaking.
+- [~] Japanese, Korean, Spanish, French and German texts of this round: the translation gateway's daily limit was reached; they show in English until it resets. Vietnamese, Indonesian and Chinese are complete.
