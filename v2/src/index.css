@@ -95,7 +95,7 @@
 }
 
 @layer components {
-  .pl-container { @apply mx-auto w-full max-w-[1180px] px-4 sm:px-6 lg:px-8; }
+  .pl-container { @apply mx-auto w-full max-w-[1180px] px-4 sm:px-6 lg:px-8 min-[1500px]:max-w-[1320px]; }
   .pl-card { @apply rounded-2xl border bg-card text-card-foreground; box-shadow: var(--shadow-soft); }
   .pl-eyebrow { @apply text-sm font-medium text-primary; }
   .pl-h1 { @apply font-display text-[clamp(2.4rem,6vw,4.4rem)] font-bold leading-[1.02] tracking-[-0.035em]; }
@@ -112,4 +112,14 @@
   .pl-beam:nth-of-type(3) { animation-delay: 0.24s; }
   .pl-beam:nth-of-type(4) { animation-delay: 0.36s; }
   @keyframes pl-draw { to { stroke-dashoffset: 0; } }
+}
+
+/* landing: small looping visuals; they stop for reduced motion and when motion is off */
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-motion='off']) .pl-scan { animation: pl-scan 2.8s ease-in-out infinite; }
+  html:not([data-motion='off']) .pl-pop { animation: pl-pop 0.35s ease-out both; }
+  html:not([data-motion='off']) .pl-wave > i { animation: pl-wave 1.1s ease-in-out infinite; }
+  @keyframes pl-scan { 0%, 100% { top: 4%; } 50% { top: 88%; } }
+  @keyframes pl-pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @keyframes pl-wave { 0%, 100% { transform: scaleY(0.45); } 50% { transform: scaleY(1); } }
 }

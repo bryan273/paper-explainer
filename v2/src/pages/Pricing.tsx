@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 
 type Plan = 'plus' | 'pro' | 'premium';
 type Billing = 'month' | 'year';
-const P = {
+export const P = {
   h: { en: 'Plans that grow with how you learn', zh: '随你的学习方式成长的套餐', vi: 'Các gói phát triển cùng cách bạn học', id: 'Paket yang tumbuh bersama cara Anda belajar' },
   s: { en: 'Start free. Prices are in your local money. Cancel any time by not renewing.', zh: '先免费用。价格按本地货币显示，不续费即取消。', vi: 'Bắt đầu miễn phí. Giá theo tiền nước bạn. Muốn hủy chỉ cần không gia hạn.', id: 'Mulai gratis. Harga dalam mata uang lokal. Berhenti kapan saja dengan tidak memperpanjang.' },
   month: { en: 'Monthly', zh: '按月', vi: 'Theo tháng', id: 'Bulanan' },
@@ -53,7 +53,7 @@ const P = {
 
 // one row per feature: label, then the value for Free, Plus, Pro, Premium (true = included, false = not, string = value)
 type Cell = boolean | string;
-const ROWS = (t: <X>(v: { en: X; zh?: X; vi?: X; id?: X }) => X): [string, Cell, Cell, Cell, Cell][] => [
+export const ROWS = (t: <X>(v: { en: X; zh?: X; vi?: X; id?: X }) => X): [string, Cell, Cell, Cell, Cell][] => [
   [t({ en: 'Videos', zh: '视频', vi: 'Video', id: 'Video' }), t({ en: '1 a day + 3', zh: '每天 1 个 + 3', vi: '1/ngày + 3', id: '1/hari + 3' }), t({ en: '50 a month', zh: '每月 50', vi: '50/tháng', id: '50/bulan' }), t({ en: '120 a month', zh: '每月 120', vi: '120/tháng', id: '120/bulan' }), t({ en: '250 a month', zh: '每月 250', vi: '250/tháng', id: '250/bulan' })],
   [t({ en: 'Longest video', zh: '最长视频', vi: 'Video dài nhất', id: 'Video terpanjang' }), '5 min', '5 min', '10 min', '10 min'],
   [t({ en: 'Interactive videos a month', zh: '每月互动视频', vi: 'Video tương tác/tháng', id: 'Video interaktif/bulan' }), '2', t({ en: '10 (~40 questions)', zh: '10（约 40 题）', vi: '10 (~40 câu)', id: '10 (~40 soal)' }), t({ en: '30 (~120)', zh: '30（约 120）', vi: '30 (~120)', id: '30 (~120)' }), t({ en: '80 (~320)', zh: '80（约 320）', vi: '80 (~320)', id: '80 (~320)' })],
@@ -66,7 +66,7 @@ const ROWS = (t: <X>(v: { en: X; zh?: X; vi?: X; id?: X }) => X): [string, Cell,
   [t({ en: 'Failed video refunded', zh: '失败自动退还', vi: 'Video lỗi được hoàn', id: 'Video gagal dikembalikan' }), true, true, true, true],
   [t({ en: 'New features first', zh: '新功能优先', vi: 'Dùng tính năng mới trước', id: 'Fitur baru lebih dulu' }), false, false, false, true],
 ];
-const HL: Record<'free' | Plan, Record<Lang, string[]>> = {
+export const HL: Record<'free' | Plan, Record<Lang, string[]>> = {
   free: { en: ['1 video a day + 3 welcome videos', '2 interactive videos a month', '3 in-depth answers per video', 'Quiz and final quiz'], zh: ['每天 1 个视频 + 3 个欢迎视频', '每月 2 个互动视频', '每个视频 3 次深入回答', '测验和期末测验'], vi: ['1 video mỗi ngày + 3 video chào mừng', '2 video tương tác mỗi tháng', '3 câu trả lời chuyên sâu mỗi video', 'Bài kiểm tra và bài cuối'], id: ['1 video per hari + 3 video sambutan', '2 video interaktif per bulan', '3 jawaban mendalam per video', 'Kuis dan kuis akhir'] },
   plus: { en: ['50 videos a month, up to 5 minutes', '10 interactive videos (about 40 questions)', '10 in-depth answers per video', 'Notes and flashcards', 'Answers pitched to your level'], zh: ['每月 50 个视频，最长 5 分钟', '10 个互动视频（约 40 题）', '每个视频 10 次深入回答', '笔记和闪卡', '按你的水平回答'], vi: ['50 video mỗi tháng, tối đa 5 phút', '10 video tương tác (khoảng 40 câu hỏi)', '10 câu trả lời chuyên sâu mỗi video', 'Ghi chú và thẻ ghi nhớ', 'Trả lời theo trình độ của bạn'], id: ['50 video per bulan, hingga 5 menit', '10 video interaktif (sekitar 40 soal)', '10 jawaban mendalam per video', 'Catatan dan kartu hafalan', 'Jawaban sesuai tingkat Anda'] },
   pro: { en: ['120 videos a month, up to 10 minutes', '30 interactive videos (about 120 questions)', '20 in-depth answers per video', 'Videos kept for a year', 'Everything in Plus'], zh: ['每月 120 个视频，最长 10 分钟', '30 个互动视频（约 120 题）', '每个视频 20 次深入回答', '视频保留一年', '包含 Plus 全部功能'], vi: ['120 video mỗi tháng, tối đa 10 phút', '30 video tương tác (khoảng 120 câu hỏi)', '20 câu trả lời chuyên sâu mỗi video', 'Lưu video một năm', 'Gồm mọi thứ của Plus'], id: ['120 video per bulan, hingga 10 menit', '30 video interaktif (sekitar 120 soal)', '20 jawaban mendalam per video', 'Video disimpan setahun', 'Semua yang ada di Plus'] },
