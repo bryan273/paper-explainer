@@ -7,7 +7,7 @@ import { Player, type Chapter, type PlayerHandle } from '@/components/watch/Play
 import { AskPanel } from '@/components/watch/AskPanel';
 import { QuizPanel, Options, type QLog } from '@/components/watch/QuizPanel';
 import { PaperPane } from '@/components/watch/PaperPane';
-import { ApiError, askPaper, availableLangs, copyText, editJob, editsOf, getJob, isMine, localPdfs, quizAll, quizPart, secText, storageKind, videoUrl, type EditKind, type Job, type Quiz } from '@/lib/explainer';
+import { ApiError, askPaper, createJob, availableLangs, copyText, editJob, editsOf, getJob, isMine, localPdfs, quizAll, quizPart, secText, storageKind, videoUrl, type EditKind, type Job, type Quiz } from '@/lib/explainer';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { track, useAccount } from '@/lib/account';
@@ -29,6 +29,8 @@ const W = {
   failedP: { en: 'Nothing was used: the credit went back to your balance. Common reasons: the page needs a login, is behind a paywall, or has too little text.', zh: '没有扣次数，额度已退还。常见原因：页面需要登录、付费墙，或正文太少。', vi: 'Không mất lượt: tín dụng đã được hoàn lại. Lý do thường gặp: trang cần đăng nhập, bị chặn trả phí, hoặc có quá ít nội dung.', id: 'Tidak ada yang terpakai: kredit sudah dikembalikan. Penyebab umum: halaman perlu login, berbayar, atau teksnya terlalu sedikit.' },
   tryText: { en: 'Paste the text instead', zh: '改为粘贴文字', vi: 'Dán văn bản thay thế', id: 'Tempel teksnya saja' },
   tryFile: { en: 'Upload the PDF', zh: '上传 PDF', vi: 'Tải PDF lên', id: 'Unggah PDF' },
+  retryGone: { en: 'The file is no longer stored. Please choose it again.' },
+  retrying: { en: 'Starting again' },
   again: { en: 'Try again', zh: '重试', vi: 'Thử lại', id: 'Coba lagi' },
   support: { en: 'Ask support', zh: '联系客服', vi: 'Hỏi hỗ trợ', id: 'Tanya bantuan' },
   ask: { en: 'Ask', zh: '提问', vi: 'Hỏi', id: 'Tanya' },
@@ -165,6 +167,18 @@ function Making({ job, started, now, lang }: { job: Job; started: number; now: n
 function Failed({ job }: { job: Job }) {
   const { t } = usePrefs();
   const url = job.source_url && /^https?:/.test(job.source_url) ? job.source_url : /^\d{4}\.\d{4,5}$/.test(job.arxiv) ? `https://arxiv.org/abs/${job.arxiv}` : '';
+  const file = job.source_url?.startsWith('upload:') ? job.source_url.slice(7) : '';
+  const nav = useNavigate();
+  const [busy, setBusy] = useState(false);
+  const [rErr, setRErr] = useState('');
+  // the same settings, the same file: a new try that does not ask for anything again
+  const retry = async () => {
+    setBusy(true); setRErr('');
+    try {
+      const j = await createJob(file ? '' : url, { voice: ((job as { voice?: string }).voice as 'female' | 'male') ?? 'female', style: job.style as never, tone: job.tone as never, seconds: job.seconds ?? 180, custom: job.custom ?? '', langs: (job.langs as never) ?? 'en', force_new: true, ...(file ? { upload: file, name: job.title ?? '', retry_of: job.id } : {}) });
+      nav(`/app/v/${j.id}`);
+    } catch (e) { setRErr(e instanceof ApiError && e.status === 404 ? t(W.retryGone) : e instanceof Error ? e.message : String(e)); setBusy(false); }
+  };
   return (
     <div className="mx-auto max-w-2xl py-12">
       <div className="pl-card p-6 sm:p-8">
@@ -173,8 +187,9 @@ function Failed({ job }: { job: Job }) {
         {job.title && <p className="mt-1 text-sm text-muted-foreground">{job.title}</p>}
         {job.error && <p className="mt-4 rounded-lg bg-muted px-4 py-3 text-sm">{job.error}</p>}
         <p className="mt-4 text-sm text-muted-foreground">{t(W.failedP)}</p>
+        {rErr && <p role="alert" className="mt-4 text-sm text-destructive">{rErr}</p>}
         <div className="mt-6 flex flex-wrap gap-2">
-          {url && <Button asChild><Link to={`/app/new?url=${encodeURIComponent(url)}`}><RotateCcw className="mr-1.5 h-4 w-4" />{t(W.again)}</Link></Button>}
+          {(url || file) && <Button onClick={retry} disabled={busy}>{busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <RotateCcw className="mr-1.5 h-4 w-4" />}{t(W.again)}</Button>}
           <Button asChild variant="outline"><Link to="/app/new?tab=text">{t(W.tryText)}</Link></Button>
           <Button asChild variant="outline"><Link to="/app/new?tab=file">{t(W.tryFile)}</Link></Button>
           <Button variant="ghost" onClick={() => window.dispatchEvent(new CustomEvent('pl-support', { detail: 'contact' }))}><HelpCircle className="mr-1.5 h-4 w-4" />{t(W.support)}</Button>

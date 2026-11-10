@@ -20,9 +20,9 @@ export function VideoCard({ j }: { j: MyJob }) {
   const state = j.expired_at ? 'expired' : j.status === 'done' ? 'ready' : j.status === 'failed' ? 'failed' : 'making';
   return (
     <Link to={`/app/v/${j.id}`} className="group block no-underline">
-      <div className="relative aspect-video overflow-hidden rounded-xl border bg-muted">
+      <div className="relative overflow-hidden rounded-xl border bg-muted" style={{ aspectRatio: "16 / 9" }}>
         {poster ? <img src={poster} alt="" loading="lazy" className={cn('h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]', state !== 'ready' && 'opacity-60')} />
-          : <div className="grid h-full place-items-center text-muted-foreground"><Film className="h-8 w-8" /></div>}
+          : <div className="absolute inset-0 grid place-items-center text-muted-foreground"><Film className="h-8 w-8" /></div>}
         {state === 'ready' && <span className="absolute inset-0 grid place-items-center bg-black/0 transition group-hover:bg-black/25"><PlayCircle className="h-10 w-10 text-white opacity-0 drop-shadow transition group-hover:opacity-100" /></span>}
         <span className={cn('absolute left-2 top-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold',
           state === 'ready' ? 'bg-success text-white' : state === 'making' ? 'bg-primary text-primary-foreground' : state === 'failed' ? 'bg-destructive text-white' : 'bg-black/70 text-white')}>

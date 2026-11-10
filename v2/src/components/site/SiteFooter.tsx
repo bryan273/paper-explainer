@@ -12,7 +12,6 @@ const COLS = {
   students: { en: 'Students and teachers', zh: '学生与教师', vi: 'Sinh viên và giảng viên', id: 'Mahasiswa dan pengajar' },
   tutorials: { en: 'Tutorials' },
   where: { en: 'For learners in China, Vietnam, Indonesia and everywhere else. Available in 9 languages.' },
-  support: { en: 'Support chat' },
 };
 
 export function SiteFooter() {
@@ -29,7 +28,6 @@ export function SiteFooter() {
         <div>
           <Logo />
           <p className="mt-3 max-w-[30ch] text-sm text-muted-foreground">{t(TAG)}</p>
-          <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('pl-support', { detail: 'chat' }))} className="mt-4 inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1.5 text-sm text-foreground hover:border-primary"><span className="h-2 w-2 rounded-full bg-success" />{t(COLS.support)}</button>
         </div>
         {cols.map((c) => (
           <nav key={c.h} aria-label={c.h} className="grid content-start gap-2.5 text-sm">

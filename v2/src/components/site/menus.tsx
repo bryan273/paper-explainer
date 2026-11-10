@@ -98,7 +98,7 @@ export function ProfileMenu() {
           </span>
         </div>
         <DropdownMenuSub>
-          <DropdownMenuSubTrigger><Globe className="mr-2 h-4 w-4" />{t(NAV.language)}<span className="ml-auto pl-3 text-xs text-muted-foreground">{cur?.label}</span></DropdownMenuSubTrigger>
+          <DropdownMenuSubTrigger className="[&>svg:last-child]:!ml-1"><Globe className="mr-2 h-4 w-4" />{t(NAV.language)}<span className="ml-auto pl-3 text-xs text-muted-foreground">{cur?.label}</span></DropdownMenuSubTrigger>
           <DropdownMenuSubContent className="w-48">
             {LANGS.map((l) => <DropdownMenuItem key={l.k} onSelect={() => setLang(l.k)}>{l.label}{lang === l.k && <Check className="ml-auto h-4 w-4 text-primary" />}</DropdownMenuItem>)}
           </DropdownMenuSubContent>

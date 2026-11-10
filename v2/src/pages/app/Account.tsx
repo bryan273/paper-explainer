@@ -41,6 +41,13 @@ const A = {
   creditsNote: { en: 'Credits never expire. They are used after the free video of the day.', zh: '额度永不过期，在当日免费视频用完后使用。', vi: 'Tín dụng không hết hạn. Được dùng sau video miễn phí trong ngày.', id: 'Kredit tidak kedaluwarsa. Dipakai setelah video gratis hari itu.' },
   interactive: { en: 'Interactive mode left', zh: '剩余互动模式次数', vi: 'Lượt tương tác còn lại', id: 'Sisa mode interaktif' },
   buy: { en: 'Buy more videos', zh: '购买更多视频', vi: 'Mua thêm video', id: 'Beli video lagi' },
+  usageH: { en: 'Where your videos went' },
+  usageP: { en: 'Each video you made, how many credits it used, and what came back.' },
+  usageFree: { en: 'Free' },
+  usageBack: { en: 'Refunded' },
+  usageFailed: { en: 'Failed, nothing used' },
+  usageNone: { en: 'No videos yet.' },
+  usageNet: { en: 'Credits used in the last 30 days: {n}' },
   history: { en: 'Credit history', zh: '额度记录', vi: 'Lịch sử tín dụng', id: 'Riwayat kredit' },
   noHistory: { en: 'Nothing yet.', zh: '暂无记录。', vi: 'Chưa có gì.', id: 'Belum ada.' },
   orders: { en: 'Orders', zh: '订单', vi: 'Đơn hàng', id: 'Pesanan' },
@@ -74,6 +81,7 @@ const A = {
   out: { en: 'Sign out', zh: '退出登录', vi: 'Đăng xuất', id: 'Keluar' },
 };
 type Tab = keyof typeof A.tabs;
+type Usage = { id: string; title: string | null; arxiv: string | null; status: string; seconds: number | null; created_at: string; credit_used?: number; refunded?: boolean };
 type Ledger = { created_at: string; delta: number; reason: string };
 type Order = { id: string; what: string; status: string; method: string | null; created_at: string; cur: string; amount: number; shot: boolean };
 const money = (n: number, cur: string) => (cur === 'vnd' ? `${new Intl.NumberFormat('vi-VN').format(n)}₫` : cur === 'idr' ? `Rp${new Intl.NumberFormat('id-ID').format(n)}` : `¥${n}`);
@@ -87,6 +95,7 @@ export default function AccountPage() {
   const [s, set] = useSettings();
   const [ledger, setLedger] = useState<Ledger[] | null>(null);
   const [orders, setOrders] = useState<Order[] | null>(null);
+  const [usage, setUsage] = useState<Usage[] | null>(null);
   const [handle, setHandle] = useState(user?.handle ?? '');
   const [hMsg, setHMsg] = useState('');
   const [pw, setPw] = useState({ old: '', next: '' });
@@ -97,6 +106,7 @@ export default function AccountPage() {
     if (!user || tab !== 'billing') return;
     accountSwr<Ledger[]>('ledger=1', setLedger).catch(() => setLedger([]));
     accountSwr<Order[]>('orders=1', setOrders).catch(() => setOrders([]));
+    accountSwr<Usage[]>('jobs=1', setUsage).catch(() => setUsage([]));
   }, [user, tab]);
 
   if (!user) return <div className="grid min-h-[50vh] place-items-center text-center"><div><p className="text-muted-foreground">{t(A.login)}</p><Button className="mt-4" onClick={() => openAuth('login')}>{t({ en: 'Log in', zh: '登录', vi: 'Đăng nhập', id: 'Masuk' })}</Button></div></div>;
@@ -165,6 +175,24 @@ export default function AccountPage() {
                   <div className="mt-3 overflow-x-auto"><table className="w-full min-w-[480px] text-sm"><tbody>
                     {orders.map((o) => <tr key={o.id} className="border-b last:border-0"><td className="py-2.5 pr-3 text-muted-foreground">{dateFmt(o.created_at, lang)}</td><td className="py-2.5 pr-3">{o.what}</td><td className="py-2.5 pr-3 font-medium">{money(o.amount, o.cur)}</td><td className="py-2.5"><span className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', o.status === 'paid' || o.status === 'delivered' ? 'bg-success/15 text-success' : o.status === 'cancelled' ? 'bg-muted text-muted-foreground' : 'bg-warning/15 text-warning')}>{(A.st[o.status] ?? A.st.new)[lang]}</span></td></tr>)}
                   </tbody></table></div>
+                )}
+              </section>
+              <section className={card}>
+                <p className="font-semibold">{t(A.usageH)}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{t(A.usageP)}</p>
+                {usage === null ? <Loader2 className="mt-3 h-4 w-4 animate-spin" /> : usage.length === 0 ? <p className="mt-2 text-sm text-muted-foreground">{t(A.usageNone)}</p> : (
+                  <>
+                    <p className="mt-3 text-sm font-medium">{fill(t(A.usageNet), { n: usage.filter((u) => u.status !== 'failed' && Date.parse(u.created_at) > Date.now() - 30 * 86400000).reduce((n, u) => n + (u.credit_used ?? 0), 0) })}</p>
+                    <ul className="mt-2 divide-y text-sm">
+                      {usage.slice(0, 30).map((u) => (
+                        <li key={u.id} className="flex items-center gap-3 py-2.5">
+                          <span className="w-16 shrink-0 text-muted-foreground">{dateFmt(u.created_at, lang, { day: 'numeric', month: 'short' })}</span>
+                          <Link to={`/app/v/${u.id}`} className="min-w-0 flex-1 truncate hover:underline">{u.title || u.arxiv}{u.seconds ? <span className="text-muted-foreground"> · {Math.round(u.seconds / 60)} min</span> : null}</Link>
+                          <span className={cn('shrink-0 text-xs font-semibold', u.status === 'failed' ? 'text-destructive' : (u.credit_used ?? 0) > 0 ? '' : 'text-muted-foreground')}>{u.status === 'failed' ? t(A.usageFailed) : (u.credit_used ?? 0) > 0 ? `-${u.credit_used}` : t(A.usageFree)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
                 )}
               </section>
               <section className={card}>

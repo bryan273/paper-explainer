@@ -75,7 +75,9 @@ async function request(init?: RequestInit, query = ''): Promise<unknown> {
     body = null;
   }
   const errMsg = (body as { error?: unknown } | null)?.error;
-  if (!res.ok || typeof errMsg === 'string') {
+  // a failed video is a normal job that carries its reason in `error`: it is not a failed request
+  const isJob = typeof (body as { id?: unknown } | null)?.id === 'string' && typeof (body as { status?: unknown } | null)?.status === 'string';
+  if (!res.ok || (typeof errMsg === 'string' && !isJob)) {
     throw new ApiError(typeof errMsg === 'string' && errMsg ? errMsg : `HTTP ${res.status}`, res.status, (body as { code?: string } | null)?.code);
   }
   return body;
@@ -138,6 +140,8 @@ export type MakeOpts = {
   upload?: string;
   /** the original file name, used as the first title */
   name?: string;
+  /** the failed video this one makes again; its own file may be used once more */
+  retry_of?: string;
 };
 
 /** PDFs the visitor uploaded in this browser tab, by job id: the file is never kept on the server, but it can still be shown beside the video. */

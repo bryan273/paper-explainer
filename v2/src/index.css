@@ -127,3 +127,6 @@
   @keyframes pl-pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
   @keyframes pl-wave { 0%, 100% { transform: scaleY(0.45); } 50% { transform: scaleY(1); } }
 }
+
+/* Tailwind here does not generate aspect-video, so videos and their placeholders keep 16:9 on their own */
+.aspect-video { aspect-ratio: 16 / 9; }

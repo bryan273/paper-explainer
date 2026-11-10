@@ -3,7 +3,7 @@ import { accountSwr, useAccount } from '@/lib/account';
 import { getJob, type Job } from '@/lib/explainer';
 import type { Lang, Tr } from '@/lib/prefs';
 
-export type MyJob = Pick<Job, 'id' | 'arxiv' | 'title' | 'status' | 'stage' | 'seconds' | 'sections' | 'created_at' | 'langs' | 'source_url'> & { expired_at?: string | null };
+export type MyJob = Pick<Job, 'id' | 'arxiv' | 'title' | 'status' | 'stage' | 'seconds' | 'sections' | 'created_at' | 'langs' | 'source_url'> & { expired_at?: string | null; credit_used?: number; refunded?: boolean };
 
 const MINE_KEY = 'pe-my-jobs';
 const localIds = (): string[] => { try { return JSON.parse(localStorage.getItem(MINE_KEY) ?? '[]') as string[]; } catch { return []; } };
