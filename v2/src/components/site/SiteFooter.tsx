@@ -12,7 +12,7 @@ const COLS = {
   students: { en: 'Students and teachers', zh: '学生与教师', vi: 'Sinh viên và giảng viên', id: 'Mahasiswa dan pengajar' },
   tutorials: { en: 'Tutorials' },
   where: { en: 'For learners in China, Vietnam, Indonesia and everywhere else. Available in 9 languages.' },
-  support: { en: 'Support chat, every day' },
+  support: { en: 'Support chat' },
 };
 
 export function SiteFooter() {

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { LangPicker } from '@/components/app/LangPicker';
 import { ApiError, createJob, lookupPaper, uploadPaper, localPdfs, MAX_PDF_BYTES, MAX_PDF_FILES, TONES, VIDEO_LANGS, VIDEO_LANG_NAME, creditsOf, type Job, type MakeOpts, type VideoLang } from '@/lib/explainer';
 import { PURPOSE, useSettings } from '@/lib/settings';
 import { track, useAccount } from '@/lib/account';
@@ -43,6 +44,10 @@ const T = {
   interOn: { en: 'Stop after each part and ask me a question', zh: '每段结束后暂停并提问', vi: 'Dừng sau mỗi phần và hỏi tôi một câu', id: 'Berhenti setiap bagian dan beri saya pertanyaan' },
   interHelp: { en: 'About 4 questions per video, with the explanation ready at once. You can also turn it on later while watching.', zh: '每个视频约 4 题，作答后立即看到讲解。观看时也可以再打开。', vi: 'Khoảng 4 câu mỗi video, có lời giải thích ngay. Bạn cũng có thể bật sau khi xem.', id: 'Sekitar 4 pertanyaan per video, penjelasannya langsung siap. Bisa juga dinyalakan nanti saat menonton.' },
   interLeft: { en: 'Interactive mode left: {n} of {c}', zh: '剩余互动模式次数：{n} / {c}', vi: 'Lượt tương tác còn lại: {n}/{c}', id: 'Sisa mode interaktif: {n} dari {c}' },
+  langSearch: { en: 'Search a language' },
+  langNone: { en: 'No language found' },
+  langMax: { en: 'more languages chosen' },
+  langAdd: { en: 'Choose languages' },
   alsoH: { en: 'Also make it in another language' },
   alsoP: { en: 'Each language is its own video and uses its own credits. Up to 3 more.' },
   lenCredit1: { en: 'Uses 1 video credit: one for every started 5 minutes.' },
@@ -275,15 +280,11 @@ export default function NewVideo() {
             <div className="mt-5 grid gap-6">
               <div data-g="vlang">
                 <p className="mb-2 text-sm font-medium">{t(T.vlang)}</p>
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-                  {VIDEO_LANGS.map((l) => <button key={l} type="button" aria-pressed={vlang === l} onClick={() => setVlang(l)} className={seg(vlang === l)}>{VIDEO_LANG_NAME[l]}</button>)}
-                </div>
+                <LangPicker options={VIDEO_LANGS} names={VIDEO_LANG_NAME} value={vlang} onChange={(v) => setVlang(v as VLang)} placeholder="" searchLabel={t(T.langSearch)} emptyLabel={t(T.langNone)} />
                 <details className="group mt-3" open={also.length > 0}>
                   <summary className="cursor-pointer select-none text-sm font-medium text-primary">{t(T.alsoH)}{also.length > 0 && ` (${also.length})`}</summary>
-                  <p className="mt-1 text-xs text-muted-foreground">{t(T.alsoP)}</p>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {VIDEO_LANGS.filter((l) => l !== vlang).map((l) => { const on = also.includes(l); return <button key={l} type="button" aria-pressed={on} onClick={() => setAlso(on ? also.filter((x) => x !== l) : [...also, l].slice(0, 3))} className={cn('rounded-full border px-3 py-1 text-xs font-medium transition', on ? 'border-primary bg-accent text-primary' : 'text-muted-foreground hover:border-foreground/30')}>{on ? '✓ ' : '+ '}{VIDEO_LANG_NAME[l]}</button>; })}
-                  </div>
+                  <p className="mb-2 mt-1 text-xs text-muted-foreground">{t(T.alsoP)}</p>
+                  <LangPicker options={VIDEO_LANGS} names={VIDEO_LANG_NAME} values={also} onChangeMany={(v) => setAlso(v as VLang[])} max={3} maxLabel={t(T.langMax)} exclude={vlang} placeholder={t(T.langAdd)} searchLabel={t(T.langSearch)} emptyLabel={t(T.langNone)} />
                 </details>
               </div>
               <div data-g="length">
