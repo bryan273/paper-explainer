@@ -122,6 +122,9 @@ export default function Admin() {
   const [status, setStatus] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState<TabId>(() => { try { return (localStorage.getItem('pe-admin-tab') as TabId) || 'overview'; } catch { return 'overview'; } });
+  // a red number means something new: opening its tab marks it as read, and it comes back only when the number goes up
+  const [seen, setSeen] = useState<Record<string, number>>(() => { try { return JSON.parse(localStorage.getItem('pe-admin-seen') || '{}'); } catch { return {}; } });
+  const markSeen = (id: string, n: number) => setSeen((o) => { const x = { ...o, [id]: n }; try { localStorage.setItem('pe-admin-seen', JSON.stringify(x)); } catch { /* ignore */ } return x; });
   const setTabKeep = (t: TabId) => { setTab(t); try { localStorage.setItem('pe-admin-tab', t); } catch { /* ignore */ } };
   const [preset, setPreset] = useState<'1' | '2' | '7' | '30' | '90' | '180' | 'custom'>('30');
   const [from, setFrom] = useState(iso10(new Date(Date.now() - 29 * 86400000)));
@@ -250,7 +253,7 @@ export default function Admin() {
     chosen: tally(data.signup_rows, (r) => r.c), ip: tally(data.signup_rows, (r) => r.ip), visits: tally(data.visit_country, (r) => r.c),
     langs: tally(data.signup_rows, (r) => r.l), sources: tally(data.signup_rows, (r) => r.s), roles: tally(data.signup_rows, (r) => r.r),
   } : null, [data, from, to]);
-  const jobLangs = useMemo(() => tally((data?.job_langs ?? []).map((j) => ({ d: j.d, l: j.l ?? 'en' })), (r) => LANGN[r.l] ?? r.l), [data, from, to]);
+  const jobLangs = useMemo(() => tally((data?.job_langs ?? []).flatMap((j) => String(j.l ?? 'en').split(/[,+\s]+/).filter(Boolean).map((l) => ({ d: j.d, l }))), (r) => LANGN[r.l] ?? r.l), [data, from, to]);
 
   // ---- money in the range
   const incomeRows = (data?.orders ?? []).filter((o) => (o.status === 'paid' || o.status === 'delivered') && inRangeIso(o.created_at));
@@ -286,6 +289,8 @@ export default function Admin() {
     { id: 'overview', label: 'Overview', badge: warn.length || undefined }, { id: 'revenue', label: 'Revenue', badge: ordersOpen || undefined }, { id: 'members', label: 'Members', badge: proofsOpen || undefined },
     { id: 'pricing', label: 'Pricing model' }, { id: 'audience', label: 'Audience' }, { id: 'videos', label: 'Videos and usage', badge: failed24 || undefined }, { id: 'infra', label: 'Infrastructure' }, { id: 'releases', label: 'Releases' }, { id: 'feedback', label: 'Feedback' },
   ];
+  // when the number drops (the problem went away), forget the old mark so a new one shows again
+  useEffect(() => { if (data) for (const t of tabs) if (seen[t.id] !== undefined && (t.badge ?? 0) < seen[t.id]) markSeen(t.id, t.badge ?? 0); }, [data, tabs.map((t) => t.badge ?? 0).join(',')]);  // eslint-disable-line react-hooks/exhaustive-deps
   const needsRange = !['infra', 'releases', 'pricing'].includes(tab);
 
   return (
@@ -313,8 +318,8 @@ export default function Admin() {
           <>
             <nav className="cs-tabs" role="tablist" aria-label="Admin sections">
               {tabs.map((t) => (
-                <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} className={tab === t.id ? 'on' : ''} onClick={() => setTabKeep(t.id)}>
-                  {t.label}{t.badge ? <i className="cs-badge">{t.badge}</i> : null}
+                <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} className={tab === t.id ? 'on' : ''} onClick={(e) => { setTabKeep(t.id); if (t.badge) markSeen(t.id, t.badge); e.currentTarget.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); }}>
+                  {t.label}{t.badge && t.badge > (seen[t.id] ?? 0) ? <i className="cs-badge">{t.badge}</i> : null}
                 </button>
               ))}
             </nav>
@@ -322,14 +327,14 @@ export default function Admin() {
             {needsRange && (
               <div className="cs-filterbar">
                 <div className="cs-seg" role="group" aria-label="Period">
-                  {([['1', 'Today'], ['2', '48 hours'], ['7', '7 days'], ['30', '30 days'], ['90', '90 days'], ['180', '180 days']] as const).map(([k, n]) => <button key={k} type="button" className={preset === k ? 'on' : ''} onClick={() => pick(k)}>{n}</button>)}
+                  {([['1', '1D', 'Today'], ['2', '2D', 'Last 48 hours'], ['7', '1W', 'Last 7 days'], ['30', '1M', 'Last 30 days'], ['90', '3M', 'Last 90 days'], ['180', '6M', 'Last 180 days']] as const).map(([k, n, full]) => <button key={k} type="button" title={full} aria-label={full} className={preset === k ? 'on' : ''} onClick={() => pick(k)}>{n}</button>)}
                 </div>
-                <label>From <input type="date" value={from} max={to} onChange={(e) => { setFrom(e.target.value); setPreset('custom'); }} /></label>
-                <label>To <input type="date" value={to} min={from} onChange={(e) => { setTo(e.target.value); setPreset('custom'); }} /></label>
-                <div className="cs-seg" role="group" aria-label="Group by">
-                  {(['hour', 'day', 'week', 'month'] as const).map((g) => <button key={g} type="button" className={group === g ? 'on' : ''} disabled={g === 'hour' && Date.parse(from) < Date.now() - 7 * 86400000} title={g === 'hour' ? 'Hourly numbers cover the last 7 days' : undefined} onClick={() => setGroup(g)}>{g === 'hour' ? 'Hourly' : g === 'day' ? 'Daily' : g === 'week' ? 'Weekly' : 'Monthly'}</button>)}
-                </div>
-                <span className="cs-dim">{hourly ? `${days.length} hours shown` : `${days.length} days shown`}</span>
+                <label className="cs-date"><input aria-label="From" title="From" type="date" value={from} max={to} onChange={(e) => { setFrom(e.target.value); setPreset('custom'); }} /></label>
+                <label className="cs-date">–<input aria-label="To" title="To" type="date" value={to} min={from} onChange={(e) => { setTo(e.target.value); setPreset('custom'); }} /></label>
+                <select className="cs-select" aria-label="Group by" value={group} onChange={(e) => setGroup(e.target.value as typeof group)}>
+                  {(['hour', 'day', 'week', 'month'] as const).map((g) => <option key={g} value={g} disabled={g === 'hour' && Date.parse(from) < Date.now() - 7 * 86400000}>{g === 'hour' ? 'Hourly' : g === 'day' ? 'Daily' : g === 'week' ? 'Weekly' : 'Monthly'}</option>)}
+                </select>
+                <span className="cs-dim cs-count">{hourly ? `${days.length} hours shown` : `${days.length} days shown`}</span>
               </div>
             )}
 
@@ -476,21 +481,38 @@ export default function Admin() {
                   <section className="cs-card"><h3>Video language</h3><HBars rows={jobLangs} color="#8a5cff" /></section>
                   <section className="cs-card"><h3>Model tokens by app (30 days max)</h3><HBars rows={llmByApp.map((r) => ({ k: r.k, n: r.n }))} color="#22c3ee" /></section>
                 </div>
-                {data.costs && (
-                  <section className="cs-card">
-                    <h3>What each feature costs us (last 30 days)</h3>
-                    <p className="cs-dim" style={{ fontSize: 13 }}>Videos: the cost the renderer measured for each video. Answers: tokens in the ledger times the model price (quick answers and research ${data.costs.prices.fast.in} / ${data.costs.prices.fast.out} per million tokens in / out, in-depth ${data.costs.prices.deep.in} / ${data.costs.prices.deep.out}).</p>
-                    <div className="cs-wrap" style={{ marginTop: 10 }}><table><thead><tr><th>Feature</th><th>Used</th><th>Cost each</th><th>Tokens each</th><th>Total</th></tr></thead><tbody>
-                      <tr><td>Video, per minute</td><td>{data.costs.videos} videos</td><td>{data.costs.video_per_minute !== null ? yuan(data.costs.video_per_minute) : '-'}</td><td>-</td><td>{yuan(data.costs.video_total)}</td></tr>
-                      <tr><td>Video, average 3 minute video</td><td></td><td>{data.costs.video_per_minute !== null ? yuan(data.costs.video_per_minute * 3) : '-'}</td><td>-</td><td></td></tr>
-                      <tr><td>Quick answer</td><td>{data.costs.quick.n}</td><td>{data.costs.quick.each !== null ? yuan(data.costs.quick.each) : '-'}</td><td>{data.costs.quick.tokens ?? '-'}</td><td>{yuan(data.costs.quick.total)}</td></tr>
-                      <tr><td>In-depth answer</td><td>{data.costs.deep.n}</td><td>{data.costs.deep.each !== null ? yuan(data.costs.deep.each) : '-'}</td><td>{data.costs.deep.tokens ?? '-'}</td><td>{yuan(data.costs.deep.total)}</td></tr>
-                      <tr><td>Interactive mode questions</td><td>{data.costs.quiz.n}</td><td>{data.costs.quiz.each !== null ? yuan(data.costs.quiz.each) : '-'}</td><td>{data.costs.quiz.tokens ?? '-'}</td><td>{yuan(data.costs.quiz.total)}</td></tr>
-                      <tr><td>Research question</td><td>{data.costs.research.n}</td><td>{data.costs.research.each !== null ? yuan(data.costs.research.each) : '-'}</td><td>-</td><td></td></tr>
-                      <tr><td>Video edits</td><td>{data.costs.edits}</td><td>about one video</td><td>-</td><td>in the video cost</td></tr>
-                    </tbody></table></div>
-                  </section>
-                )}
+                {data.costs && (() => {
+                    const c = data.costs!;
+                    const parts = [
+                      { k: 'Videos', total: c.video_total, n: c.videos, unit: 'video', each: c.video_per_minute !== null ? c.video_per_minute * 3 : null, note: 'per 3 minute video', color: '#6a4cff' },
+                      { k: 'Quick answers', total: c.quick.total, n: c.quick.n, unit: 'answer', each: c.quick.each, note: c.quick.tokens ? `${Math.round(c.quick.tokens / 1000)}k tokens each` : '', color: '#22c3ee' },
+                      { k: 'In-depth answers', total: c.deep.total, n: c.deep.n, unit: 'answer', each: c.deep.each, note: c.deep.tokens ? `${Math.round(c.deep.tokens / 1000)}k tokens each` : '', color: '#8a5cff' },
+                      { k: 'Interactive questions', total: c.quiz.total, n: c.quiz.n, unit: 'question', each: c.quiz.each, note: c.quiz.tokens ? `${Math.round(c.quiz.tokens / 1000)}k tokens each` : '', color: '#f59e0b' },
+                    ];
+                    const sum = parts.reduce((x, y) => x + (y.total || 0), 0) || 1;
+                    return (
+                      <section className="cs-card">
+                        <h3>Where the money goes (last 30 days)</h3>
+                        <p className="cs-dim" style={{ fontSize: 13 }}>Total spent on models and rendering: <b>{yuan(sum)}</b>. The bar shows each feature's share.</p>
+                        <div className="cs-stack" role="img" aria-label="Share of cost by feature">
+                          {parts.map((x) => <span key={x.k} title={`${x.k}: ${yuan(x.total || 0)}`} style={{ width: `${Math.max(1.5, ((x.total || 0) / sum) * 100)}%`, background: x.color }} />)}
+                        </div>
+                        <div className="cs-costgrid">
+                          {parts.map((x) => (
+                            <div key={x.k} className="cs-costcell">
+                              <span className="cs-dot" style={{ background: x.color }} />
+                              <div>
+                                <b>{x.k}</b>
+                                <div className="cs-big2">{yuan(x.total || 0)} <small>{Math.round(((x.total || 0) / sum) * 100)}%</small></div>
+                                <div className="cs-dim" style={{ fontSize: 12 }}>{x.n} {x.unit}{x.n === 1 ? '' : 's'}{x.each !== null ? ` at ${yuan(x.each)} each` : ''}{x.note ? `, ${x.note}` : ''}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="cs-dim" style={{ fontSize: 12, marginTop: 10 }}>Research questions: {c.research.n}. Edits: {c.edits}, each about one video. Video cost is what the renderer measured; answers are tokens times the model price (quick and research ${c.prices.fast.in} / ${c.prices.fast.out} per million tokens in / out, in-depth ${c.prices.deep.in} / ${c.prices.deep.out}).</p>
+                      </section>
+                    );
+                })()}
                 {(() => { const why: Record<string, number> = {}; for (const j of data.jobs) if (j.status === 'failed' && inRangeIso(j.created_at)) { const k = (j.error || 'No reason recorded').replace(/[0-9a-f]{8}-[0-9a-f-]{27}/g, '').slice(0, 140); why[k] = (why[k] || 0) + 1; } const rows = Object.entries(why).sort((a, b) => b[1] - a[1]); return rows.length ? (
                   <section className="cs-card"><h3>Why videos failed</h3><div className="cs-wrap"><table><thead><tr><th>Reason shown to the member</th><th>Videos</th></tr></thead><tbody>{rows.map(([k, n]) => <tr key={k}><td>{k}</td><td>{n}</td></tr>)}</tbody></table></div><p className="cs-dim" style={{ fontSize: 13, marginTop: 8 }}>Failed videos never use a credit. The member sees the same reason on the video page.</p></section>
                 ) : null; })()}
@@ -532,9 +554,9 @@ export default function Admin() {
                     {rk.state === 'unknown' && <><p className="sub">The gateway answered in a shape this page does not know. What it said:</p><pre className="cs-pre">{JSON.stringify(data.rkapi, null, 1).slice(0, 900)}</pre></>}
                     {rk.state === 'ok' && (
                       <>
-                        <div className="cs-big">{rk.unlimited ? 'Unlimited' : `$${rk.remaining.toFixed(2)}`}<small> left</small></div>
+                        {rk.unlimited ? <><div className="cs-big">${rk.used.toLocaleString(undefined, { maximumFractionDigits: 0 })}<small> spent through this key</small></div><p className="sub">This key has no limit of its own, so the gateway cannot say how much is left. The wallet balance is only on the gateway dashboard. The spend counts every project that uses this key, not only Paperlit.</p></> : <div className="cs-big">${rk.remaining.toFixed(2)}<small> left</small></div>}
                         {!rk.unlimited && <Gauge label="Used" used={rk.used} limit={Math.max(rk.granted, rk.used)} fmt={(n) => `$${n.toFixed(2)}`} />}
-                        <p className="sub">Read from the gateway ({rk.src}). Approximate: top up well before it reaches zero.</p>
+                        <p className="sub">Read from the gateway ({rk.src}). Approximate.</p>
                       </>
                     )}
                   </section>
@@ -641,7 +663,7 @@ const css = `.cs-root{--accent:hsl(var(--primary));--bg:hsl(var(--background));-
 .cs-btn:hover{border-color:var(--accent);color:var(--accent)}
 .cs-btn:disabled{opacity:.5;cursor:default}
 .cs-btn.sm{padding:4px 10px;font-size:12px}
-.cs-tabs{display:flex;flex-wrap:wrap;gap:4px;overflow-x:visible;margin:22px 0 0;padding-bottom:2px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30;background:var(--bg)}
+.cs-tabs{display:flex;flex-wrap:nowrap;gap:4px;overflow-x:auto;scrollbar-width:none;scroll-behavior:smooth;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;margin:22px 0 0;padding-bottom:2px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30;background:var(--bg)}
 .cs-tabs button{border:0;background:none;color:var(--text2);padding:12px 16px;font:600 14px inherit;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-1px}
 .cs-tabs button:hover{color:var(--text)}
 .cs-tabs button.on{color:var(--accent);border-bottom-color:var(--accent)}
@@ -650,7 +672,7 @@ const css = `.cs-root{--accent:hsl(var(--primary));--bg:hsl(var(--background));-
 .cs-filterbar label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2)}
 .cs-filterbar input[type=date],.cs-filters select,.cs-search{border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:9px;padding:6px 9px;font:500 13px inherit}
 .cs-seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.cs-seg button{border:0;background:var(--bg);color:var(--text);padding:7px 13px;font:600 13px inherit;cursor:pointer;border-right:1px solid var(--line)}
+.cs-seg button{border:0;background:var(--bg);color:var(--text);padding:7px 11px;font:600 13px inherit;cursor:pointer;border-right:1px solid var(--line)}
 .cs-seg button:last-child{border-right:0}
 .cs-seg button.on{background:var(--accent);color:#fff}
 .cs-filters{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 10px}
@@ -706,6 +728,12 @@ const css = `.cs-root{--accent:hsl(var(--primary));--bg:hsl(var(--background));-
 @media (pointer:coarse){.cs-btn.sm,.cs-seg button,.cs-tabs button{min-height:40px}}
 .cs-view{display:inline-block;margin:8px 0 0;padding:4px 10px;border-radius:999px;font-size:12.5px;font-weight:600}.cs-view.real{background:rgba(26,154,85,.12);color:#1a9a55}.cs-view.qa{background:rgba(201,138,18,.14);color:#a8720c}
 .cs-root{overflow-x:clip}
-@media (max-width:900px){.cs-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.cs-tabs::-webkit-scrollbar{display:none}}
+.cs-tabs::-webkit-scrollbar{display:none}
+.cs-date{display:inline-flex;align-items:center;gap:6px}.cs-date input{padding:6px 8px;font-size:13px}
+.cs-count{display:none}
+.cs-stack{display:flex;height:16px;border-radius:8px;overflow:hidden;margin:12px 0;background:var(--line)}.cs-stack span{display:block;min-width:4px}
+.cs-costgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}.cs-costcell{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:12px}.cs-dot{width:10px;height:10px;border-radius:50%;margin-top:5px;flex:none}.cs-big2{font:700 20px inherit;margin:2px 0}.cs-big2 small{font:600 12px inherit;color:var(--text2)}
+@media (min-width:1280px){.cs-count{display:inline}}
+.cs-select{border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);padding:7px 10px;font:600 13px inherit}
 @media (max-width:640px){.cs{padding:18px 12px 80px}.hbar{grid-template-columns:100px 1fr 38px 34px}.cs-search{min-width:0;width:100%}.kpi b{font-size:24px}}
 `;

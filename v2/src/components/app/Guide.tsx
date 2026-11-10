@@ -278,13 +278,15 @@ export function Guide() {
     else if (box.top - 14 - H > 0) pos = { left, top: box.top - 14 - H };
     else pos = { left: '50%', bottom: 12, transform: 'translateX(-50%)' };
   }
+  // the card never runs past the bottom of the screen: it scrolls inside, and Back / Next stay in view
+  const mh = typeof pos.top === 'number' ? Math.max(200, window.innerHeight - pos.top - 12) : window.innerHeight - 24;
   const hole = box ? { l: box.left - pad, t: box.top - pad, w: box.width + pad * 2, h: box.height + pad * 2 } : null;
   return (
     <div className="fixed inset-0 z-[80]" role="dialog" aria-modal="true" aria-labelledby="pl-guide-h">
       {hole
         ? <div className="pointer-events-none absolute rounded-xl ring-2 ring-primary transition-all duration-200" style={{ left: hole.l, top: hole.t, width: hole.w, height: hole.h, boxShadow: '0 0 0 9999px rgba(10,10,30,0.55)' }} />
         : <div className="absolute inset-0 bg-[rgba(10,10,30,0.55)]" />}
-      <div className="absolute max-h-[calc(100dvh-24px)] overflow-y-auto rounded-2xl border bg-card p-5 text-card-foreground shadow-2xl" style={{ width: W, ...pos }}>
+      <div className="absolute overflow-y-auto rounded-2xl border bg-card p-5 text-card-foreground shadow-2xl" style={{ width: W, maxHeight: mh, ...pos }}>
         <button type="button" onClick={close} aria-label={t(S.close)} className="absolute right-3 top-3 rounded-md p-1 text-muted-foreground hover:bg-muted"><X className="h-4 w-4" /></button>
         <p className="text-xs font-medium text-muted-foreground">{t(S.of).replace('{i}', String(i + 1)).replace('{n}', String(run.steps.length))}</p>
         <h2 id="pl-guide-h" className="mt-1 pr-6 font-display text-lg font-semibold">{t(step.h)}</h2>
@@ -295,7 +297,7 @@ export function Guide() {
             <step.ex />
           </div>
         )}
-        <div className="mt-4 flex items-center justify-between gap-2">
+        <div className="sticky -bottom-5 -mx-5 -mb-5 mt-4 flex items-center justify-between gap-2 rounded-b-2xl border-t bg-card px-5 py-3">
           <div className="flex gap-1.5" aria-hidden="true">{run.steps.map((_, k) => <span key={k} className={k === i ? 'h-1.5 w-5 rounded-full bg-primary' : 'h-1.5 w-1.5 rounded-full bg-muted-foreground/30'} />)}</div>
           <div className="flex gap-2">
             {i > 0 && <Button variant="outline" size="sm" onClick={() => setI(i - 1)}>{t(S.back)}</Button>}
